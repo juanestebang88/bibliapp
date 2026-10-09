@@ -1,3 +1,39 @@
 
 # FVM Version Cache
 .fvm/
+
+# Flutter/Dart
+.dart_tool/
+.packages
+.pub/
+build/
+pubspec.lock
+
+# IDEs
+.idea/
+.vscode/
+
+# Android Studio / IntelliJ
+*.iml
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Flutter
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Generated
+generated_plugin_registrant.dart
+
+# IA
+.agents/
+specs/
+skills-lock.json
+AGENTS.md
+
+# data
+RV1960.json
