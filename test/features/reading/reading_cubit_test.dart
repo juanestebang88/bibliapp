@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:bibliapp/core/error/failure.dart';
+import 'package:bibliapp/features/reading/domain/entities/chapter_reference.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
@@ -50,6 +51,8 @@ void main() {
         .thenAnswer((_) async => const Right<Failure, bool>(true));
     when(() => getChapterCount(any()))
         .thenAnswer((_) async => const Right<Failure, int>(1));
+    when(() => getChapterVerses(any(), any()))
+        .thenAnswer((_) async => const Right<Failure, List<VerseEntity>>([]));
   });
 
   ReadingCubit createCubit() => ReadingCubit(
@@ -301,6 +304,133 @@ void main() {
       await cubit.close();
     },
   );
+
+  test(
+    'exposes previous and next chapter references within the book',
+    () async {
+      when(() => getChapterCount('genesis'))
+          .thenAnswer((_) async => const Right<Failure, int>(50));
+      when(() => getChapterVerses('genesis', 2)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(3, book: 'genesis', chapter: 2),
+        ),
+      );
+
+      final cubit = createCubit();
+      await cubit.loadChapter('genesis', 2);
+
+      expect(
+        cubit.state.previousChapterReference,
+        const ChapterReference(book: 'genesis', chapter: 1),
+      );
+      expect(
+        cubit.state.nextChapterReference,
+        const ChapterReference(book: 'genesis', chapter: 3),
+      );
+      await cubit.close();
+    },
+  );
+
+  test('pre-loads the neighboring chapter verses after loading', () async {
+    when(() => getChapterCount('genesis'))
+        .thenAnswer((_) async => const Right<Failure, int>(50));
+    when(() => getChapterVerses('genesis', 1)).thenAnswer(
+      (_) async => Right<Failure, List<VerseEntity>>(
+        versesFor(2, book: 'genesis', chapter: 1),
+      ),
+    );
+    when(() => getChapterVerses('genesis', 2)).thenAnswer(
+      (_) async => Right<Failure, List<VerseEntity>>(
+        versesFor(3, book: 'genesis', chapter: 2),
+      ),
+    );
+    when(() => getChapterVerses('genesis', 3)).thenAnswer(
+      (_) async => Right<Failure, List<VerseEntity>>(
+        versesFor(4, book: 'genesis', chapter: 3),
+      ),
+    );
+
+    final cubit = createCubit();
+    await cubit.loadChapter('genesis', 2);
+
+    expect(
+      cubit.state.previousChapterVerses,
+      versesFor(2, book: 'genesis', chapter: 1),
+    );
+    expect(
+      cubit.state.nextChapterVerses,
+      versesFor(4, book: 'genesis', chapter: 3),
+    );
+    await cubit.close();
+  });
+
+  test('resolves references across book boundaries', () async {
+    when(() => getChapterCount('genesis'))
+        .thenAnswer((_) async => const Right<Failure, int>(50));
+    when(() => getChapterCount('exodus'))
+        .thenAnswer((_) async => const Right<Failure, int>(40));
+    when(() => getChapterVerses('exodus', 1)).thenAnswer(
+      (_) async => Right<Failure, List<VerseEntity>>(
+        versesFor(2, book: 'exodus', chapter: 1),
+      ),
+    );
+
+    final cubit = createCubit();
+    await cubit.loadChapter('exodus', 1);
+
+    expect(
+      cubit.state.previousChapterReference,
+      const ChapterReference(book: 'genesis', chapter: 50),
+    );
+    expect(
+      cubit.state.nextChapterReference,
+      const ChapterReference(book: 'exodus', chapter: 2),
+    );
+    await cubit.close();
+  });
+
+  test('has no previous reference at the start of the Bible', () async {
+    when(() => getChapterCount('genesis'))
+        .thenAnswer((_) async => const Right<Failure, int>(50));
+    when(() => getChapterVerses('genesis', 1)).thenAnswer(
+      (_) async => Right<Failure, List<VerseEntity>>(
+        versesFor(3, book: 'genesis', chapter: 1),
+      ),
+    );
+
+    final cubit = createCubit();
+    await cubit.loadChapter('genesis', 1);
+
+    expect(cubit.state.previousChapterReference, isNull);
+    expect(
+      cubit.state.nextChapterReference,
+      const ChapterReference(book: 'genesis', chapter: 2),
+    );
+    await cubit.close();
+  });
+
+  test('clears the previous reference when returning to Genesis 1', () async {
+    when(() => getChapterCount(any()))
+        .thenAnswer((_) async => const Right<Failure, int>(50));
+    when(() => getChapterVerses('exodus', 1)).thenAnswer(
+      (_) async => Right<Failure, List<VerseEntity>>(
+        versesFor(2, book: 'exodus', chapter: 1),
+      ),
+    );
+    when(() => getChapterVerses('genesis', 1)).thenAnswer(
+      (_) async => Right<Failure, List<VerseEntity>>(
+        versesFor(2, book: 'genesis', chapter: 1),
+      ),
+    );
+
+    final cubit = createCubit();
+    await cubit.loadChapter('exodus', 1);
+    expect(cubit.state.previousChapterReference, isNotNull);
+
+    await cubit.loadChapter('genesis', 1);
+    expect(cubit.state.previousChapterReference, isNull);
+    await cubit.close();
+  });
 }
 
 class _MockGetChapterVerses extends Mock implements GetChapterVerses {}

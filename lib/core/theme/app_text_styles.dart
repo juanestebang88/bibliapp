@@ -1,63 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import 'app_colors.dart';
 
 class AppTextStyles {
   const AppTextStyles._();
 
-  /// Tamaño de fuente del selector de pasaje (30% mayor que el medio estándar)
+  /// Font size of the passage picker (30% larger than the standard medium size)
   static const double passagePickerFontSize = 21;
 
-  /// Título principal centrado en negrita (para el título del capítulo)
-  static const TextStyle chapterTitle = TextStyle(
+  /// Main centered title in bold (used for the chapter title)
+  static final TextStyle chapterTitle = GoogleFonts.googleSansFlex(
     fontSize: 24,
     fontWeight: FontWeight.bold,
     color: Colors.white,
-    fontFamily: 'Georgia',
   );
 
-  /// Texto de versículo principal
-  static const TextStyle verseText = TextStyle(
+  /// Main verse text
+  static final TextStyle verseText = GoogleFonts.googleSansFlex(
     fontSize: 20,
-    fontFamily: 'Georgia',
     color: Colors.black87,
     height: 1.5,
   );
 
-  /// Texto de número de versículo en superíndice (color oro)
-  static const TextStyle verseNumber = TextStyle(
+  /// Verse number text in superscript (gold color)
+  static final TextStyle verseNumber = GoogleFonts.googleSansFlex(
     fontSize: 12,
     color: Color(0xFFD4A853),
     fontStyle: FontStyle.italic,
   );
 
-  /// Texto tamaño reducido (A-)
-  static const TextStyle textSizeReduced = TextStyle(
+  /// Reduced font size text (A-)
+  static final TextStyle textSizeReduced = GoogleFonts.googleSansFlex(
     fontSize: 16,
     color: Colors.black87,
-    fontFamily: 'Georgia',
   );
 
-  /// Texto tamaño aumentado (A+)
-  static const TextStyle textSizeIncreased = TextStyle(
+  /// Increased font size text (A+)
+  static final TextStyle textSizeIncreased = GoogleFonts.googleSansFlex(
     fontSize: 24,
     color: Colors.black87,
-    fontFamily: 'Georgia',
   );
 
-  /// Botón de acción pequeña
-  static const TextStyle buttonSmall = TextStyle(
+  /// Small action button
+  static final TextStyle buttonSmall = GoogleFonts.googleSansFlex(
     fontSize: 12,
     color: Colors.white,
   );
 
-  /// Label de botón A- (gris claro)
-  static const TextStyle labelAMinus = TextStyle(
-    fontSize: 14,
-    color: Color(0xFFB0B0B0),
+  /// A- button label (gold, enlarged)
+  static final TextStyle labelAMinus = GoogleFonts.googleSansFlex(
+    fontSize: 22,
+    color: AppColors.goldAccent,
   );
 
-  /// Label de botón A+ (gris claro)
-  static const TextStyle labelAPlus = TextStyle(
-    fontSize: 14,
-    color: Color(0xFFB0B0B0),
+  /// A+ button label (gold, enlarged)
+  static final TextStyle labelAPlus = GoogleFonts.googleSansFlex(
+    fontSize: 22,
+    color: AppColors.goldAccent,
   );
 }

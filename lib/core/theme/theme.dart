@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
@@ -19,29 +20,22 @@ ThemeData appTheme({Brightness brightness = Brightness.dark}) {
       elevation: 0,
     ),
     textTheme: TextTheme(
-      titleLarge: TextStyle(
+      titleLarge: GoogleFonts.googleSansFlex(
         color: foreground,
-        fontFamily: 'Georgia',
         fontSize: 24,
         fontWeight: FontWeight.bold,
       ),
-      titleMedium: TextStyle(
+      titleMedium: GoogleFonts.googleSansFlex(
         color: foreground,
-        fontFamily: 'sans-serif',
         fontSize: 16,
         fontWeight: FontWeight.w600,
       ),
-      bodyLarge: TextStyle(
+      bodyLarge: GoogleFonts.googleSansFlex(
         color: foreground,
-        fontFamily: 'Georgia',
         fontSize: 20,
         height: 1.7,
       ),
-      labelSmall: TextStyle(
-        color: foreground,
-        fontFamily: 'sans-serif',
-        fontSize: 12,
-      ),
+      labelSmall: GoogleFonts.googleSansFlex(color: foreground, fontSize: 12),
     ),
     colorScheme:
         (isDark

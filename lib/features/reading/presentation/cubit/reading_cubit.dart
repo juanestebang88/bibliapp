@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bibliapp/features/reading/domain/book_order.dart';
+import 'package:bibliapp/features/reading/domain/entities/chapter_reference.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
@@ -21,8 +22,12 @@ class ReadingState extends Equatable {
   final int currentChapter;
   final int currentVerseNumber;
   final int? bookChapterCount;
+  final ChapterReference? previousChapterReference;
+  final ChapterReference? nextChapterReference;
   final ReadingProgressEntity? savedProgress;
   final String? errorMessage;
+  final List<VerseEntity> previousChapterVerses;
+  final List<VerseEntity> nextChapterVerses;
 
   const ReadingState({
     this.status = ReadingStatus.initial,
@@ -32,8 +37,12 @@ class ReadingState extends Equatable {
     this.currentChapter = 1,
     this.currentVerseNumber = 1,
     this.bookChapterCount,
+    this.previousChapterReference,
+    this.nextChapterReference,
     this.savedProgress,
     this.errorMessage,
+    this.previousChapterVerses = const [],
+    this.nextChapterVerses = const [],
   });
 
   bool get isFirstChapter => currentBook == 'genesis' && currentChapter == 1;
@@ -49,9 +58,17 @@ class ReadingState extends Equatable {
     int? currentChapter,
     int? currentVerseNumber,
     int? bookChapterCount,
+    ChapterReference? previousChapterReference,
+    ChapterReference? nextChapterReference,
     ReadingProgressEntity? savedProgress,
     String? errorMessage,
+    List<VerseEntity>? previousChapterVerses,
+    List<VerseEntity>? nextChapterVerses,
     bool clearErrorMessage = false,
+    bool clearPreviousChapterReference = false,
+    bool clearNextChapterReference = false,
+    bool clearPreviousChapterVerses = false,
+    bool clearNextChapterVerses = false,
   }) => ReadingState(
     status: status ?? this.status,
     chapterVerses: chapterVerses ?? this.chapterVerses,
@@ -60,8 +77,20 @@ class ReadingState extends Equatable {
     currentChapter: currentChapter ?? this.currentChapter,
     currentVerseNumber: currentVerseNumber ?? this.currentVerseNumber,
     bookChapterCount: bookChapterCount ?? this.bookChapterCount,
+    previousChapterReference: clearPreviousChapterReference
+        ? null
+        : previousChapterReference ?? this.previousChapterReference,
+    nextChapterReference: clearNextChapterReference
+        ? null
+        : nextChapterReference ?? this.nextChapterReference,
     savedProgress: savedProgress ?? this.savedProgress,
     errorMessage: clearErrorMessage ? null : errorMessage ?? this.errorMessage,
+    previousChapterVerses: clearPreviousChapterVerses
+        ? const []
+        : previousChapterVerses ?? this.previousChapterVerses,
+    nextChapterVerses: clearNextChapterVerses
+        ? const []
+        : nextChapterVerses ?? this.nextChapterVerses,
   );
 
   @override
@@ -73,8 +102,12 @@ class ReadingState extends Equatable {
     currentChapter,
     currentVerseNumber,
     bookChapterCount,
+    previousChapterReference,
+    nextChapterReference,
     savedProgress,
     errorMessage,
+    previousChapterVerses,
+    nextChapterVerses,
   ];
 }
 
@@ -132,6 +165,35 @@ class ReadingCubit extends Cubit<ReadingState> {
     bool saveProgress = true,
   }) async {
     if (chapter < 1) return;
+
+    final previousRef = state.previousChapterReference;
+    if (previousRef?.book == book &&
+        previousRef?.chapter == chapter &&
+        state.previousChapterVerses.isNotEmpty) {
+      await _completeChapterLoad(
+        book,
+        chapter,
+        state.previousChapterVerses,
+        verse: verse,
+        saveProgress: saveProgress,
+      );
+      return;
+    }
+
+    final nextRef = state.nextChapterReference;
+    if (nextRef?.book == book &&
+        nextRef?.chapter == chapter &&
+        state.nextChapterVerses.isNotEmpty) {
+      await _completeChapterLoad(
+        book,
+        chapter,
+        state.nextChapterVerses,
+        verse: verse,
+        saveProgress: saveProgress,
+      );
+      return;
+    }
+
     emit(
       state.copyWith(status: ReadingStatus.loading, clearErrorMessage: true),
     );
@@ -151,12 +213,44 @@ class ReadingCubit extends Cubit<ReadingState> {
     }
 
     final verses = result.getOrElse((_) => const <VerseEntity>[]);
-    final chapterCount = (await getChapterCount(book)).getOrElse((_) => 1);
 
     if (verses.isEmpty) {
       emit(state.copyWith(status: ReadingStatus.success));
       return;
     }
+
+    await _completeChapterLoad(
+      book,
+      chapter,
+      verses,
+      verse: verse,
+      saveProgress: saveProgress,
+    );
+  }
+
+  Future<void> _completeChapterLoad(
+    String book,
+    int chapter,
+    List<VerseEntity> verses, {
+    int verse = 1,
+    bool saveProgress = true,
+  }) async {
+    final chapterCount = (await getChapterCount(book)).getOrElse((_) => 1);
+
+    final previousChapterReference = await _resolvePreviousReference(
+      book,
+      chapter,
+    );
+    final nextChapterReference = _resolveNextReference(
+      book,
+      chapter,
+      chapterCount,
+    );
+
+    final previousChapterVerses = await _fetchVersesOf(
+      previousChapterReference,
+    );
+    final nextChapterVerses = await _fetchVersesOf(nextChapterReference);
 
     emit(
       state.copyWith(
@@ -166,10 +260,59 @@ class ReadingCubit extends Cubit<ReadingState> {
         currentChapter: chapter,
         currentVerseNumber: verse.clamp(1, verses.length),
         bookChapterCount: chapterCount,
+        previousChapterReference: previousChapterReference,
+        clearPreviousChapterReference: previousChapterReference == null,
+        nextChapterReference: nextChapterReference,
+        clearNextChapterReference: nextChapterReference == null,
+        previousChapterVerses: previousChapterVerses,
+        clearPreviousChapterVerses: previousChapterReference == null,
+        nextChapterVerses: nextChapterVerses,
+        clearNextChapterVerses: nextChapterReference == null,
         clearErrorMessage: true,
       ),
     );
     if (saveProgress) await saveCurrentProgress();
+  }
+
+  Future<List<VerseEntity>> _fetchVersesOf(ChapterReference? reference) async {
+    if (reference == null) return const [];
+    return (await getChapterVerses(
+      reference.book,
+      reference.chapter,
+    )).getOrElse((_) => const <VerseEntity>[]);
+  }
+
+  Future<ChapterReference?> _resolvePreviousReference(
+    String book,
+    int chapter,
+  ) async {
+    if (chapter > 1) {
+      return ChapterReference(book: book, chapter: chapter - 1);
+    }
+    final bookIndex = bibleBookOrder.indexOf(book);
+    if (bookIndex <= 0) return null;
+    final previousBook = bibleBookOrder[bookIndex - 1];
+    final chapterCount = (await getChapterCount(previousBook))
+        .getOrElse((_) => 1);
+    return ChapterReference(
+      book: previousBook,
+      chapter: chapterCount <= 0 ? 1 : chapterCount,
+    );
+  }
+
+  ChapterReference? _resolveNextReference(
+    String book,
+    int chapter,
+    int chapterCount,
+  ) {
+    if (chapter < chapterCount) {
+      return ChapterReference(book: book, chapter: chapter + 1);
+    }
+    final bookIndex = bibleBookOrder.indexOf(book);
+    if (bookIndex >= 0 && bookIndex < bibleBookOrder.length - 1) {
+      return ChapterReference(book: bibleBookOrder[bookIndex + 1], chapter: 1);
+    }
+    return null;
   }
 
   Future<void> adjustFontSize(double delta) async {
