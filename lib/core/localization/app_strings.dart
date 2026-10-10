@@ -15,6 +15,11 @@ class AppStrings {
   static const emptyChapter =
       'No hay versículos disponibles para este capítulo.';
   static const retry = 'Reintentar';
+  static const selectPassage = 'Seleccionar pasaje';
+  static const oldTestament = 'AT';
+  static const newTestament = 'NT';
+  static const back = 'Volver';
+  static const close = 'Cerrar';
 
   static const bookNames = <String, String>{
     'genesis': 'Génesis',

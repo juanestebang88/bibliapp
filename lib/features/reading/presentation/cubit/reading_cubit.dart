@@ -25,6 +25,7 @@ class ReadingState extends Equatable {
   final ChapterReference? previousChapterReference;
   final ChapterReference? nextChapterReference;
   final String? errorMessage;
+  final int? pendingScrollVerse;
 
   const ReadingState({
     this.status = ReadingStatus.initial,
@@ -37,6 +38,7 @@ class ReadingState extends Equatable {
     this.previousChapterReference,
     this.nextChapterReference,
     this.errorMessage,
+    this.pendingScrollVerse,
   });
 
   bool get isFirstChapter => currentBook == 'genesis' && currentChapter == 1;
@@ -55,9 +57,11 @@ class ReadingState extends Equatable {
     ChapterReference? previousChapterReference,
     ChapterReference? nextChapterReference,
     String? errorMessage,
+    int? pendingScrollVerse,
     bool clearErrorMessage = false,
     bool clearPreviousChapterReference = false,
     bool clearNextChapterReference = false,
+    bool clearPendingScrollVerse = false,
   }) => ReadingState(
     status: status ?? this.status,
     chapterVerses: chapterVerses ?? this.chapterVerses,
@@ -73,6 +77,9 @@ class ReadingState extends Equatable {
         ? null
         : nextChapterReference ?? this.nextChapterReference,
     errorMessage: clearErrorMessage ? null : errorMessage ?? this.errorMessage,
+    pendingScrollVerse: clearPendingScrollVerse
+        ? null
+        : pendingScrollVerse ?? this.pendingScrollVerse,
   );
 
   @override
@@ -87,6 +94,7 @@ class ReadingState extends Equatable {
     previousChapterReference,
     nextChapterReference,
     errorMessage,
+    pendingScrollVerse,
   ];
 }
 
@@ -254,6 +262,22 @@ class ReadingCubit extends Cubit<ReadingState> {
   void selectVerse(int verse) {
     if (verse < 1 || verse > state.chapterVerses.length) return;
     emit(state.copyWith(currentVerseNumber: verse));
+  }
+
+  Future<void> loadChapterAndScrollTo(
+    String book,
+    int chapter,
+    int verse,
+  ) async {
+    await loadChapter(book, chapter);
+    if (state.status != ReadingStatus.success) return;
+    if (state.currentBook != book || state.currentChapter != chapter) return;
+    emit(state.copyWith(currentVerseNumber: verse, pendingScrollVerse: verse));
+  }
+
+  void consumePendingScroll() {
+    if (state.pendingScrollVerse == null) return;
+    emit(state.copyWith(clearPendingScrollVerse: true));
   }
 
   Future<void> previousChapter() async {

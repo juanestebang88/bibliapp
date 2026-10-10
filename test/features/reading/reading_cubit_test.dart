@@ -388,6 +388,29 @@ void main() {
     expect(cubit.state.previousChapterReference, isNull);
     await cubit.close();
   });
+
+  test('loads a chapter and marks the target verse for scroll', () async {
+    when(() => getChapterCount('genesis'))
+        .thenAnswer((_) async => const Right<Failure, int>(50));
+    when(() => getChapterVerses('genesis', 3)).thenAnswer(
+      (_) async => Right<Failure, List<VerseEntity>>(
+        versesFor(5, book: 'genesis', chapter: 3),
+      ),
+    );
+
+    final cubit = createCubit();
+    await cubit.loadChapterAndScrollTo('genesis', 3, 5);
+
+    expect(cubit.state.status, ReadingStatus.success);
+    expect(cubit.state.currentBook, 'genesis');
+    expect(cubit.state.currentChapter, 3);
+    expect(cubit.state.currentVerseNumber, 5);
+    expect(cubit.state.pendingScrollVerse, 5);
+
+    cubit.consumePendingScroll();
+    expect(cubit.state.pendingScrollVerse, isNull);
+    await cubit.close();
+  });
 }
 
 class _MockGetChapterVerses extends Mock implements GetChapterVerses {}

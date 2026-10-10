@@ -8,8 +8,13 @@ import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart'
 
 class ReadingHeader extends StatelessWidget {
   final ReadingState state;
+  final VoidCallback onOpenPicker;
 
-  const ReadingHeader({super.key, required this.state});
+  const ReadingHeader({
+    super.key,
+    required this.state,
+    required this.onOpenPicker,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,37 +30,41 @@ class ReadingHeader extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                    vertical: AppSpacing.md,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
+                child: Material(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                  child: InkWell(
                     borderRadius: BorderRadius.circular(AppRadius.pill),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.menu_book_rounded,
-                        color: theme.colorScheme.primary,
+                    onTap: onOpenPicker,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.lg,
+                        vertical: AppSpacing.md,
                       ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Text(
-                          passage,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontSize: AppTextStyles.passagePickerFontSize,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.menu_book_rounded,
+                            color: theme.colorScheme.primary,
                           ),
-                        ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: Text(
+                              passage,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontSize: AppTextStyles.passagePickerFontSize,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            Icons.keyboard_arrow_down,
+                            color: theme.colorScheme.secondary,
+                          ),
+                        ],
                       ),
-                      Icon(
-                        Icons.keyboard_arrow_down,
-                        color: theme.colorScheme.secondary,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
