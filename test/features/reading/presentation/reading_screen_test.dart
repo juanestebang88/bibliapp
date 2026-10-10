@@ -34,6 +34,14 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(const ReadingSettingsEntity());
+    registerFallbackValue(
+      const ReadingProgressEntity(
+        lastBook: 'genesis',
+        lastChapter: 1,
+        lastVerse: 1,
+        timestamp: 0,
+      ),
+    );
   });
 
   setUp(() async {
@@ -51,6 +59,8 @@ void main() {
       (_) async => const Right<Failure, ReadingSettingsEntity?>(null),
     );
     when(() => saveReadingSettings(any()))
+        .thenAnswer((_) async => const Right<Failure, bool>(true));
+    when(() => saveReadingProgress(any()))
         .thenAnswer((_) async => const Right<Failure, bool>(true));
     when(() => getChapterCount(any()))
         .thenAnswer((_) async => const Right<Failure, int>(1));
@@ -107,6 +117,32 @@ void main() {
       return true;
     });
     expect(verseFontSize, 21);
+  });
+
+  testWidgets('swipes to the next chapter', (tester) async {
+    when(() => getChapterCount('genesis'))
+        .thenAnswer((_) async => const Right<Failure, int>(50));
+    when(() => getChapterVerses('genesis', 2)).thenAnswer(
+      (_) async => const Right<Failure, List<VerseEntity>>([
+        VerseEntity(
+          book: 'genesis',
+          chapter: 2,
+          verse: 1,
+          text: 'Second chapter verse',
+        ),
+      ]),
+    );
+
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Génesis 1'), findsOneWidget);
+
+    await tester.fling(find.byType(PageView), const Offset(-400, 0), 1000);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Génesis 2'), findsOneWidget);
+    expect(find.textContaining('Second chapter verse'), findsOneWidget);
   });
 }
 

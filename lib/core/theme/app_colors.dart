@@ -16,4 +16,8 @@ class AppColors {
   static const lightSurface = Color(0xFFFFFFFF);
   static const darkText = Color(0xFF252932);
   static const pillBackground = Color(0xFF29303A);
+
+  // Toolbar glass gradient
+  static const toolbarGlassStart = Color(0xFF322D2D);
+  static const toolbarGlassHighlight = Color(0xFFFFFFFF);
 }
