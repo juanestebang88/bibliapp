@@ -134,7 +134,7 @@ class _ChapterNavigation extends StatelessWidget {
         children: [
           Expanded(
             child: _ChapterNavButton(
-              icon: Icons.chevron_left,
+              icon: Icons.arrow_back_ios,
               label: previousReference == null
                   ? AppStrings.previous
                   : _referenceLabel(previousReference),
@@ -146,7 +146,7 @@ class _ChapterNavigation extends StatelessWidget {
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: _ChapterNavButton(
-              icon: Icons.chevron_right,
+              icon: Icons.arrow_forward_ios,
               label: nextReference == null
                   ? AppStrings.next
                   : _referenceLabel(nextReference),
@@ -196,75 +196,45 @@ class _ChapterNavButton extends StatelessWidget {
 
     return Tooltip(
       message: tooltip,
-      child: ClipRRect(
-        borderRadius: borderRadius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: AppSpacing.md,
-            sigmaY: AppSpacing.md,
-          ),
-          child: DecoratedBox(
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          borderRadius: borderRadius,
+          onTap: enabled ? onTap : null,
+          child: Ink(
             decoration: BoxDecoration(
-              color: theme.colorScheme.surface.withValues(alpha: 0.1),
+              color: theme.colorScheme.surface,
               borderRadius: borderRadius,
-              border: Border.all(
-                color: theme.colorScheme.outlineVariant.withValues(
-                  alpha: enabled ? 0.15 : 0.15,
-                ),
-              ),
             ),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: borderRadius,
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    const Color.fromARGB(
-                      255,
-                      50,
-                      45,
-                      45,
-                    ).withValues(alpha: enabled ? 0.16 : 0.05),
-                    Colors.white.withValues(alpha: enabled ? 0.03 : 0.01),
-                  ],
-                ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
               ),
-              child: Material(
-                type: MaterialType.transparency,
-                child: InkWell(
-                  borderRadius: borderRadius,
-                  onTap: enabled ? onTap : null,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.sm,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (iconLeading) ...[
-                          Icon(icon, size: AppSpacing.xl, color: foreground),
-                          const SizedBox(width: AppSpacing.xs),
-                        ],
-                        Flexible(
-                          child: Text(
-                            label,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: foreground,
-                            ),
-                          ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (iconLeading) ...[
+                    Icon(icon, size: AppSpacing.xl, color: foreground),
+                    const SizedBox(width: AppSpacing.xs),
+                  ],
+                  Flexible(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.9,
                         ),
-                        if (!iconLeading) ...[
-                          const SizedBox(width: AppSpacing.xs),
-                          Icon(icon, size: AppSpacing.xl, color: foreground),
-                        ],
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                  if (!iconLeading) ...[
+                    const SizedBox(width: AppSpacing.xs),
+                    Icon(icon, size: AppSpacing.xl, color: foreground),
+                  ],
+                ],
               ),
             ),
           ),
@@ -551,7 +521,7 @@ class _ChapterVerses extends StatelessWidget {
         final isSelected = verse.verse == state.currentVerseNumber;
         final numberStyle = theme.textTheme.labelSmall?.copyWith(
           color: theme.colorScheme.primary,
-          fontSize: (state.fontSize * 0.6).clamp(10.0, 14.0),
+          fontSize: state.fontSize,
           fontWeight: isSelected ? FontWeight.bold : null,
         );
         final textStyle = theme.textTheme.bodyLarge?.copyWith(
@@ -590,7 +560,7 @@ class _BottomToolbar extends StatelessWidget {
         AppSpacing.lg,
         AppSpacing.sm,
         AppSpacing.lg,
-        0,
+        AppSpacing.xs,
       ),
       child: ClipRRect(
         borderRadius: borderRadius,
@@ -601,10 +571,10 @@ class _BottomToolbar extends StatelessWidget {
           ),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: theme.colorScheme.surface.withValues(alpha: 0.8),
+              color: theme.colorScheme.surface.withValues(alpha: 0.1),
               borderRadius: borderRadius,
               border: Border.all(
-                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.25),
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.15),
               ),
             ),
             child: DecoratedBox(
@@ -614,7 +584,12 @@ class _BottomToolbar extends StatelessWidget {
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                   colors: [
-                    Colors.white.withValues(alpha: 0.16),
+                    const Color.fromARGB(
+                      255,
+                      50,
+                      45,
+                      45,
+                    ).withValues(alpha: 0.16),
                     Colors.white.withValues(alpha: 0.03),
                   ],
                 ),
@@ -663,7 +638,7 @@ class _ToolbarAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = theme.colorScheme.secondary;
+    final color = theme.colorScheme.primary;
     return Tooltip(
       message: label,
       child: Column(
@@ -673,7 +648,9 @@ class _ToolbarAction extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           Text(
             label,
-            style: theme.textTheme.labelMedium?.copyWith(color: color),
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.9),
+            ),
           ),
         ],
       ),
