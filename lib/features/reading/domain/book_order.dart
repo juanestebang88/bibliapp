@@ -67,3 +67,9 @@ const List<String> bibleBookOrder = [
   'jude',
   'revelation',
 ];
+
+/// Old Testament books (Genesis -> Malachi).
+final List<String> oldTestamentBooks = bibleBookOrder.sublist(0, 39);
+
+/// New Testament books (Matthew -> Revelation).
+final List<String> newTestamentBooks = bibleBookOrder.sublist(39);

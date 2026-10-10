@@ -11,6 +11,7 @@ import 'package:bibliapp/features/reading/domain/usecases/get_reading_settings.d
 import 'package:bibliapp/features/reading/domain/usecases/get_verse.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.dart';
+import 'package:bibliapp/features/reading/presentation/cubit/passage_picker_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -41,6 +42,12 @@ void registerGetIt() {
       saveReadingProgress: getIt<SaveReadingProgress>(),
       getReadingSettings: getIt<GetReadingSettings>(),
       saveReadingSettings: getIt<SaveReadingSettings>(),
+    ),
+  );
+  getIt.registerFactory(
+    () => PassagePickerCubit(
+      getChapterCount: getIt<GetChapterCount>(),
+      getChapterVerses: getIt<GetChapterVerses>(),
     ),
   );
 }

@@ -7,7 +7,7 @@ class AppTextStyles {
   const AppTextStyles._();
 
   /// Font size of the passage picker (30% larger than the standard medium size)
-  static const double passagePickerFontSize = 21;
+  static const double passagePickerFontSize = 16;
 
   /// A- button label (gold, enlarged)
   static final TextStyle labelAMinus = GoogleFonts.googleSansFlex(
