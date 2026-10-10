@@ -54,6 +54,8 @@ void main() {
         .thenAnswer((_) async => const Right<Failure, bool>(true));
     when(() => getChapterCount(any()))
         .thenAnswer((_) async => const Right<Failure, int>(1));
+    when(() => getChapterVerses(any(), any()))
+        .thenAnswer((_) async => const Right<Failure, List<VerseEntity>>([]));
     when(() => getChapterVerses('genesis', 1)).thenAnswer(
       (_) async => const Right<Failure, List<VerseEntity>>([
         VerseEntity(

@@ -1,15 +1,16 @@
 class AppStrings {
   const AppStrings._();
 
-  static const readingNavLabel = 'Lectura';
   static const previousChapter = 'Capítulo anterior';
   static const nextChapter = 'Capítulo siguiente';
+  static const previous = 'Anterior';
+  static const next = 'Siguiente';
   static const decreaseTextSize = 'Reducir tamaño del texto';
   static const increaseTextSize = 'Aumentar tamaño del texto';
-  static const mark = 'Marcar';
-  static const notes = 'Notas';
-  static const share = 'Compartir';
   static const settings = 'Ajustes';
+  static const home = 'Inicio';
+  static const reading = 'Lectura';
+  static const statistics = 'Estadísticas';
   static const loading = 'Cargando lectura';
   static const emptyChapter =
       'No hay versículos disponibles para este capítulo.';
@@ -85,4 +86,6 @@ class AppStrings {
   };
 
   static String bookName(String id) => bookNames[id] ?? id;
+
+  static String chapter(int number) => 'Capítulo $number';
 }
