@@ -35,12 +35,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(const ReadingSettingsEntity());
     registerFallbackValue(
-      const ReadingProgressEntity(
-        lastBook: 'genesis',
-        lastChapter: 1,
-        lastVerse: 1,
-        timestamp: 0,
-      ),
+      const ReadingProgressEntity(lastBook: 'genesis', lastChapter: 1),
     );
   });
 
@@ -138,7 +133,7 @@ void main() {
 
     expect(find.text('Génesis 1'), findsOneWidget);
 
-    await tester.fling(find.byType(PageView), const Offset(-400, 0), 1000);
+    await tester.tap(find.byTooltip('Capítulo siguiente'));
     await tester.pumpAndSettle();
 
     expect(find.text('Génesis 2'), findsOneWidget);

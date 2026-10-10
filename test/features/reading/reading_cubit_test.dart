@@ -26,12 +26,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(const ReadingSettingsEntity());
     registerFallbackValue(
-      const ReadingProgressEntity(
-        lastBook: 'genesis',
-        lastChapter: 1,
-        lastVerse: 1,
-        timestamp: 1,
-      ),
+      const ReadingProgressEntity(lastBook: 'genesis', lastChapter: 1),
     );
   });
 
@@ -79,16 +74,11 @@ void main() {
   );
 
   blocTest<ReadingCubit, ReadingState>(
-    'restores the saved position and loads its chapter',
+    'restores the saved chapter and opens at its first verse',
     setUp: () {
       when(() => getReadingProgress()).thenAnswer(
         (_) async => const Right<Failure, ReadingProgressEntity?>(
-          ReadingProgressEntity(
-            lastBook: 'john',
-            lastChapter: 3,
-            lastVerse: 16,
-            timestamp: 123,
-          ),
+          ReadingProgressEntity(lastBook: 'john', lastChapter: 3),
         ),
       );
       when(() => getChapterVerses('john', 3)).thenAnswer(
@@ -117,7 +107,7 @@ void main() {
           .having((state) => state.status, 'status', ReadingStatus.success)
           .having((state) => state.currentBook, 'book', 'john')
           .having((state) => state.currentChapter, 'chapter', 3)
-          .having((state) => state.currentVerseNumber, 'verse', 16),
+          .having((state) => state.currentVerseNumber, 'verse', 1),
     ],
   );
 
@@ -330,39 +320,6 @@ void main() {
       await cubit.close();
     },
   );
-
-  test('pre-loads the neighboring chapter verses after loading', () async {
-    when(() => getChapterCount('genesis'))
-        .thenAnswer((_) async => const Right<Failure, int>(50));
-    when(() => getChapterVerses('genesis', 1)).thenAnswer(
-      (_) async => Right<Failure, List<VerseEntity>>(
-        versesFor(2, book: 'genesis', chapter: 1),
-      ),
-    );
-    when(() => getChapterVerses('genesis', 2)).thenAnswer(
-      (_) async => Right<Failure, List<VerseEntity>>(
-        versesFor(3, book: 'genesis', chapter: 2),
-      ),
-    );
-    when(() => getChapterVerses('genesis', 3)).thenAnswer(
-      (_) async => Right<Failure, List<VerseEntity>>(
-        versesFor(4, book: 'genesis', chapter: 3),
-      ),
-    );
-
-    final cubit = createCubit();
-    await cubit.loadChapter('genesis', 2);
-
-    expect(
-      cubit.state.previousChapterVerses,
-      versesFor(2, book: 'genesis', chapter: 1),
-    );
-    expect(
-      cubit.state.nextChapterVerses,
-      versesFor(4, book: 'genesis', chapter: 3),
-    );
-    await cubit.close();
-  });
 
   test('resolves references across book boundaries', () async {
     when(() => getChapterCount('genesis'))

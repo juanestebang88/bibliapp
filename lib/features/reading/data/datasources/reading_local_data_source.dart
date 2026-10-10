@@ -80,8 +80,6 @@ class ReadingLocalDataSource {
             id: const Value(1),
             lastBook: progress.lastBook,
             lastChapter: progress.lastChapter,
-            lastVerse: progress.lastVerse,
-            timestamp: progress.timestamp,
           ),
         );
   }
@@ -95,8 +93,6 @@ class ReadingLocalDataSource {
     return ReadingProgressEntity(
       lastBook: row.lastBook,
       lastChapter: row.lastChapter,
-      lastVerse: row.lastVerse,
-      timestamp: row.timestamp,
     );
   }
 
