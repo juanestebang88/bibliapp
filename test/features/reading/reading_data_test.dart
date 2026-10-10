@@ -37,12 +37,7 @@ void main() {
   });
 
   test('stores one typed reading progress and clears local data', () async {
-    const progress = ReadingProgressEntity(
-      lastBook: 'john',
-      lastChapter: 3,
-      lastVerse: 16,
-      timestamp: 123,
-    );
+    const progress = ReadingProgressEntity(lastBook: 'john', lastChapter: 3);
 
     await dataSource.saveReadingProgress(progress);
 

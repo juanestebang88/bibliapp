@@ -24,10 +24,7 @@ class ReadingState extends Equatable {
   final int? bookChapterCount;
   final ChapterReference? previousChapterReference;
   final ChapterReference? nextChapterReference;
-  final ReadingProgressEntity? savedProgress;
   final String? errorMessage;
-  final List<VerseEntity> previousChapterVerses;
-  final List<VerseEntity> nextChapterVerses;
 
   const ReadingState({
     this.status = ReadingStatus.initial,
@@ -39,10 +36,7 @@ class ReadingState extends Equatable {
     this.bookChapterCount,
     this.previousChapterReference,
     this.nextChapterReference,
-    this.savedProgress,
     this.errorMessage,
-    this.previousChapterVerses = const [],
-    this.nextChapterVerses = const [],
   });
 
   bool get isFirstChapter => currentBook == 'genesis' && currentChapter == 1;
@@ -60,15 +54,10 @@ class ReadingState extends Equatable {
     int? bookChapterCount,
     ChapterReference? previousChapterReference,
     ChapterReference? nextChapterReference,
-    ReadingProgressEntity? savedProgress,
     String? errorMessage,
-    List<VerseEntity>? previousChapterVerses,
-    List<VerseEntity>? nextChapterVerses,
     bool clearErrorMessage = false,
     bool clearPreviousChapterReference = false,
     bool clearNextChapterReference = false,
-    bool clearPreviousChapterVerses = false,
-    bool clearNextChapterVerses = false,
   }) => ReadingState(
     status: status ?? this.status,
     chapterVerses: chapterVerses ?? this.chapterVerses,
@@ -83,14 +72,7 @@ class ReadingState extends Equatable {
     nextChapterReference: clearNextChapterReference
         ? null
         : nextChapterReference ?? this.nextChapterReference,
-    savedProgress: savedProgress ?? this.savedProgress,
     errorMessage: clearErrorMessage ? null : errorMessage ?? this.errorMessage,
-    previousChapterVerses: clearPreviousChapterVerses
-        ? const []
-        : previousChapterVerses ?? this.previousChapterVerses,
-    nextChapterVerses: clearNextChapterVerses
-        ? const []
-        : nextChapterVerses ?? this.nextChapterVerses,
   );
 
   @override
@@ -104,10 +86,7 @@ class ReadingState extends Equatable {
     bookChapterCount,
     previousChapterReference,
     nextChapterReference,
-    savedProgress,
     errorMessage,
-    previousChapterVerses,
-    nextChapterVerses,
   ];
 }
 
@@ -152,7 +131,6 @@ class ReadingCubit extends Cubit<ReadingState> {
       (progress) => loadChapter(
         progress?.lastBook ?? 'genesis',
         progress?.lastChapter ?? 1,
-        verse: progress?.lastVerse ?? 1,
         saveProgress: false,
       ),
     );
@@ -161,38 +139,9 @@ class ReadingCubit extends Cubit<ReadingState> {
   Future<void> loadChapter(
     String book,
     int chapter, {
-    int verse = 1,
     bool saveProgress = true,
   }) async {
     if (chapter < 1) return;
-
-    final previousRef = state.previousChapterReference;
-    if (previousRef?.book == book &&
-        previousRef?.chapter == chapter &&
-        state.previousChapterVerses.isNotEmpty) {
-      await _completeChapterLoad(
-        book,
-        chapter,
-        state.previousChapterVerses,
-        verse: verse,
-        saveProgress: saveProgress,
-      );
-      return;
-    }
-
-    final nextRef = state.nextChapterReference;
-    if (nextRef?.book == book &&
-        nextRef?.chapter == chapter &&
-        state.nextChapterVerses.isNotEmpty) {
-      await _completeChapterLoad(
-        book,
-        chapter,
-        state.nextChapterVerses,
-        verse: verse,
-        saveProgress: saveProgress,
-      );
-      return;
-    }
 
     emit(
       state.copyWith(status: ReadingStatus.loading, clearErrorMessage: true),
@@ -223,7 +172,6 @@ class ReadingCubit extends Cubit<ReadingState> {
       book,
       chapter,
       verses,
-      verse: verse,
       saveProgress: saveProgress,
     );
   }
@@ -232,7 +180,6 @@ class ReadingCubit extends Cubit<ReadingState> {
     String book,
     int chapter,
     List<VerseEntity> verses, {
-    int verse = 1,
     bool saveProgress = true,
   }) async {
     final chapterCount = (await getChapterCount(book)).getOrElse((_) => 1);
@@ -247,39 +194,22 @@ class ReadingCubit extends Cubit<ReadingState> {
       chapterCount,
     );
 
-    final previousChapterVerses = await _fetchVersesOf(
-      previousChapterReference,
-    );
-    final nextChapterVerses = await _fetchVersesOf(nextChapterReference);
-
     emit(
       state.copyWith(
         status: ReadingStatus.success,
         chapterVerses: verses,
         currentBook: book,
         currentChapter: chapter,
-        currentVerseNumber: verse.clamp(1, verses.length),
+        currentVerseNumber: 1,
         bookChapterCount: chapterCount,
         previousChapterReference: previousChapterReference,
         clearPreviousChapterReference: previousChapterReference == null,
         nextChapterReference: nextChapterReference,
         clearNextChapterReference: nextChapterReference == null,
-        previousChapterVerses: previousChapterVerses,
-        clearPreviousChapterVerses: previousChapterReference == null,
-        nextChapterVerses: nextChapterVerses,
-        clearNextChapterVerses: nextChapterReference == null,
         clearErrorMessage: true,
       ),
     );
     if (saveProgress) await saveCurrentProgress();
-  }
-
-  Future<List<VerseEntity>> _fetchVersesOf(ChapterReference? reference) async {
-    if (reference == null) return const [];
-    return (await getChapterVerses(
-      reference.book,
-      reference.chapter,
-    )).getOrElse((_) => const <VerseEntity>[]);
   }
 
   Future<ChapterReference?> _resolvePreviousReference(
@@ -321,10 +251,9 @@ class ReadingCubit extends Cubit<ReadingState> {
     await saveReadingSettings(ReadingSettingsEntity(fontSize: newSize.round()));
   }
 
-  Future<void> selectVerse(int verse) async {
+  void selectVerse(int verse) {
     if (verse < 1 || verse > state.chapterVerses.length) return;
     emit(state.copyWith(currentVerseNumber: verse));
-    await saveCurrentProgress();
   }
 
   Future<void> previousChapter() async {
@@ -362,8 +291,6 @@ class ReadingCubit extends Cubit<ReadingState> {
     final progress = ReadingProgressEntity(
       lastBook: state.currentBook,
       lastChapter: state.currentChapter,
-      lastVerse: state.currentVerseNumber,
-      timestamp: DateTime.now().millisecondsSinceEpoch,
     );
     final result = await saveReadingProgress(progress);
     result.match(
@@ -373,7 +300,7 @@ class ReadingCubit extends Cubit<ReadingState> {
           errorMessage: failure.message,
         ),
       ),
-      (_) => emit(state.copyWith(savedProgress: progress)),
+      (_) {},
     );
   }
 }

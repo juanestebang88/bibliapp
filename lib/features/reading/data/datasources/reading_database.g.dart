@@ -410,36 +410,8 @@ class $ReadingProgressTable extends ReadingProgress
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _lastVerseMeta = const VerificationMeta(
-    'lastVerse',
-  );
   @override
-  late final GeneratedColumn<int> lastVerse = GeneratedColumn<int>(
-    'last_verse',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _timestampMeta = const VerificationMeta(
-    'timestamp',
-  );
-  @override
-  late final GeneratedColumn<int> timestamp = GeneratedColumn<int>(
-    'timestamp',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    lastBook,
-    lastChapter,
-    lastVerse,
-    timestamp,
-  ];
+  List<GeneratedColumn> get $columns => [id, lastBook, lastChapter];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -474,22 +446,6 @@ class $ReadingProgressTable extends ReadingProgress
     } else if (isInserting) {
       context.missing(_lastChapterMeta);
     }
-    if (data.containsKey('last_verse')) {
-      context.handle(
-        _lastVerseMeta,
-        lastVerse.isAcceptableOrUnknown(data['last_verse']!, _lastVerseMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_lastVerseMeta);
-    }
-    if (data.containsKey('timestamp')) {
-      context.handle(
-        _timestampMeta,
-        timestamp.isAcceptableOrUnknown(data['timestamp']!, _timestampMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_timestampMeta);
-    }
     return context;
   }
 
@@ -511,14 +467,6 @@ class $ReadingProgressTable extends ReadingProgress
         DriftSqlType.int,
         data['${effectivePrefix}last_chapter'],
       )!,
-      lastVerse: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}last_verse'],
-      )!,
-      timestamp: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}timestamp'],
-      )!,
     );
   }
 
@@ -533,14 +481,10 @@ class ReadingProgressData extends DataClass
   final int id;
   final String lastBook;
   final int lastChapter;
-  final int lastVerse;
-  final int timestamp;
   const ReadingProgressData({
     required this.id,
     required this.lastBook,
     required this.lastChapter,
-    required this.lastVerse,
-    required this.timestamp,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -548,8 +492,6 @@ class ReadingProgressData extends DataClass
     map['id'] = Variable<int>(id);
     map['last_book'] = Variable<String>(lastBook);
     map['last_chapter'] = Variable<int>(lastChapter);
-    map['last_verse'] = Variable<int>(lastVerse);
-    map['timestamp'] = Variable<int>(timestamp);
     return map;
   }
 
@@ -558,8 +500,6 @@ class ReadingProgressData extends DataClass
       id: Value(id),
       lastBook: Value(lastBook),
       lastChapter: Value(lastChapter),
-      lastVerse: Value(lastVerse),
-      timestamp: Value(timestamp),
     );
   }
 
@@ -572,8 +512,6 @@ class ReadingProgressData extends DataClass
       id: serializer.fromJson<int>(json['id']),
       lastBook: serializer.fromJson<String>(json['lastBook']),
       lastChapter: serializer.fromJson<int>(json['lastChapter']),
-      lastVerse: serializer.fromJson<int>(json['lastVerse']),
-      timestamp: serializer.fromJson<int>(json['timestamp']),
     );
   }
   @override
@@ -583,24 +521,15 @@ class ReadingProgressData extends DataClass
       'id': serializer.toJson<int>(id),
       'lastBook': serializer.toJson<String>(lastBook),
       'lastChapter': serializer.toJson<int>(lastChapter),
-      'lastVerse': serializer.toJson<int>(lastVerse),
-      'timestamp': serializer.toJson<int>(timestamp),
     };
   }
 
-  ReadingProgressData copyWith({
-    int? id,
-    String? lastBook,
-    int? lastChapter,
-    int? lastVerse,
-    int? timestamp,
-  }) => ReadingProgressData(
-    id: id ?? this.id,
-    lastBook: lastBook ?? this.lastBook,
-    lastChapter: lastChapter ?? this.lastChapter,
-    lastVerse: lastVerse ?? this.lastVerse,
-    timestamp: timestamp ?? this.timestamp,
-  );
+  ReadingProgressData copyWith({int? id, String? lastBook, int? lastChapter}) =>
+      ReadingProgressData(
+        id: id ?? this.id,
+        lastBook: lastBook ?? this.lastBook,
+        lastChapter: lastChapter ?? this.lastChapter,
+      );
   ReadingProgressData copyWithCompanion(ReadingProgressCompanion data) {
     return ReadingProgressData(
       id: data.id.present ? data.id.value : this.id,
@@ -608,8 +537,6 @@ class ReadingProgressData extends DataClass
       lastChapter: data.lastChapter.present
           ? data.lastChapter.value
           : this.lastChapter,
-      lastVerse: data.lastVerse.present ? data.lastVerse.value : this.lastVerse,
-      timestamp: data.timestamp.present ? data.timestamp.value : this.timestamp,
     );
   }
 
@@ -618,63 +545,46 @@ class ReadingProgressData extends DataClass
     return (StringBuffer('ReadingProgressData(')
           ..write('id: $id, ')
           ..write('lastBook: $lastBook, ')
-          ..write('lastChapter: $lastChapter, ')
-          ..write('lastVerse: $lastVerse, ')
-          ..write('timestamp: $timestamp')
+          ..write('lastChapter: $lastChapter')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, lastBook, lastChapter, lastVerse, timestamp);
+  int get hashCode => Object.hash(id, lastBook, lastChapter);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ReadingProgressData &&
           other.id == this.id &&
           other.lastBook == this.lastBook &&
-          other.lastChapter == this.lastChapter &&
-          other.lastVerse == this.lastVerse &&
-          other.timestamp == this.timestamp);
+          other.lastChapter == this.lastChapter);
 }
 
 class ReadingProgressCompanion extends UpdateCompanion<ReadingProgressData> {
   final Value<int> id;
   final Value<String> lastBook;
   final Value<int> lastChapter;
-  final Value<int> lastVerse;
-  final Value<int> timestamp;
   const ReadingProgressCompanion({
     this.id = const Value.absent(),
     this.lastBook = const Value.absent(),
     this.lastChapter = const Value.absent(),
-    this.lastVerse = const Value.absent(),
-    this.timestamp = const Value.absent(),
   });
   ReadingProgressCompanion.insert({
     this.id = const Value.absent(),
     required String lastBook,
     required int lastChapter,
-    required int lastVerse,
-    required int timestamp,
   }) : lastBook = Value(lastBook),
-       lastChapter = Value(lastChapter),
-       lastVerse = Value(lastVerse),
-       timestamp = Value(timestamp);
+       lastChapter = Value(lastChapter);
   static Insertable<ReadingProgressData> custom({
     Expression<int>? id,
     Expression<String>? lastBook,
     Expression<int>? lastChapter,
-    Expression<int>? lastVerse,
-    Expression<int>? timestamp,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (lastBook != null) 'last_book': lastBook,
       if (lastChapter != null) 'last_chapter': lastChapter,
-      if (lastVerse != null) 'last_verse': lastVerse,
-      if (timestamp != null) 'timestamp': timestamp,
     });
   }
 
@@ -682,15 +592,11 @@ class ReadingProgressCompanion extends UpdateCompanion<ReadingProgressData> {
     Value<int>? id,
     Value<String>? lastBook,
     Value<int>? lastChapter,
-    Value<int>? lastVerse,
-    Value<int>? timestamp,
   }) {
     return ReadingProgressCompanion(
       id: id ?? this.id,
       lastBook: lastBook ?? this.lastBook,
       lastChapter: lastChapter ?? this.lastChapter,
-      lastVerse: lastVerse ?? this.lastVerse,
-      timestamp: timestamp ?? this.timestamp,
     );
   }
 
@@ -706,12 +612,6 @@ class ReadingProgressCompanion extends UpdateCompanion<ReadingProgressData> {
     if (lastChapter.present) {
       map['last_chapter'] = Variable<int>(lastChapter.value);
     }
-    if (lastVerse.present) {
-      map['last_verse'] = Variable<int>(lastVerse.value);
-    }
-    if (timestamp.present) {
-      map['timestamp'] = Variable<int>(timestamp.value);
-    }
     return map;
   }
 
@@ -720,9 +620,7 @@ class ReadingProgressCompanion extends UpdateCompanion<ReadingProgressData> {
     return (StringBuffer('ReadingProgressCompanion(')
           ..write('id: $id, ')
           ..write('lastBook: $lastBook, ')
-          ..write('lastChapter: $lastChapter, ')
-          ..write('lastVerse: $lastVerse, ')
-          ..write('timestamp: $timestamp')
+          ..write('lastChapter: $lastChapter')
           ..write(')'))
         .toString();
   }
@@ -1138,16 +1036,12 @@ typedef $$ReadingProgressTableCreateCompanionBuilder =
       Value<int> id,
       required String lastBook,
       required int lastChapter,
-      required int lastVerse,
-      required int timestamp,
     });
 typedef $$ReadingProgressTableUpdateCompanionBuilder =
     ReadingProgressCompanion Function({
       Value<int> id,
       Value<String> lastBook,
       Value<int> lastChapter,
-      Value<int> lastVerse,
-      Value<int> timestamp,
     });
 
 class $$ReadingProgressTableFilterComposer
@@ -1171,16 +1065,6 @@ class $$ReadingProgressTableFilterComposer
 
   ColumnFilters<int> get lastChapter => $composableBuilder(
     column: $table.lastChapter,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get lastVerse => $composableBuilder(
-    column: $table.lastVerse,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get timestamp => $composableBuilder(
-    column: $table.timestamp,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -1208,16 +1092,6 @@ class $$ReadingProgressTableOrderingComposer
     column: $table.lastChapter,
     builder: (column) => ColumnOrderings(column),
   );
-
-  ColumnOrderings<int> get lastVerse => $composableBuilder(
-    column: $table.lastVerse,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get timestamp => $composableBuilder(
-    column: $table.timestamp,
-    builder: (column) => ColumnOrderings(column),
-  );
 }
 
 class $$ReadingProgressTableAnnotationComposer
@@ -1239,12 +1113,6 @@ class $$ReadingProgressTableAnnotationComposer
     column: $table.lastChapter,
     builder: (column) => column,
   );
-
-  GeneratedColumn<int> get lastVerse =>
-      $composableBuilder(column: $table.lastVerse, builder: (column) => column);
-
-  GeneratedColumn<int> get timestamp =>
-      $composableBuilder(column: $table.timestamp, builder: (column) => column);
 }
 
 class $$ReadingProgressTableTableManager
@@ -1287,28 +1155,20 @@ class $$ReadingProgressTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> lastBook = const Value.absent(),
                 Value<int> lastChapter = const Value.absent(),
-                Value<int> lastVerse = const Value.absent(),
-                Value<int> timestamp = const Value.absent(),
               }) => ReadingProgressCompanion(
                 id: id,
                 lastBook: lastBook,
                 lastChapter: lastChapter,
-                lastVerse: lastVerse,
-                timestamp: timestamp,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 required String lastBook,
                 required int lastChapter,
-                required int lastVerse,
-                required int timestamp,
               }) => ReadingProgressCompanion.insert(
                 id: id,
                 lastBook: lastBook,
                 lastChapter: lastChapter,
-                lastVerse: lastVerse,
-                timestamp: timestamp,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

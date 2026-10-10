@@ -19,8 +19,6 @@ class ReadingProgress extends Table {
   IntColumn get id => integer().withDefault(const Constant(1))();
   TextColumn get lastBook => text()();
   IntColumn get lastChapter => integer()();
-  IntColumn get lastVerse => integer()();
-  IntColumn get timestamp => integer()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -40,7 +38,7 @@ class ReadingDatabase extends _$ReadingDatabase {
     : super(executor ?? driftDatabase(name: 'rv1960'));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -48,6 +46,9 @@ class ReadingDatabase extends _$ReadingDatabase {
     onUpgrade: (m, from, to) async {
       if (from < 2) {
         await m.createTable(readingSettings);
+      }
+      if (from < 3) {
+        await m.alterTable(TableMigration(readingProgress));
       }
     },
   );

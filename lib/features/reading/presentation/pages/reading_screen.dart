@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bibliapp/core/localization/app_strings.dart';
+import 'package:bibliapp/core/theme/app_spacing.dart';
 import 'package:bibliapp/core/widgets/bottom_toolbar.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/chapter_navigation.dart';
@@ -18,8 +19,9 @@ class ReadingScreen extends StatelessWidget {
           child: Column(
             children: [
               ReadingHeader(state: state),
-              ChapterNavigation(state: state),
               Expanded(child: SwipeableReadingBody(state: state)),
+              const SizedBox(height: AppSpacing.sm),
+              ChapterNavigation(state: state),
               const BottomToolbar(
                 items: [
                   BottomToolbarItem(
