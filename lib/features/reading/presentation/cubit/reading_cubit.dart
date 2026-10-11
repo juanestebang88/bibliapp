@@ -292,17 +292,21 @@ class ReadingCubit extends Cubit<ReadingState> {
   Future<void> loadChapterAndScrollTo(
     String book,
     int chapter,
-    int verse,
-  ) async {
+    int verse, {
+    bool markSearchFocus = false,
+  }) async {
     await loadChapter(book, chapter);
     if (state.status != ReadingStatus.success) return;
     if (state.currentBook != book || state.currentChapter != chapter) return;
+    final focus = markSearchFocus
+        ? SearchFocus(book: book, chapter: chapter, verse: verse)
+        : state.activeFocus;
     emit(
       state.copyWith(
         currentVerseNumber: verse,
         pendingScrollVerse: verse,
-        activeFocus: SearchFocus(book: book, chapter: chapter, verse: verse),
-        clearActiveFocus: false,
+        activeFocus: focus,
+        clearActiveFocus: focus == null,
       ),
     );
   }
