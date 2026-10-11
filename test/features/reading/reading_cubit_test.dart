@@ -6,6 +6,7 @@ import 'package:bibliapp/core/error/failure.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_reference.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/search_focus.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
@@ -409,6 +410,56 @@ void main() {
 
     cubit.consumePendingScroll();
     expect(cubit.state.pendingScrollVerse, isNull);
+    await cubit.close();
+  });
+
+  test(
+    'keeps active focus on the jump chapter and clears it when it changes',
+    () async {
+      when(() => getChapterCount('genesis'))
+          .thenAnswer((_) async => const Right<Failure, int>(50));
+      when(() => getChapterVerses('genesis', 3)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(5, book: 'genesis', chapter: 3),
+        ),
+      );
+      when(() => getChapterVerses('genesis', 4)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(5, book: 'genesis', chapter: 4),
+        ),
+      );
+
+      final cubit = createCubit();
+      await cubit.loadChapterAndScrollTo('genesis', 3, 5);
+      expect(
+        cubit.state.activeFocus,
+        const SearchFocus(book: 'genesis', chapter: 3, verse: 5),
+      );
+
+      await cubit.loadChapter('genesis', 3);
+      expect(cubit.state.activeFocus, isNotNull);
+
+      await cubit.loadChapter('genesis', 4);
+      expect(cubit.state.activeFocus, isNull);
+      await cubit.close();
+    },
+  );
+
+  test('clearFocus drops the active search focus', () async {
+    when(() => getChapterCount('genesis'))
+        .thenAnswer((_) async => const Right<Failure, int>(50));
+    when(() => getChapterVerses('genesis', 3)).thenAnswer(
+      (_) async => Right<Failure, List<VerseEntity>>(
+        versesFor(5, book: 'genesis', chapter: 3),
+      ),
+    );
+
+    final cubit = createCubit();
+    await cubit.loadChapterAndScrollTo('genesis', 3, 5);
+    expect(cubit.state.activeFocus, isNotNull);
+
+    cubit.clearFocus();
+    expect(cubit.state.activeFocus, isNull);
     await cubit.close();
   });
 }

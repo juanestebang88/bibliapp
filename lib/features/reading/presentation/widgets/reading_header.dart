@@ -9,11 +9,13 @@ import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart'
 class ReadingHeader extends StatelessWidget {
   final ReadingState state;
   final VoidCallback onOpenPicker;
+  final VoidCallback onSearch;
 
   const ReadingHeader({
     super.key,
     required this.state,
     required this.onOpenPicker,
+    required this.onSearch,
   });
 
   @override
@@ -39,7 +41,7 @@ class ReadingHeader extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.lg,
-                        vertical: AppSpacing.md,
+                        vertical: AppSpacing.sm,
                       ),
                       child: Row(
                         children: [
@@ -69,13 +71,26 @@ class ReadingHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
+              Material(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                  onTap: onSearch,
+                  child: const Padding(
+                    padding: EdgeInsets.all(AppSpacing.sm),
+                    child: Icon(Icons.search),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
               TextButton(
                 onPressed: state.fontSize <= 14
                     ? null
                     : () => cubit.adjustFontSize(-1),
                 style: TextButton.styleFrom(
                   foregroundColor: theme.colorScheme.primary,
-                  minimumSize: const Size(AppSpacing.xxl, AppSpacing.xxl),
+                  minimumSize: const Size(AppSpacing.xl, AppSpacing.xl),
                   padding: EdgeInsets.zero,
                 ),
                 child: Text('A−', style: AppTextStyles.labelAMinus),
@@ -86,7 +101,7 @@ class ReadingHeader extends StatelessWidget {
                     : () => cubit.adjustFontSize(1),
                 style: TextButton.styleFrom(
                   foregroundColor: theme.colorScheme.primary,
-                  minimumSize: const Size(AppSpacing.xxl, AppSpacing.xxl),
+                  minimumSize: const Size(AppSpacing.xl, AppSpacing.xl),
                   padding: EdgeInsets.zero,
                 ),
                 child: Text('A+', style: AppTextStyles.labelAPlus),

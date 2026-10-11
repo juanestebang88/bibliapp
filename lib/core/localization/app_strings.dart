@@ -20,6 +20,15 @@ class AppStrings {
   static const newTestament = 'NT';
   static const back = 'Volver';
   static const close = 'Cerrar';
+  static const search = 'Buscar';
+  static const searchHint = 'Busca una palabra o frase';
+  static const searchResults = 'Resultados de búsqueda';
+  static const noResults = 'No se encontraron resultados';
+  static const backToResults = 'Volver a los resultados';
+  static const emptyQuery = 'Escribe al menos una palabra para buscar';
+
+  static String resultsCount(int count) =>
+      count == 1 ? '1 resultado' : '$count resultados';
 
   static const bookNames = <String, String>{
     'genesis': 'Génesis',

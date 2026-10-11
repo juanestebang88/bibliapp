@@ -4,6 +4,7 @@ import 'package:bibliapp/features/reading/domain/book_order.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_reference.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/search_focus.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
@@ -26,6 +27,7 @@ class ReadingState extends Equatable {
   final ChapterReference? nextChapterReference;
   final String? errorMessage;
   final int? pendingScrollVerse;
+  final SearchFocus? activeFocus;
 
   const ReadingState({
     this.status = ReadingStatus.initial,
@@ -39,6 +41,7 @@ class ReadingState extends Equatable {
     this.nextChapterReference,
     this.errorMessage,
     this.pendingScrollVerse,
+    this.activeFocus,
   });
 
   bool get isFirstChapter => currentBook == 'genesis' && currentChapter == 1;
@@ -58,10 +61,12 @@ class ReadingState extends Equatable {
     ChapterReference? nextChapterReference,
     String? errorMessage,
     int? pendingScrollVerse,
+    SearchFocus? activeFocus,
     bool clearErrorMessage = false,
     bool clearPreviousChapterReference = false,
     bool clearNextChapterReference = false,
     bool clearPendingScrollVerse = false,
+    bool clearActiveFocus = false,
   }) => ReadingState(
     status: status ?? this.status,
     chapterVerses: chapterVerses ?? this.chapterVerses,
@@ -80,6 +85,7 @@ class ReadingState extends Equatable {
     pendingScrollVerse: clearPendingScrollVerse
         ? null
         : pendingScrollVerse ?? this.pendingScrollVerse,
+    activeFocus: clearActiveFocus ? null : activeFocus ?? this.activeFocus,
   );
 
   @override
@@ -95,6 +101,7 @@ class ReadingState extends Equatable {
     nextChapterReference,
     errorMessage,
     pendingScrollVerse,
+    activeFocus,
   ];
 }
 
@@ -172,7 +179,13 @@ class ReadingCubit extends Cubit<ReadingState> {
     final verses = result.getOrElse((_) => const <VerseEntity>[]);
 
     if (verses.isEmpty) {
-      emit(state.copyWith(status: ReadingStatus.success));
+      emit(
+        state.copyWith(
+          status: ReadingStatus.success,
+          activeFocus: _focusAfterLoad(book, chapter),
+          clearActiveFocus: _focusAfterLoad(book, chapter) == null,
+        ),
+      );
       return;
     }
 
@@ -202,6 +215,8 @@ class ReadingCubit extends Cubit<ReadingState> {
       chapterCount,
     );
 
+    final keptFocus = _focusAfterLoad(book, chapter);
+
     emit(
       state.copyWith(
         status: ReadingStatus.success,
@@ -215,9 +230,19 @@ class ReadingCubit extends Cubit<ReadingState> {
         nextChapterReference: nextChapterReference,
         clearNextChapterReference: nextChapterReference == null,
         clearErrorMessage: true,
+        activeFocus: keptFocus,
+        clearActiveFocus: keptFocus == null,
       ),
     );
     if (saveProgress) await saveCurrentProgress();
+  }
+
+  /// Keeps the active search focus only while the loaded passage matches it.
+  SearchFocus? _focusAfterLoad(String book, int chapter) {
+    final focus = state.activeFocus;
+    if (focus == null) return null;
+    if (focus.book == book && focus.chapter == chapter) return focus;
+    return null;
   }
 
   Future<ChapterReference?> _resolvePreviousReference(
@@ -272,7 +297,20 @@ class ReadingCubit extends Cubit<ReadingState> {
     await loadChapter(book, chapter);
     if (state.status != ReadingStatus.success) return;
     if (state.currentBook != book || state.currentChapter != chapter) return;
-    emit(state.copyWith(currentVerseNumber: verse, pendingScrollVerse: verse));
+    emit(
+      state.copyWith(
+        currentVerseNumber: verse,
+        pendingScrollVerse: verse,
+        activeFocus: SearchFocus(book: book, chapter: chapter, verse: verse),
+        clearActiveFocus: false,
+      ),
+    );
+  }
+
+  /// Drops the active search focus (e.g. when the user starts a new search).
+  void clearFocus() {
+    if (state.activeFocus == null) return;
+    emit(state.copyWith(clearActiveFocus: true));
   }
 
   void consumePendingScroll() {

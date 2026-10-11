@@ -32,4 +32,6 @@ abstract class ReadingRepository {
   );
 
   Future<Either<Failure, bool>> clearAllData();
+
+  Future<Either<Failure, List<VerseEntity>>> searchVerses(List<String> words);
 }
