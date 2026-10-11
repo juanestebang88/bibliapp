@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart';
+import 'package:bibliapp/core/utils/search_text.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_database.dart';
+import 'package:bibliapp/features/reading/domain/book_order.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 
@@ -60,6 +62,56 @@ class ReadingLocalDataSource {
             .get();
 
     return rows.map(_toEntity).toList(growable: false);
+  }
+
+  Future<List<VerseEntity>> searchVerses(
+    List<String> words, {
+    int limit = 50,
+  }) async {
+    if (words.isEmpty) return const [];
+
+    final expressions = <Expression<bool>>[];
+    for (final word in words) {
+      for (final variant in searchAccentVariants(word)) {
+        expressions.add(database.verses.verseText.lower().like('%$variant%'));
+      }
+    }
+    if (expressions.isEmpty) return const [];
+
+    final rows = await (database.select(
+      database.verses,
+    )..where((table) => expressions.reduce((a, b) => a | b))).get();
+
+    final matches = <({VerseEntity verse, int matchCount})>[];
+    for (final row in rows) {
+      if (row.isVerseNumber) continue;
+      final normalizedText = normalizeSearchText(row.verseText);
+      final matchedWords = <String>[];
+      for (final word in words) {
+        if (containsSearchWord(normalizedText, word)) {
+          matchedWords.add(word);
+        }
+      }
+      if (matchedWords.isNotEmpty) {
+        matches.add((verse: _toEntity(row), matchCount: matchedWords.length));
+      }
+    }
+
+    matches.sort((a, b) {
+      final countComparison = b.matchCount.compareTo(a.matchCount);
+      if (countComparison != 0) return countComparison;
+      final bookComparison = _bookOrderIndex(a.verse.book)
+          .compareTo(_bookOrderIndex(b.verse.book));
+      if (bookComparison != 0) return bookComparison;
+      final chapterComparison = a.verse.chapter.compareTo(b.verse.chapter);
+      if (chapterComparison != 0) return chapterComparison;
+      return a.verse.verse.compareTo(b.verse.verse);
+    });
+
+    return matches
+        .take(limit)
+        .map((match) => match.verse)
+        .toList(growable: false);
   }
 
   Future<int> getMaxChapter(String book) async {
@@ -127,4 +179,9 @@ class ReadingLocalDataSource {
     text: row.verseText,
     isVerseNumber: row.isVerseNumber,
   );
+
+  int _bookOrderIndex(String book) {
+    final index = bibleBookOrder.indexOf(book);
+    return index < 0 ? bibleBookOrder.length : index;
+  }
 }

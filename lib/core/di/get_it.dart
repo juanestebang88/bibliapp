@@ -11,8 +11,10 @@ import 'package:bibliapp/features/reading/domain/usecases/get_reading_settings.d
 import 'package:bibliapp/features/reading/domain/usecases/get_verse.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.dart';
+import 'package:bibliapp/features/reading/domain/usecases/search_verses.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/passage_picker_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
+import 'package:bibliapp/features/reading/presentation/cubit/search_cubit.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -34,6 +36,8 @@ void registerGetIt() {
   getIt.registerFactory(() => GetReadingSettings(getIt<ReadingRepository>()));
   getIt.registerFactory(() => SaveReadingSettings(getIt<ReadingRepository>()));
   getIt.registerFactory(() => ClearReadingData(getIt<ReadingRepository>()));
+  getIt.registerFactory(() => SearchVerses(getIt<ReadingRepository>()));
+  getIt.registerFactory(() => SearchCubit(searchVerses: getIt<SearchVerses>()));
   getIt.registerFactory(
     () => ReadingCubit(
       getChapterVerses: getIt<GetChapterVerses>(),

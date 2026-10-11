@@ -66,6 +66,10 @@ class ReadingRepositoryImpl implements ReadingRepository {
     return true;
   });
 
+  @override
+  Future<Either<Failure, List<VerseEntity>>> searchVerses(List<String> words) =>
+      _guard(() => dataSource.searchVerses(words));
+
   Future<Either<Failure, T>> _guard<T>(Future<T> Function() operation) async {
     try {
       return Right(await operation());
