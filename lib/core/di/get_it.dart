@@ -1,8 +1,11 @@
 import 'package:get_it/get_it.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_database.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_local_data_source.dart';
+import 'package:bibliapp/features/reading/data/repositories/connectivity_repository_impl.dart';
 import 'package:bibliapp/features/reading/data/repositories/reading_repository_impl.dart';
+import 'package:bibliapp/features/reading/domain/repositories/connectivity_repository.dart';
 import 'package:bibliapp/features/reading/domain/repositories/reading_repository.dart';
+import 'package:bibliapp/features/reading/domain/usecases/check_internet_connectivity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/clear_reading_data.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
@@ -28,6 +31,9 @@ void registerGetIt() {
   getIt.registerLazySingleton<ReadingRepository>(
     () => ReadingRepositoryImpl(dataSource: getIt<ReadingLocalDataSource>()),
   );
+  getIt.registerLazySingleton<ConnectivityRepository>(
+    ConnectivityRepositoryImpl.new,
+  );
   getIt.registerFactory(() => GetVerse(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetChapterVerses(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetChapterCount(getIt<ReadingRepository>()));
@@ -37,6 +43,9 @@ void registerGetIt() {
   getIt.registerFactory(() => SaveReadingSettings(getIt<ReadingRepository>()));
   getIt.registerFactory(() => ClearReadingData(getIt<ReadingRepository>()));
   getIt.registerFactory(() => SearchVerses(getIt<ReadingRepository>()));
+  getIt.registerFactory(
+    () => CheckInternetConnectivity(getIt<ConnectivityRepository>()),
+  );
   getIt.registerFactory(() => SearchCubit(searchVerses: getIt<SearchVerses>()));
   getIt.registerFactory(
     () => ReadingCubit(

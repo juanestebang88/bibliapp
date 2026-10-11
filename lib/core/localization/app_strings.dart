@@ -26,6 +26,14 @@ class AppStrings {
   static const noResults = 'No se encontraron resultados';
   static const backToResults = 'Volver a los resultados';
   static const emptyQuery = 'Escribe al menos una palabra para buscar';
+  static const copyWord = 'Copiar palabra';
+  static const searchInRae = 'Ver significado';
+  static const shareVerse = 'Compartir versículo';
+  static const needsInternetForRae =
+      'Para usar esta opción necesitas conexión a internet';
+  static const noInternetConnection = 'Sin conexión a internet';
+  static const loadingRae = 'Cargando definición';
+  static const errorLoadingRae = 'No se pudo cargar la definición';
 
   static String resultsCount(int count) =>
       count == 1 ? '1 resultado' : '$count resultados';

@@ -6,9 +6,8 @@ import 'package:bibliapp/features/reading/presentation/widgets/reading_verse_ite
 
 class ChapterVerses extends StatefulWidget {
   final ReadingState state;
-  final bool selectable;
 
-  const ChapterVerses({super.key, required this.state, this.selectable = true});
+  const ChapterVerses({super.key, required this.state});
 
   @override
   State<ChapterVerses> createState() => _ChapterVersesState();
@@ -111,7 +110,6 @@ class _ChapterVersesState extends State<ChapterVerses>
 
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<ReadingCubit>();
     final verses = widget.state.chapterVerses;
 
     return SingleChildScrollView(
@@ -132,10 +130,6 @@ class _ChapterVersesState extends State<ChapterVerses>
               child: ReadingVerseItem(
                 verse: verses[index],
                 fontSize: widget.state.fontSize,
-                isCurrent:
-                    verses[index].verse == widget.state.currentVerseNumber,
-                selectable: widget.selectable,
-                onTap: () => cubit.selectVerse(verses[index].verse),
                 highlight: verses[index].verse == _blinkVerse ? _blink : null,
               ),
             ),

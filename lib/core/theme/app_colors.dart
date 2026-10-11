@@ -20,4 +20,8 @@ class AppColors {
   // Toolbar glass gradient
   static const toolbarGlassStart = Color(0xFF322D2D);
   static const toolbarGlassHighlight = Color(0xFFFFFFFF);
+
+  // Verse selection context menu (white surface, app background blue text)
+  static const contextMenuBackground = lightSurface;
+  static const contextMenuForeground = appBackground;
 }
