@@ -18,8 +18,11 @@ import 'package:bibliapp/features/reading/domain/usecases/get_reading_settings.d
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.dart';
 import 'package:bibliapp/features/reading/domain/usecases/search_verses.dart';
+import 'package:bibliapp/features/reading/presentation/cubit/passage_picker_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/search_cubit.dart';
+import 'package:bibliapp/features/reading/presentation/widgets/book_chip_grid.dart';
+import 'package:bibliapp/features/reading/presentation/widgets/number_chip_grid.dart';
 import 'package:bibliapp/main.dart';
 
 void main() {
@@ -92,6 +95,12 @@ void main() {
       ),
     );
     getIt.registerFactory(() => SearchCubit(searchVerses: searchVerses));
+    getIt.registerFactory(
+      () => PassagePickerCubit(
+        getChapterCount: getChapterCount,
+        getChapterVerses: getChapterVerses,
+      ),
+    );
   });
 
   tearDown(() async {
@@ -230,6 +239,66 @@ void main() {
     expect(find.text('Génesis 1'), findsOneWidget);
     expect(find.text(AppStrings.backToResults), findsNothing);
   });
+
+  testWidgets(
+    'changing book through the passage picker hides the back-to-results button',
+    (tester) async {
+      when(() => getChapterCount('revelation'))
+          .thenAnswer((_) async => const Right<Failure, int>(22));
+      when(() => getChapterVerses('revelation', 1)).thenAnswer(
+        (_) async => const Right<Failure, List<VerseEntity>>([
+          VerseEntity(
+            book: 'revelation',
+            chapter: 1,
+            verse: 1,
+            text: 'Revelation one text',
+          ),
+        ]),
+      );
+
+      await pumpReadingApp(tester);
+      await jumpToFirstResult(tester);
+
+      expect(find.text(AppStrings.backToResults), findsOneWidget);
+
+      await tester.tap(find.text('Génesis 1'));
+      await tester.pumpAndSettle();
+      expect(find.text('Seleccionar pasaje'), findsOneWidget);
+
+      await tester.tap(find.text('NT'));
+      await tester.pumpAndSettle();
+
+      final revelation = find.descendant(
+        of: find.byType(BookChipGrid),
+        matching: find.text('Apocalipsis'),
+      );
+      await tester.dragUntilVisible(
+        revelation,
+        find.byType(BookChipGrid),
+        const Offset(0, -300),
+      );
+      await tester.tap(revelation);
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(NumberChipGrid),
+          matching: find.text('1'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(NumberChipGrid),
+          matching: find.text('1'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Apocalipsis 1'), findsOneWidget);
+      expect(find.text(AppStrings.backToResults), findsNothing);
+    },
+  );
 }
 
 class _MockGetChapterVerses extends Mock implements GetChapterVerses {}

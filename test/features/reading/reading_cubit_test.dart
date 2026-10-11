@@ -430,7 +430,12 @@ void main() {
       );
 
       final cubit = createCubit();
-      await cubit.loadChapterAndScrollTo('genesis', 3, 5);
+      await cubit.loadChapterAndScrollTo(
+        'genesis',
+        3,
+        5,
+        markSearchFocus: true,
+      );
       expect(
         cubit.state.activeFocus,
         const SearchFocus(book: 'genesis', chapter: 3, verse: 5),
@@ -455,13 +460,46 @@ void main() {
     );
 
     final cubit = createCubit();
-    await cubit.loadChapterAndScrollTo('genesis', 3, 5);
+    await cubit.loadChapterAndScrollTo('genesis', 3, 5, markSearchFocus: true);
     expect(cubit.state.activeFocus, isNotNull);
 
     cubit.clearFocus();
     expect(cubit.state.activeFocus, isNull);
     await cubit.close();
   });
+
+  test(
+    'manual navigation to another book does not reactivate the search focus',
+    () async {
+      when(() => getChapterCount('genesis'))
+          .thenAnswer((_) async => const Right<Failure, int>(50));
+      when(() => getChapterCount('revelation'))
+          .thenAnswer((_) async => const Right<Failure, int>(22));
+      when(() => getChapterVerses('genesis', 1)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(3, book: 'genesis', chapter: 1),
+        ),
+      );
+      when(() => getChapterVerses('revelation', 1)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(3, book: 'revelation', chapter: 1),
+        ),
+      );
+
+      final cubit = createCubit();
+      await cubit.loadChapterAndScrollTo(
+        'genesis',
+        1,
+        3,
+        markSearchFocus: true,
+      );
+      expect(cubit.state.activeFocus, isNotNull);
+
+      await cubit.loadChapterAndScrollTo('revelation', 1, 1);
+      expect(cubit.state.activeFocus, isNull);
+      await cubit.close();
+    },
+  );
 }
 
 class _MockGetChapterVerses extends Mock implements GetChapterVerses {}

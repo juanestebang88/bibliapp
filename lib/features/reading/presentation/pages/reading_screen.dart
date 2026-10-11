@@ -69,6 +69,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
       focus.book,
       focus.chapter,
       focus.verse,
+      markSearchFocus: true,
     );
   }
 
