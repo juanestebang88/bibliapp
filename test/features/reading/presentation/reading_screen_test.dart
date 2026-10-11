@@ -97,15 +97,15 @@ void main() {
     await tester.tap(find.text('A+'));
     await tester.pump();
 
-    final verseRichText = tester.widget<RichText>(
+    final verseSelectable = tester.widget<SelectableText>(
       find.byWidgetPredicate(
         (widget) =>
-            widget is RichText &&
-            widget.text.toPlainText().contains('Test verse text'),
+            widget is SelectableText &&
+            widget.textSpan?.toPlainText().contains('Test verse text') == true,
       ),
     );
     double? verseFontSize;
-    (verseRichText.text as TextSpan).visitChildren((span) {
+    verseSelectable.textSpan!.visitChildren((span) {
       if (span is TextSpan && span.text?.contains('Test verse text') == true) {
         verseFontSize = span.style?.fontSize;
       }

@@ -284,11 +284,6 @@ class ReadingCubit extends Cubit<ReadingState> {
     await saveReadingSettings(ReadingSettingsEntity(fontSize: newSize.round()));
   }
 
-  void selectVerse(int verse) {
-    if (verse < 1 || verse > state.chapterVerses.length) return;
-    emit(state.copyWith(currentVerseNumber: verse));
-  }
-
   Future<void> loadChapterAndScrollTo(
     String book,
     int chapter,
