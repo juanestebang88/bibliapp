@@ -11,6 +11,7 @@ import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart'
 import 'package:bibliapp/features/reading/presentation/widgets/chapter_navigation.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/passage_picker_dialog.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/reading_header.dart';
+import 'package:bibliapp/features/reading/presentation/widgets/reading_immersive_scaffold.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/search_verse_dialog.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/swipeable_reading_body.dart';
 
@@ -79,19 +80,23 @@ class _ReadingScreenState extends State<ReadingScreen> {
       listener: _onStateChanged,
       child: Scaffold(
         body: BlocBuilder<ReadingCubit, ReadingState>(
-          builder: (context, state) => SafeArea(
-            child: Column(
+          builder: (context, state) => ReadingImmersiveScaffold(
+            state: state,
+            header: ReadingHeader(
+              state: state,
+              onOpenPicker: () => _openPassagePicker(context, state),
+              onSearch: () => _openSearch(context),
+            ),
+            topAccessory: state.activeFocus != null
+                ? const Padding(
+                    padding: EdgeInsets.only(bottom: AppSpacing.xs),
+                    child: _BackToResultsButton(),
+                  )
+                : null,
+            body: SwipeableReadingBody(state: state),
+            footer: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                ReadingHeader(
-                  state: state,
-                  onOpenPicker: () => _openPassagePicker(context, state),
-                  onSearch: () => _openSearch(context),
-                ),
-                if (state.activeFocus != null) ...[
-                  const _BackToResultsButton(),
-                  SizedBox(height: AppSpacing.xs),
-                ],
-                Expanded(child: SwipeableReadingBody(state: state)),
                 const SizedBox(height: AppSpacing.sm),
                 ChapterNavigation(state: state),
                 const BottomToolbar(
