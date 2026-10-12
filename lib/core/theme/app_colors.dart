@@ -10,6 +10,8 @@ class AppColors {
   static const goldLight = Color(0xFFF6CB82);
   static const goldButton = Color(0xFFEBD9BD);
   static const bronze = Color(0xFFE8C29B);
+  static const greenAccent = Color(0xFF7CA889);
+  static const greenLight = Color(0xFFDCE8DF);
   static const offWhite = Color(0xFFF2EEE6);
   static const secondaryText = Color(0xFF94A3B8);
   static const lightBackground = Color(0xFFF7F4EE);

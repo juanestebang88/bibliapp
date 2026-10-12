@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_database.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_local_data_source.dart';
 import 'package:bibliapp/features/reading/data/repositories/reading_repository_impl.dart';
+import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 
@@ -80,6 +81,68 @@ void main() {
       result.match((failure) => failure.message, (_) => ''),
       contains('database unavailable'),
     );
+  });
+
+  test('upserts chapter progress per chapter and returns it', () async {
+    const partial = ChapterProgressEntity(
+      book: 'genesis',
+      chapter: 1,
+      lastVerseRead: 7,
+      isComplete: false,
+    );
+
+    await dataSource.saveChapterProgress(partial);
+
+    expect(await dataSource.getChapterProgress('genesis', 1), partial);
+    expect(await dataSource.getChapterProgress('genesis', 2), isNull);
+
+    final complete = ChapterProgressEntity(
+      book: 'genesis',
+      chapter: 1,
+      lastVerseRead: 3,
+      isComplete: true,
+      completedAt: DateTime.fromMillisecondsSinceEpoch(1700000000000),
+    );
+
+    await dataSource.saveChapterProgress(complete);
+
+    expect(await dataSource.getChapterProgress('genesis', 1), complete);
+  });
+
+  test('unmarking resets the chapter progress values', () async {
+    const complete = ChapterProgressEntity(
+      book: 'genesis',
+      chapter: 2,
+      lastVerseRead: 3,
+      isComplete: true,
+      completedAt: null,
+    );
+    await dataSource.saveChapterProgress(complete);
+
+    const unmarked = ChapterProgressEntity(
+      book: 'genesis',
+      chapter: 2,
+      lastVerseRead: 0,
+      isComplete: false,
+    );
+    await dataSource.saveChapterProgress(unmarked);
+
+    expect(await dataSource.getChapterProgress('genesis', 2), unmarked);
+  });
+
+  test('clearAllData removes the saved chapter progress', () async {
+    await dataSource.saveChapterProgress(
+      const ChapterProgressEntity(
+        book: 'genesis',
+        chapter: 1,
+        lastVerseRead: 2,
+        isComplete: false,
+      ),
+    );
+
+    await dataSource.clearAllData();
+
+    expect(await dataSource.getChapterProgress('genesis', 1), isNull);
   });
 }
 

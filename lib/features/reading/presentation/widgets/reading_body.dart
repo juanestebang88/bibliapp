@@ -8,7 +8,19 @@ import 'package:bibliapp/features/reading/presentation/widgets/failure_view.dart
 class ReadingBody extends StatelessWidget {
   final ReadingState state;
 
-  const ReadingBody({super.key, required this.state});
+  /// Reports the last verse number visible inside the viewport.
+  final ValueChanged<int>? onVisibleVerseChanged;
+
+  /// Extra trailing room in the scrollable content, used to keep the last
+  /// verse clear of the floating progress button.
+  final double bottomContentInset;
+
+  const ReadingBody({
+    super.key,
+    required this.state,
+    this.onVisibleVerseChanged,
+    this.bottomContentInset = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +38,11 @@ class ReadingBody extends StatelessWidget {
           ),
         ),
       ),
-      ReadingStatus.success => ChapterVerses(state: state),
+      ReadingStatus.success => ChapterVerses(
+        state: state,
+        onVisibleVerseChanged: onVisibleVerseChanged,
+        bottomContentInset: bottomContentInset,
+      ),
     };
   }
 }

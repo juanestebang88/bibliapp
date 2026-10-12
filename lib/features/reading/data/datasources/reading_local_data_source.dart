@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:bibliapp/core/utils/search_text.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_database.dart';
 import 'package:bibliapp/features/reading/domain/book_order.dart';
+import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 
@@ -148,6 +149,34 @@ class ReadingLocalDataSource {
     );
   }
 
+  Future<ChapterProgressEntity?> getChapterProgress(
+    String book,
+    int chapter,
+  ) async {
+    final row =
+        await (database.select(database.chapterProgress)..where(
+              (table) =>
+                  table.book.equals(book) & table.chapter.equals(chapter),
+            ))
+            .getSingleOrNull();
+
+    return row == null ? null : _toChapterProgressEntity(row);
+  }
+
+  Future<void> saveChapterProgress(ChapterProgressEntity progress) async {
+    await database
+        .into(database.chapterProgress)
+        .insertOnConflictUpdate(
+          ChapterProgressCompanion.insert(
+            book: progress.book,
+            chapter: progress.chapter,
+            lastVerseRead: Value(progress.lastVerseRead),
+            isComplete: Value(progress.isComplete),
+            completedAt: Value(progress.completedAt?.millisecondsSinceEpoch),
+          ),
+        );
+  }
+
   Future<int?> getFontSize() async {
     final row = await database
         .select(database.readingSettings)
@@ -170,6 +199,7 @@ class ReadingLocalDataSource {
     await database.delete(database.verses).go();
     await database.delete(database.readingProgress).go();
     await database.delete(database.readingSettings).go();
+    await database.delete(database.chapterProgress).go();
   }
 
   VerseEntity _toEntity(Verse row) => VerseEntity(
@@ -179,6 +209,17 @@ class ReadingLocalDataSource {
     text: row.verseText,
     isVerseNumber: row.isVerseNumber,
   );
+
+  ChapterProgressEntity _toChapterProgressEntity(ChapterProgressData row) =>
+      ChapterProgressEntity(
+        book: row.book,
+        chapter: row.chapter,
+        lastVerseRead: row.lastVerseRead,
+        isComplete: row.isComplete,
+        completedAt: row.completedAt == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(row.completedAt!),
+      );
 
   int _bookOrderIndex(String book) {
     final index = bibleBookOrder.indexOf(book);

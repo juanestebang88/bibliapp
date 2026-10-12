@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:bibliapp/core/localization/app_strings.dart';
 import 'package:bibliapp/core/theme/app_colors.dart';
+import 'package:bibliapp/core/theme/app_progress_button_tokens.dart';
 import 'package:bibliapp/core/theme/app_radius.dart';
 import 'package:bibliapp/core/theme/app_spacing.dart';
 import 'package:bibliapp/core/widgets/bottom_toolbar.dart';
@@ -12,6 +13,7 @@ import 'package:bibliapp/features/reading/presentation/widgets/chapter_navigatio
 import 'package:bibliapp/features/reading/presentation/widgets/passage_picker_dialog.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/reading_header.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/reading_immersive_scaffold.dart';
+import 'package:bibliapp/features/reading/presentation/widgets/reading_progress_button.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/search_verse_dialog.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/swipeable_reading_body.dart';
 
@@ -28,6 +30,29 @@ class ReadingScreen extends StatefulWidget {
 
 class _ReadingScreenState extends State<ReadingScreen> {
   bool _didJump = false;
+  String? _loadedBook;
+  int? _loadedChapter;
+  final ValueNotifier<int> _visibleVerse = ValueNotifier<int>(1);
+
+  @override
+  void dispose() {
+    _visibleVerse.dispose();
+    super.dispose();
+  }
+
+  /// Resets the visible verse tracker when the loaded chapter changes so the
+  /// progress button never mixes verses from a previous chapter.
+  void _trackChapterChange(ReadingState state) {
+    if (_loadedBook == state.currentBook &&
+        _loadedChapter == state.currentChapter) {
+      return;
+    }
+    _loadedBook = state.currentBook;
+    _loadedChapter = state.currentChapter;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _visibleVerse.value = 1;
+    });
+  }
 
   Future<void> _openPassagePicker(
     BuildContext context,
@@ -80,48 +105,79 @@ class _ReadingScreenState extends State<ReadingScreen> {
       listener: _onStateChanged,
       child: Scaffold(
         body: BlocBuilder<ReadingCubit, ReadingState>(
-          builder: (context, state) => ReadingImmersiveScaffold(
-            state: state,
-            header: ReadingHeader(
+          builder: (context, state) {
+            _trackChapterChange(state);
+            return ReadingImmersiveScaffold(
               state: state,
-              onOpenPicker: () => _openPassagePicker(context, state),
-              onSearch: () => _openSearch(context),
-            ),
-            topAccessory: state.activeFocus != null
-                ? const Padding(
-                    padding: EdgeInsets.only(bottom: AppSpacing.xs),
-                    child: _BackToResultsButton(),
-                  )
-                : null,
-            body: SwipeableReadingBody(state: state),
-            footer: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: AppSpacing.sm),
-                ChapterNavigation(state: state),
-                const BottomToolbar(
-                  items: [
-                    BottomToolbarItem(
-                      icon: Icons.home_outlined,
-                      label: AppStrings.home,
-                    ),
-                    BottomToolbarItem(
-                      icon: Icons.menu_book_outlined,
-                      label: AppStrings.reading,
-                    ),
-                    BottomToolbarItem(
-                      icon: Icons.bar_chart,
-                      label: AppStrings.statistics,
-                    ),
-                    BottomToolbarItem(
-                      icon: Icons.settings_outlined,
-                      label: AppStrings.settings,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+              header: ReadingHeader(
+                state: state,
+                onOpenPicker: () => _openPassagePicker(context, state),
+                onSearch: () => _openSearch(context),
+              ),
+              topAccessory: state.activeFocus != null
+                  ? const Padding(
+                      padding: EdgeInsets.only(bottom: AppSpacing.xs),
+                      child: _BackToResultsButton(),
+                    )
+                  : null,
+              body: widget.focus == null
+                  ? Stack(
+                      children: [
+                        Positioned.fill(
+                          child: SwipeableReadingBody(
+                            state: state,
+                            bottomContentInset:
+                                AppProgressButtonTokens.contentBottomClearance,
+                            onVisibleVerseChanged: (verse) {
+                              _visibleVerse.value = verse;
+                            },
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              right: AppSpacing.md,
+                              bottom: AppProgressButtonTokens.bottomMargin,
+                            ),
+                            child: ReadingProgressButton(
+                              state: state,
+                              visibleVerse: _visibleVerse,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : SwipeableReadingBody(state: state),
+              footer: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: AppSpacing.sm),
+                  ChapterNavigation(state: state),
+                  const BottomToolbar(
+                    items: [
+                      BottomToolbarItem(
+                        icon: Icons.home_outlined,
+                        label: AppStrings.home,
+                      ),
+                      BottomToolbarItem(
+                        icon: Icons.menu_book_outlined,
+                        label: AppStrings.reading,
+                      ),
+                      BottomToolbarItem(
+                        icon: Icons.bar_chart,
+                        label: AppStrings.statistics,
+                      ),
+                      BottomToolbarItem(
+                        icon: Icons.settings_outlined,
+                        label: AppStrings.settings,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );

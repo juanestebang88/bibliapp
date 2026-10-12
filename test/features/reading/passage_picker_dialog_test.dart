@@ -4,13 +4,16 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:bibliapp/core/di/get_it.dart';
 import 'package:bibliapp/core/error/failure.dart';
+import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_settings.dart';
+import 'package:bibliapp/features/reading/domain/usecases/save_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/passage_picker_cubit.dart';
@@ -27,11 +30,21 @@ void main() {
   late _MockSaveReadingProgress saveReadingProgress;
   late _MockGetReadingSettings getReadingSettings;
   late _MockSaveReadingSettings saveReadingSettings;
+  late _MockGetChapterProgress getChapterProgress;
+  late _MockSaveChapterProgress saveChapterProgress;
 
   setUpAll(() {
     registerFallbackValue(const ReadingSettingsEntity());
     registerFallbackValue(
       const ReadingProgressEntity(lastBook: 'genesis', lastChapter: 1),
+    );
+    registerFallbackValue(
+      const ChapterProgressEntity(
+        book: 'genesis',
+        chapter: 1,
+        lastVerseRead: 0,
+        isComplete: false,
+      ),
     );
   });
 
@@ -43,6 +56,8 @@ void main() {
     saveReadingProgress = _MockSaveReadingProgress();
     getReadingSettings = _MockGetReadingSettings();
     saveReadingSettings = _MockSaveReadingSettings();
+    getChapterProgress = _MockGetChapterProgress();
+    saveChapterProgress = _MockSaveChapterProgress();
     when(() => getReadingProgress()).thenAnswer(
       (_) async => const Right<Failure, ReadingProgressEntity?>(null),
     );
@@ -75,6 +90,11 @@ void main() {
         ),
       ),
     );
+    when(() => getChapterProgress(any(), any())).thenAnswer(
+      (_) async => const Right<Failure, ChapterProgressEntity?>(null),
+    );
+    when(() => saveChapterProgress(any()))
+        .thenAnswer((_) async => const Right<Failure, bool>(true));
     getIt.registerFactory(
       () => ReadingCubit(
         getChapterVerses: getChapterVerses,
@@ -83,6 +103,8 @@ void main() {
         saveReadingProgress: saveReadingProgress,
         getReadingSettings: getReadingSettings,
         saveReadingSettings: saveReadingSettings,
+        getChapterProgress: getChapterProgress,
+        saveChapterProgress: saveChapterProgress,
       ),
     );
     getIt.registerFactory(
@@ -135,7 +157,9 @@ void main() {
     expect(find.byType(NumberChipGrid), findsOneWidget);
 
     await tester.tap(find.text('5'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('Seleccionar pasaje'), findsNothing);
     expect(find.text('Génesis 3'), findsOneWidget);
@@ -193,3 +217,7 @@ class _MockSaveReadingProgress extends Mock implements SaveReadingProgress {}
 class _MockGetReadingSettings extends Mock implements GetReadingSettings {}
 
 class _MockSaveReadingSettings extends Mock implements SaveReadingSettings {}
+
+class _MockGetChapterProgress extends Mock implements GetChapterProgress {}
+
+class _MockSaveChapterProgress extends Mock implements SaveChapterProgress {}

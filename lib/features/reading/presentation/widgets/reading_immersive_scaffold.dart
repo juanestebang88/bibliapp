@@ -45,6 +45,12 @@ class _ReadingImmersiveScaffoldState extends State<ReadingImmersiveScaffold>
   double _topInset = 0;
   double _bottomInset = 0;
 
+  /// Scroll compensation used when the chrome becomes visible because the
+  /// chapter bottom was reached: keeps the last verse above the footer while
+  /// the inset grows instead of leaving it obscured behind the overlay.
+  bool _pendingBottomCompensation = false;
+  ScrollPosition? _bottomChromePosition;
+
   @override
   void initState() {
     super.initState();
@@ -53,6 +59,8 @@ class _ReadingImmersiveScaffoldState extends State<ReadingImmersiveScaffold>
       duration: AppMotion.chromeDuration,
       value: 1,
     );
+    _controller.addListener(_followBottomScrollPosition);
+    _controller.addStatusListener(_onChromeStatusChanged);
     final animation = CurvedAnimation(
       parent: _controller,
       curve: AppMotion.chromeCurve,
@@ -109,16 +117,28 @@ class _ReadingImmersiveScaffoldState extends State<ReadingImmersiveScaffold>
   }
 
   bool _onScroll(ScrollNotification notification) {
+    if (notification is ScrollStartNotification &&
+        notification.dragDetails != null) {
+      _cancelBottomCompensation();
+    }
     if (notification is! ScrollUpdateNotification) return false;
 
     final metrics = notification.metrics;
     final pixels = metrics.pixels;
 
-    if (pixels <= metrics.minScrollExtent ||
-        pixels >= metrics.maxScrollExtent) {
+    if (pixels >= metrics.maxScrollExtent) {
+      _trackBottomCompensation(notification);
       _showChrome();
       return false;
     }
+
+    if (pixels <= metrics.minScrollExtent) {
+      _cancelBottomCompensation();
+      _showChrome();
+      return false;
+    }
+
+    _cancelBottomCompensation();
 
     final delta = notification.scrollDelta;
     if (delta != null) {
@@ -144,6 +164,50 @@ class _ReadingImmersiveScaffoldState extends State<ReadingImmersiveScaffold>
 
   void _hideChrome() {
     _controller.reverse();
+  }
+
+  /// Remembers the scrollable when the chapter bottom is reached while the
+  /// chrome is still hidden, so its position can be kept pinned at the bottom
+  /// while the inset grows.
+  void _trackBottomCompensation(ScrollNotification notification) {
+    if (_pendingBottomCompensation || _controller.isCompleted) return;
+    final scrollable = notification.context
+        ?.findAncestorStateOfType<ScrollableState>();
+    if (scrollable == null) return;
+    _bottomChromePosition = scrollable.position;
+    _pendingBottomCompensation = true;
+  }
+
+  /// Keeps the last verse anchored at the bottom of the viewport (the footer
+  /// top) while the chrome turns visible at the chapter bottom.
+  void _followBottomScrollPosition() {
+    if (!_pendingBottomCompensation) return;
+    _pinBottomPosition();
+  }
+
+  void _pinBottomPosition() {
+    final position = _bottomChromePosition;
+    if (position == null) return;
+    final max = position.maxScrollExtent;
+    if ((position.pixels - max).abs() > 0.5) {
+      position.jumpTo(max);
+    }
+  }
+
+  void _onChromeStatusChanged(AnimationStatus status) {
+    if (status != AnimationStatus.completed) return;
+    // maxScrollExtent is final only after the layout that applies the full
+    // inset, so the last compensation runs once post-frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_pendingBottomCompensation) return;
+      _pinBottomPosition();
+      _cancelBottomCompensation();
+    });
+  }
+
+  void _cancelBottomCompensation() {
+    _pendingBottomCompensation = false;
+    _bottomChromePosition = null;
   }
 
   @override
