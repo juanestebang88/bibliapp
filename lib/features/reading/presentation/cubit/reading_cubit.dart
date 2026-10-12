@@ -1,15 +1,18 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bibliapp/features/reading/domain/book_order.dart';
+import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_reference.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/search_focus.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_settings.dart';
+import 'package:bibliapp/features/reading/domain/usecases/save_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.dart';
 
@@ -28,6 +31,7 @@ class ReadingState extends Equatable {
   final String? errorMessage;
   final int? pendingScrollVerse;
   final SearchFocus? activeFocus;
+  final ChapterProgressEntity? chapterProgress;
 
   const ReadingState({
     this.status = ReadingStatus.initial,
@@ -42,6 +46,7 @@ class ReadingState extends Equatable {
     this.errorMessage,
     this.pendingScrollVerse,
     this.activeFocus,
+    this.chapterProgress,
   });
 
   bool get isFirstChapter => currentBook == 'genesis' && currentChapter == 1;
@@ -62,11 +67,13 @@ class ReadingState extends Equatable {
     String? errorMessage,
     int? pendingScrollVerse,
     SearchFocus? activeFocus,
+    ChapterProgressEntity? chapterProgress,
     bool clearErrorMessage = false,
     bool clearPreviousChapterReference = false,
     bool clearNextChapterReference = false,
     bool clearPendingScrollVerse = false,
     bool clearActiveFocus = false,
+    bool clearChapterProgress = false,
   }) => ReadingState(
     status: status ?? this.status,
     chapterVerses: chapterVerses ?? this.chapterVerses,
@@ -86,6 +93,9 @@ class ReadingState extends Equatable {
         ? null
         : pendingScrollVerse ?? this.pendingScrollVerse,
     activeFocus: clearActiveFocus ? null : activeFocus ?? this.activeFocus,
+    chapterProgress: clearChapterProgress
+        ? null
+        : chapterProgress ?? this.chapterProgress,
   );
 
   @override
@@ -102,6 +112,7 @@ class ReadingState extends Equatable {
     errorMessage,
     pendingScrollVerse,
     activeFocus,
+    chapterProgress,
   ];
 }
 
@@ -112,6 +123,8 @@ class ReadingCubit extends Cubit<ReadingState> {
   final SaveReadingProgress saveReadingProgress;
   final GetReadingSettings getReadingSettings;
   final SaveReadingSettings saveReadingSettings;
+  final GetChapterProgress getChapterProgress;
+  final SaveChapterProgress saveChapterProgress;
 
   ReadingCubit({
     required this.getChapterVerses,
@@ -120,9 +133,11 @@ class ReadingCubit extends Cubit<ReadingState> {
     required this.saveReadingProgress,
     required this.getReadingSettings,
     required this.saveReadingSettings,
+    required this.getChapterProgress,
+    required this.saveChapterProgress,
   }) : super(const ReadingState());
 
-  Future<void> initialize() async {
+  Future<void> initialize({bool applyResume = true}) async {
     final settings = await getReadingSettings();
     final fontSize =
         settings.getOrElse((_) => null)?.fontSize ?? state.fontSize.round();
@@ -147,6 +162,7 @@ class ReadingCubit extends Cubit<ReadingState> {
         progress?.lastBook ?? 'genesis',
         progress?.lastChapter ?? 1,
         saveProgress: false,
+        applyResume: applyResume,
       ),
     );
   }
@@ -155,6 +171,7 @@ class ReadingCubit extends Cubit<ReadingState> {
     String book,
     int chapter, {
     bool saveProgress = true,
+    bool applyResume = true,
   }) async {
     if (chapter < 1) return;
 
@@ -184,6 +201,7 @@ class ReadingCubit extends Cubit<ReadingState> {
           status: ReadingStatus.success,
           activeFocus: _focusAfterLoad(book, chapter),
           clearActiveFocus: _focusAfterLoad(book, chapter) == null,
+          clearChapterProgress: true,
         ),
       );
       return;
@@ -194,6 +212,7 @@ class ReadingCubit extends Cubit<ReadingState> {
       chapter,
       verses,
       saveProgress: saveProgress,
+      applyResume: applyResume,
     );
   }
 
@@ -202,6 +221,7 @@ class ReadingCubit extends Cubit<ReadingState> {
     int chapter,
     List<VerseEntity> verses, {
     bool saveProgress = true,
+    bool applyResume = true,
   }) async {
     final chapterCount = (await getChapterCount(book)).getOrElse((_) => 1);
 
@@ -217,13 +237,26 @@ class ReadingCubit extends Cubit<ReadingState> {
 
     final keptFocus = _focusAfterLoad(book, chapter);
 
+    final chapterProgress = (await getChapterProgress(
+      book,
+      chapter,
+    )).getOrElse((_) => null);
+    final resumeVerse =
+        applyResume &&
+            keptFocus == null &&
+            chapterProgress != null &&
+            !chapterProgress.isComplete &&
+            chapterProgress.lastVerseRead > 1
+        ? chapterProgress.lastVerseRead
+        : null;
+
     emit(
       state.copyWith(
         status: ReadingStatus.success,
         chapterVerses: verses,
         currentBook: book,
         currentChapter: chapter,
-        currentVerseNumber: 1,
+        currentVerseNumber: resumeVerse ?? 1,
         bookChapterCount: chapterCount,
         previousChapterReference: previousChapterReference,
         clearPreviousChapterReference: previousChapterReference == null,
@@ -232,6 +265,10 @@ class ReadingCubit extends Cubit<ReadingState> {
         clearErrorMessage: true,
         activeFocus: keptFocus,
         clearActiveFocus: keptFocus == null,
+        chapterProgress: chapterProgress,
+        clearChapterProgress: chapterProgress == null,
+        pendingScrollVerse: resumeVerse,
+        clearPendingScrollVerse: resumeVerse == null,
       ),
     );
     if (saveProgress) await saveCurrentProgress();
@@ -290,7 +327,7 @@ class ReadingCubit extends Cubit<ReadingState> {
     int verse, {
     bool markSearchFocus = false,
   }) async {
-    await loadChapter(book, chapter);
+    await loadChapter(book, chapter, applyResume: false);
     if (state.status != ReadingStatus.success) return;
     if (state.currentBook != book || state.currentChapter != chapter) return;
     final focus = markSearchFocus
@@ -362,6 +399,59 @@ class ReadingCubit extends Cubit<ReadingState> {
         ),
       ),
       (_) {},
+    );
+  }
+
+  /// Marks the current chapter as fully read.
+  Future<void> markChapterComplete() async {
+    await _persistChapterProgress(
+      ChapterProgressEntity(
+        book: state.currentBook,
+        chapter: state.currentChapter,
+        lastVerseRead: state.chapterVerses.length,
+        isComplete: true,
+        completedAt: DateTime.now(),
+      ),
+    );
+  }
+
+  /// Marks the current chapter as read up to [verse].
+  Future<void> savePartialProgress(int verse) async {
+    final total = state.chapterVerses.length;
+    await _persistChapterProgress(
+      ChapterProgressEntity(
+        book: state.currentBook,
+        chapter: state.currentChapter,
+        lastVerseRead: total <= 0 ? verse : verse.clamp(1, total),
+        isComplete: false,
+        completedAt: null,
+      ),
+    );
+  }
+
+  /// Removes the completion state of the current chapter.
+  Future<void> unmarkChapter() async {
+    await _persistChapterProgress(
+      ChapterProgressEntity(
+        book: state.currentBook,
+        chapter: state.currentChapter,
+        lastVerseRead: 0,
+        isComplete: false,
+        completedAt: null,
+      ),
+    );
+  }
+
+  Future<void> _persistChapterProgress(ChapterProgressEntity progress) async {
+    final result = await saveChapterProgress(progress);
+    result.match(
+      (failure) => emit(
+        state.copyWith(
+          status: ReadingStatus.failure,
+          errorMessage: failure.message,
+        ),
+      ),
+      (_) => emit(state.copyWith(chapterProgress: progress)),
     );
   }
 }

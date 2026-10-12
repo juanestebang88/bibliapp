@@ -1,5 +1,6 @@
 import 'package:bibliapp/core/error/failure.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_local_data_source.dart';
+import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
@@ -57,6 +58,20 @@ class ReadingRepositoryImpl implements ReadingRepository {
     ReadingSettingsEntity settings,
   ) => _guard(() async {
     await dataSource.saveFontSize(settings.fontSize);
+    return true;
+  });
+
+  @override
+  Future<Either<Failure, ChapterProgressEntity?>> getChapterProgress(
+    String book,
+    int chapter,
+  ) => _guard(() => dataSource.getChapterProgress(book, chapter));
+
+  @override
+  Future<Either<Failure, bool>> saveChapterProgress(
+    ChapterProgressEntity progress,
+  ) => _guard(() async {
+    await dataSource.saveChapterProgress(progress);
     return true;
   });
 

@@ -816,6 +816,385 @@ class ReadingSettingsCompanion extends UpdateCompanion<ReadingSetting> {
   }
 }
 
+class $ChapterProgressTable extends ChapterProgress
+    with TableInfo<$ChapterProgressTable, ChapterProgressData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ChapterProgressTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _bookMeta = const VerificationMeta('book');
+  @override
+  late final GeneratedColumn<String> book = GeneratedColumn<String>(
+    'book',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _chapterMeta = const VerificationMeta(
+    'chapter',
+  );
+  @override
+  late final GeneratedColumn<int> chapter = GeneratedColumn<int>(
+    'chapter',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _lastVerseReadMeta = const VerificationMeta(
+    'lastVerseRead',
+  );
+  @override
+  late final GeneratedColumn<int> lastVerseRead = GeneratedColumn<int>(
+    'last_verse_read',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _isCompleteMeta = const VerificationMeta(
+    'isComplete',
+  );
+  @override
+  late final GeneratedColumn<bool> isComplete = GeneratedColumn<bool>(
+    'is_complete',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_complete" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _completedAtMeta = const VerificationMeta(
+    'completedAt',
+  );
+  @override
+  late final GeneratedColumn<int> completedAt = GeneratedColumn<int>(
+    'completed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    book,
+    chapter,
+    lastVerseRead,
+    isComplete,
+    completedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chapter_progress';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ChapterProgressData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('book')) {
+      context.handle(
+        _bookMeta,
+        book.isAcceptableOrUnknown(data['book']!, _bookMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bookMeta);
+    }
+    if (data.containsKey('chapter')) {
+      context.handle(
+        _chapterMeta,
+        chapter.isAcceptableOrUnknown(data['chapter']!, _chapterMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_chapterMeta);
+    }
+    if (data.containsKey('last_verse_read')) {
+      context.handle(
+        _lastVerseReadMeta,
+        lastVerseRead.isAcceptableOrUnknown(
+          data['last_verse_read']!,
+          _lastVerseReadMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_complete')) {
+      context.handle(
+        _isCompleteMeta,
+        isComplete.isAcceptableOrUnknown(data['is_complete']!, _isCompleteMeta),
+      );
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+        _completedAtMeta,
+        completedAt.isAcceptableOrUnknown(
+          data['completed_at']!,
+          _completedAtMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {book, chapter};
+  @override
+  ChapterProgressData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChapterProgressData(
+      book: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}book'],
+      )!,
+      chapter: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}chapter'],
+      )!,
+      lastVerseRead: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_verse_read'],
+      )!,
+      isComplete: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_complete'],
+      )!,
+      completedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}completed_at'],
+      ),
+    );
+  }
+
+  @override
+  $ChapterProgressTable createAlias(String alias) {
+    return $ChapterProgressTable(attachedDatabase, alias);
+  }
+}
+
+class ChapterProgressData extends DataClass
+    implements Insertable<ChapterProgressData> {
+  final String book;
+  final int chapter;
+  final int lastVerseRead;
+  final bool isComplete;
+  final int? completedAt;
+  const ChapterProgressData({
+    required this.book,
+    required this.chapter,
+    required this.lastVerseRead,
+    required this.isComplete,
+    this.completedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['book'] = Variable<String>(book);
+    map['chapter'] = Variable<int>(chapter);
+    map['last_verse_read'] = Variable<int>(lastVerseRead);
+    map['is_complete'] = Variable<bool>(isComplete);
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<int>(completedAt);
+    }
+    return map;
+  }
+
+  ChapterProgressCompanion toCompanion(bool nullToAbsent) {
+    return ChapterProgressCompanion(
+      book: Value(book),
+      chapter: Value(chapter),
+      lastVerseRead: Value(lastVerseRead),
+      isComplete: Value(isComplete),
+      completedAt: completedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedAt),
+    );
+  }
+
+  factory ChapterProgressData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChapterProgressData(
+      book: serializer.fromJson<String>(json['book']),
+      chapter: serializer.fromJson<int>(json['chapter']),
+      lastVerseRead: serializer.fromJson<int>(json['lastVerseRead']),
+      isComplete: serializer.fromJson<bool>(json['isComplete']),
+      completedAt: serializer.fromJson<int?>(json['completedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'book': serializer.toJson<String>(book),
+      'chapter': serializer.toJson<int>(chapter),
+      'lastVerseRead': serializer.toJson<int>(lastVerseRead),
+      'isComplete': serializer.toJson<bool>(isComplete),
+      'completedAt': serializer.toJson<int?>(completedAt),
+    };
+  }
+
+  ChapterProgressData copyWith({
+    String? book,
+    int? chapter,
+    int? lastVerseRead,
+    bool? isComplete,
+    Value<int?> completedAt = const Value.absent(),
+  }) => ChapterProgressData(
+    book: book ?? this.book,
+    chapter: chapter ?? this.chapter,
+    lastVerseRead: lastVerseRead ?? this.lastVerseRead,
+    isComplete: isComplete ?? this.isComplete,
+    completedAt: completedAt.present ? completedAt.value : this.completedAt,
+  );
+  ChapterProgressData copyWithCompanion(ChapterProgressCompanion data) {
+    return ChapterProgressData(
+      book: data.book.present ? data.book.value : this.book,
+      chapter: data.chapter.present ? data.chapter.value : this.chapter,
+      lastVerseRead: data.lastVerseRead.present
+          ? data.lastVerseRead.value
+          : this.lastVerseRead,
+      isComplete: data.isComplete.present
+          ? data.isComplete.value
+          : this.isComplete,
+      completedAt: data.completedAt.present
+          ? data.completedAt.value
+          : this.completedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChapterProgressData(')
+          ..write('book: $book, ')
+          ..write('chapter: $chapter, ')
+          ..write('lastVerseRead: $lastVerseRead, ')
+          ..write('isComplete: $isComplete, ')
+          ..write('completedAt: $completedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(book, chapter, lastVerseRead, isComplete, completedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChapterProgressData &&
+          other.book == this.book &&
+          other.chapter == this.chapter &&
+          other.lastVerseRead == this.lastVerseRead &&
+          other.isComplete == this.isComplete &&
+          other.completedAt == this.completedAt);
+}
+
+class ChapterProgressCompanion extends UpdateCompanion<ChapterProgressData> {
+  final Value<String> book;
+  final Value<int> chapter;
+  final Value<int> lastVerseRead;
+  final Value<bool> isComplete;
+  final Value<int?> completedAt;
+  final Value<int> rowid;
+  const ChapterProgressCompanion({
+    this.book = const Value.absent(),
+    this.chapter = const Value.absent(),
+    this.lastVerseRead = const Value.absent(),
+    this.isComplete = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ChapterProgressCompanion.insert({
+    required String book,
+    required int chapter,
+    this.lastVerseRead = const Value.absent(),
+    this.isComplete = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : book = Value(book),
+       chapter = Value(chapter);
+  static Insertable<ChapterProgressData> custom({
+    Expression<String>? book,
+    Expression<int>? chapter,
+    Expression<int>? lastVerseRead,
+    Expression<bool>? isComplete,
+    Expression<int>? completedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (book != null) 'book': book,
+      if (chapter != null) 'chapter': chapter,
+      if (lastVerseRead != null) 'last_verse_read': lastVerseRead,
+      if (isComplete != null) 'is_complete': isComplete,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ChapterProgressCompanion copyWith({
+    Value<String>? book,
+    Value<int>? chapter,
+    Value<int>? lastVerseRead,
+    Value<bool>? isComplete,
+    Value<int?>? completedAt,
+    Value<int>? rowid,
+  }) {
+    return ChapterProgressCompanion(
+      book: book ?? this.book,
+      chapter: chapter ?? this.chapter,
+      lastVerseRead: lastVerseRead ?? this.lastVerseRead,
+      isComplete: isComplete ?? this.isComplete,
+      completedAt: completedAt ?? this.completedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (book.present) {
+      map['book'] = Variable<String>(book.value);
+    }
+    if (chapter.present) {
+      map['chapter'] = Variable<int>(chapter.value);
+    }
+    if (lastVerseRead.present) {
+      map['last_verse_read'] = Variable<int>(lastVerseRead.value);
+    }
+    if (isComplete.present) {
+      map['is_complete'] = Variable<bool>(isComplete.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<int>(completedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChapterProgressCompanion(')
+          ..write('book: $book, ')
+          ..write('chapter: $chapter, ')
+          ..write('lastVerseRead: $lastVerseRead, ')
+          ..write('isComplete: $isComplete, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$ReadingDatabase extends GeneratedDatabase {
   _$ReadingDatabase(QueryExecutor e) : super(e);
   $ReadingDatabaseManager get managers => $ReadingDatabaseManager(this);
@@ -826,6 +1205,9 @@ abstract class _$ReadingDatabase extends GeneratedDatabase {
   late final $ReadingSettingsTable readingSettings = $ReadingSettingsTable(
     this,
   );
+  late final $ChapterProgressTable chapterProgress = $ChapterProgressTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -834,6 +1216,7 @@ abstract class _$ReadingDatabase extends GeneratedDatabase {
     verses,
     readingProgress,
     readingSettings,
+    chapterProgress,
   ];
 }
 
@@ -1332,6 +1715,222 @@ typedef $$ReadingSettingsTableProcessedTableManager =
       ReadingSetting,
       PrefetchHooks Function()
     >;
+typedef $$ChapterProgressTableCreateCompanionBuilder =
+    ChapterProgressCompanion Function({
+      required String book,
+      required int chapter,
+      Value<int> lastVerseRead,
+      Value<bool> isComplete,
+      Value<int?> completedAt,
+      Value<int> rowid,
+    });
+typedef $$ChapterProgressTableUpdateCompanionBuilder =
+    ChapterProgressCompanion Function({
+      Value<String> book,
+      Value<int> chapter,
+      Value<int> lastVerseRead,
+      Value<bool> isComplete,
+      Value<int?> completedAt,
+      Value<int> rowid,
+    });
+
+class $$ChapterProgressTableFilterComposer
+    extends Composer<_$ReadingDatabase, $ChapterProgressTable> {
+  $$ChapterProgressTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get book => $composableBuilder(
+    column: $table.book,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get chapter => $composableBuilder(
+    column: $table.chapter,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lastVerseRead => $composableBuilder(
+    column: $table.lastVerseRead,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isComplete => $composableBuilder(
+    column: $table.isComplete,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ChapterProgressTableOrderingComposer
+    extends Composer<_$ReadingDatabase, $ChapterProgressTable> {
+  $$ChapterProgressTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get book => $composableBuilder(
+    column: $table.book,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get chapter => $composableBuilder(
+    column: $table.chapter,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get lastVerseRead => $composableBuilder(
+    column: $table.lastVerseRead,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isComplete => $composableBuilder(
+    column: $table.isComplete,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ChapterProgressTableAnnotationComposer
+    extends Composer<_$ReadingDatabase, $ChapterProgressTable> {
+  $$ChapterProgressTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get book =>
+      $composableBuilder(column: $table.book, builder: (column) => column);
+
+  GeneratedColumn<int> get chapter =>
+      $composableBuilder(column: $table.chapter, builder: (column) => column);
+
+  GeneratedColumn<int> get lastVerseRead => $composableBuilder(
+    column: $table.lastVerseRead,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isComplete => $composableBuilder(
+    column: $table.isComplete,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$ChapterProgressTableTableManager
+    extends
+        RootTableManager<
+          _$ReadingDatabase,
+          $ChapterProgressTable,
+          ChapterProgressData,
+          $$ChapterProgressTableFilterComposer,
+          $$ChapterProgressTableOrderingComposer,
+          $$ChapterProgressTableAnnotationComposer,
+          $$ChapterProgressTableCreateCompanionBuilder,
+          $$ChapterProgressTableUpdateCompanionBuilder,
+          (
+            ChapterProgressData,
+            BaseReferences<
+              _$ReadingDatabase,
+              $ChapterProgressTable,
+              ChapterProgressData
+            >,
+          ),
+          ChapterProgressData,
+          PrefetchHooks Function()
+        > {
+  $$ChapterProgressTableTableManager(
+    _$ReadingDatabase db,
+    $ChapterProgressTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ChapterProgressTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ChapterProgressTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ChapterProgressTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> book = const Value.absent(),
+                Value<int> chapter = const Value.absent(),
+                Value<int> lastVerseRead = const Value.absent(),
+                Value<bool> isComplete = const Value.absent(),
+                Value<int?> completedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ChapterProgressCompanion(
+                book: book,
+                chapter: chapter,
+                lastVerseRead: lastVerseRead,
+                isComplete: isComplete,
+                completedAt: completedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String book,
+                required int chapter,
+                Value<int> lastVerseRead = const Value.absent(),
+                Value<bool> isComplete = const Value.absent(),
+                Value<int?> completedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ChapterProgressCompanion.insert(
+                book: book,
+                chapter: chapter,
+                lastVerseRead: lastVerseRead,
+                isComplete: isComplete,
+                completedAt: completedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ChapterProgressTableProcessedTableManager =
+    ProcessedTableManager<
+      _$ReadingDatabase,
+      $ChapterProgressTable,
+      ChapterProgressData,
+      $$ChapterProgressTableFilterComposer,
+      $$ChapterProgressTableOrderingComposer,
+      $$ChapterProgressTableAnnotationComposer,
+      $$ChapterProgressTableCreateCompanionBuilder,
+      $$ChapterProgressTableUpdateCompanionBuilder,
+      (
+        ChapterProgressData,
+        BaseReferences<
+          _$ReadingDatabase,
+          $ChapterProgressTable,
+          ChapterProgressData
+        >,
+      ),
+      ChapterProgressData,
+      PrefetchHooks Function()
+    >;
 
 class $ReadingDatabaseManager {
   final _$ReadingDatabase _db;
@@ -1342,4 +1941,6 @@ class $ReadingDatabaseManager {
       $$ReadingProgressTableTableManager(_db, _db.readingProgress);
   $$ReadingSettingsTableTableManager get readingSettings =>
       $$ReadingSettingsTableTableManager(_db, _db.readingSettings);
+  $$ChapterProgressTableTableManager get chapterProgress =>
+      $$ChapterProgressTableTableManager(_db, _db.chapterProgress);
 }

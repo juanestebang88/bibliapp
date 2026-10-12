@@ -3,15 +3,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:bibliapp/core/error/failure.dart';
+import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_reference.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/search_focus.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_settings.dart';
+import 'package:bibliapp/features/reading/domain/usecases/save_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
@@ -23,11 +26,21 @@ void main() {
   late _MockSaveReadingProgress saveReadingProgress;
   late _MockGetReadingSettings getReadingSettings;
   late _MockSaveReadingSettings saveReadingSettings;
+  late _MockGetChapterProgress getChapterProgress;
+  late _MockSaveChapterProgress saveChapterProgress;
 
   setUpAll(() {
     registerFallbackValue(const ReadingSettingsEntity());
     registerFallbackValue(
       const ReadingProgressEntity(lastBook: 'genesis', lastChapter: 1),
+    );
+    registerFallbackValue(
+      const ChapterProgressEntity(
+        book: 'genesis',
+        chapter: 1,
+        lastVerseRead: 0,
+        isComplete: false,
+      ),
     );
   });
 
@@ -38,6 +51,8 @@ void main() {
     saveReadingProgress = _MockSaveReadingProgress();
     getReadingSettings = _MockGetReadingSettings();
     saveReadingSettings = _MockSaveReadingSettings();
+    getChapterProgress = _MockGetChapterProgress();
+    saveChapterProgress = _MockSaveChapterProgress();
     when(() => getReadingSettings()).thenAnswer(
       (_) async => const Right<Failure, ReadingSettingsEntity?>(null),
     );
@@ -49,6 +64,11 @@ void main() {
         .thenAnswer((_) async => const Right<Failure, int>(1));
     when(() => getChapterVerses(any(), any()))
         .thenAnswer((_) async => const Right<Failure, List<VerseEntity>>([]));
+    when(() => getChapterProgress(any(), any())).thenAnswer(
+      (_) async => const Right<Failure, ChapterProgressEntity?>(null),
+    );
+    when(() => saveChapterProgress(any()))
+        .thenAnswer((_) async => const Right<Failure, bool>(true));
   });
 
   ReadingCubit createCubit() => ReadingCubit(
@@ -58,6 +78,8 @@ void main() {
     saveReadingProgress: saveReadingProgress,
     getReadingSettings: getReadingSettings,
     saveReadingSettings: saveReadingSettings,
+    getChapterProgress: getChapterProgress,
+    saveChapterProgress: saveChapterProgress,
   );
 
   List<VerseEntity> versesFor(
@@ -500,6 +522,348 @@ void main() {
       await cubit.close();
     },
   );
+
+  blocTest<ReadingCubit, ReadingState>(
+    'marks the chapter complete, persists it and exposes it in the state',
+    setUp: () {
+      when(() => getChapterVerses('genesis', 1)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(3, book: 'genesis', chapter: 1),
+        ),
+      );
+    },
+    build: createCubit,
+    act: (cubit) async {
+      await cubit.loadChapter('genesis', 1);
+      await cubit.markChapterComplete();
+    },
+    expect: () => [
+      isA<ReadingState>().having(
+        (state) => state.status,
+        'status',
+        ReadingStatus.loading,
+      ),
+      isA<ReadingState>()
+          .having((state) => state.status, 'status', ReadingStatus.success)
+          .having((state) => state.chapterProgress, 'chapterProgress', isNull),
+      isA<ReadingState>()
+          .having((state) => state.status, 'status', ReadingStatus.success)
+          .having(
+            (state) => state.chapterProgress?.isComplete,
+            'complete',
+            true,
+          )
+          .having(
+            (state) => state.chapterProgress?.lastVerseRead,
+            'lastVerseRead',
+            3,
+          ),
+    ],
+    verify: (_) {
+      verify(
+        () => saveChapterProgress(
+          any(
+            that: isA<ChapterProgressEntity>().having(
+              (progress) => progress.isComplete,
+              'isComplete',
+              true,
+            ),
+          ),
+        ),
+      ).called(1);
+    },
+  );
+
+  blocTest<ReadingCubit, ReadingState>(
+    'saves partial progress clamped to the chapter verse range',
+    setUp: () {
+      when(() => getChapterVerses('genesis', 1)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(3, book: 'genesis', chapter: 1),
+        ),
+      );
+    },
+    build: createCubit,
+    act: (cubit) async {
+      await cubit.loadChapter('genesis', 1);
+      await cubit.savePartialProgress(2);
+    },
+    expect: () => [
+      isA<ReadingState>().having(
+        (state) => state.status,
+        'status',
+        ReadingStatus.loading,
+      ),
+      isA<ReadingState>()
+          .having((state) => state.status, 'status', ReadingStatus.success)
+          .having((state) => state.chapterProgress, 'chapterProgress', isNull),
+      isA<ReadingState>()
+          .having((state) => state.status, 'status', ReadingStatus.success)
+          .having(
+            (state) => state.chapterProgress?.isComplete,
+            'isComplete',
+            false,
+          )
+          .having(
+            (state) => state.chapterProgress?.lastVerseRead,
+            'lastVerseRead',
+            2,
+          ),
+    ],
+    verify: (_) {
+      verify(
+        () => saveChapterProgress(
+          any(
+            that: isA<ChapterProgressEntity>().having(
+              (progress) => progress.lastVerseRead,
+              'lastVerseRead',
+              2,
+            ),
+          ),
+        ),
+      ).called(1);
+    },
+  );
+
+  test(
+    'savePartialProgress clamps an out-of-range verse to the chapter length',
+    () async {
+      when(() => getChapterVerses('genesis', 1)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(3, book: 'genesis', chapter: 1),
+        ),
+      );
+
+      final cubit = createCubit();
+      await cubit.loadChapter('genesis', 1);
+      await cubit.savePartialProgress(99);
+
+      expect(cubit.state.chapterProgress?.lastVerseRead, 3);
+      await cubit.close();
+    },
+  );
+
+  blocTest<ReadingCubit, ReadingState>(
+    'unmarks a previously completed chapter',
+    setUp: () {
+      when(() => getChapterVerses('genesis', 1)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(3, book: 'genesis', chapter: 1),
+        ),
+      );
+    },
+    build: createCubit,
+    act: (cubit) async {
+      await cubit.loadChapter('genesis', 1);
+      await cubit.markChapterComplete();
+      await cubit.unmarkChapter();
+    },
+    expect: () => [
+      isA<ReadingState>().having(
+        (state) => state.status,
+        'status',
+        ReadingStatus.loading,
+      ),
+      isA<ReadingState>()
+          .having((state) => state.status, 'status', ReadingStatus.success)
+          .having((state) => state.chapterProgress, 'chapterProgress', isNull),
+      isA<ReadingState>().having(
+        (state) => state.chapterProgress?.isComplete,
+        'complete',
+        true,
+      ),
+      isA<ReadingState>()
+          .having(
+            (state) => state.chapterProgress?.isComplete,
+            'isComplete',
+            false,
+          )
+          .having(
+            (state) => state.chapterProgress?.lastVerseRead,
+            'lastVerseRead',
+            0,
+          ),
+    ],
+    verify: (_) {
+      verify(() => saveChapterProgress(any())).called(2);
+    },
+  );
+
+  blocTest<ReadingCubit, ReadingState>(
+    'resumes a partially read chapter at the saved verse',
+    setUp: () {
+      when(() => getChapterVerses('genesis', 1)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(10, book: 'genesis', chapter: 1),
+        ),
+      );
+      when(() => getChapterProgress('genesis', 1)).thenAnswer(
+        (_) async => const Right<Failure, ChapterProgressEntity?>(
+          ChapterProgressEntity(
+            book: 'genesis',
+            chapter: 1,
+            lastVerseRead: 7,
+            isComplete: false,
+          ),
+        ),
+      );
+    },
+    build: createCubit,
+    act: (cubit) => cubit.loadChapter('genesis', 1),
+    expect: () => [
+      isA<ReadingState>().having(
+        (state) => state.status,
+        'status',
+        ReadingStatus.loading,
+      ),
+      isA<ReadingState>()
+          .having((state) => state.status, 'status', ReadingStatus.success)
+          .having((state) => state.currentVerseNumber, 'currentVerseNumber', 7)
+          .having((state) => state.pendingScrollVerse, 'pendingScrollVerse', 7)
+          .having(
+            (state) => state.chapterProgress?.lastVerseRead,
+            'lastVerseRead',
+            7,
+          ),
+    ],
+  );
+
+  blocTest<ReadingCubit, ReadingState>(
+    'does not resume when the saved progress is on the first verse',
+    setUp: () {
+      when(() => getChapterVerses('genesis', 1)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(5, book: 'genesis', chapter: 1),
+        ),
+      );
+      when(() => getChapterProgress('genesis', 1)).thenAnswer(
+        (_) async => const Right<Failure, ChapterProgressEntity?>(
+          ChapterProgressEntity(
+            book: 'genesis',
+            chapter: 1,
+            lastVerseRead: 1,
+            isComplete: false,
+          ),
+        ),
+      );
+    },
+    build: createCubit,
+    act: (cubit) => cubit.loadChapter('genesis', 1),
+    expect: () => [
+      isA<ReadingState>().having(
+        (state) => state.status,
+        'status',
+        ReadingStatus.loading,
+      ),
+      isA<ReadingState>()
+          .having((state) => state.status, 'status', ReadingStatus.success)
+          .having((state) => state.currentVerseNumber, 'currentVerseNumber', 1)
+          .having(
+            (state) => state.pendingScrollVerse,
+            'pendingScrollVerse',
+            isNull,
+          ),
+    ],
+  );
+
+  blocTest<ReadingCubit, ReadingState>(
+    'does not resume a chapter already saved as complete',
+    setUp: () {
+      when(() => getChapterVerses('genesis', 1)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(5, book: 'genesis', chapter: 1),
+        ),
+      );
+      when(() => getChapterProgress('genesis', 1)).thenAnswer(
+        (_) async => const Right<Failure, ChapterProgressEntity?>(
+          ChapterProgressEntity(
+            book: 'genesis',
+            chapter: 1,
+            lastVerseRead: 5,
+            isComplete: true,
+          ),
+        ),
+      );
+    },
+    build: createCubit,
+    act: (cubit) => cubit.loadChapter('genesis', 1),
+    expect: () => [
+      isA<ReadingState>().having(
+        (state) => state.status,
+        'status',
+        ReadingStatus.loading,
+      ),
+      isA<ReadingState>()
+          .having((state) => state.status, 'status', ReadingStatus.success)
+          .having((state) => state.currentVerseNumber, 'currentVerseNumber', 1)
+          .having(
+            (state) => state.pendingScrollVerse,
+            'pendingScrollVerse',
+            isNull,
+          ),
+    ],
+  );
+
+  blocTest<ReadingCubit, ReadingState>(
+    'does not resume when applyResume is disabled',
+    setUp: () {
+      when(() => getChapterVerses('genesis', 1)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(5, book: 'genesis', chapter: 1),
+        ),
+      );
+      when(() => getChapterProgress('genesis', 1)).thenAnswer(
+        (_) async => const Right<Failure, ChapterProgressEntity?>(
+          ChapterProgressEntity(
+            book: 'genesis',
+            chapter: 1,
+            lastVerseRead: 3,
+            isComplete: false,
+          ),
+        ),
+      );
+    },
+    build: createCubit,
+    act: (cubit) => cubit.loadChapter('genesis', 1, applyResume: false),
+    expect: () => [
+      isA<ReadingState>().having(
+        (state) => state.status,
+        'status',
+        ReadingStatus.loading,
+      ),
+      isA<ReadingState>()
+          .having((state) => state.status, 'status', ReadingStatus.success)
+          .having((state) => state.currentVerseNumber, 'currentVerseNumber', 1)
+          .having(
+            (state) => state.pendingScrollVerse,
+            'pendingScrollVerse',
+            isNull,
+          ),
+    ],
+  );
+
+  test('clears the chapter progress when the chapter has no verses', () async {
+    when(() => getChapterVerses('genesis', 1))
+        .thenAnswer((_) async => const Right<Failure, List<VerseEntity>>([]));
+    when(() => getChapterProgress('genesis', 1)).thenAnswer(
+      (_) async => const Right<Failure, ChapterProgressEntity?>(
+        ChapterProgressEntity(
+          book: 'genesis',
+          chapter: 1,
+          lastVerseRead: 2,
+          isComplete: false,
+        ),
+      ),
+    );
+
+    final cubit = createCubit();
+    await cubit.loadChapter('genesis', 1);
+
+    expect(cubit.state.status, ReadingStatus.success);
+    expect(cubit.state.chapterVerses, isEmpty);
+    expect(cubit.state.chapterProgress, isNull);
+    await cubit.close();
+  });
 }
 
 class _MockGetChapterVerses extends Mock implements GetChapterVerses {}
@@ -513,3 +877,7 @@ class _MockSaveReadingProgress extends Mock implements SaveReadingProgress {}
 class _MockGetReadingSettings extends Mock implements GetReadingSettings {}
 
 class _MockSaveReadingSettings extends Mock implements SaveReadingSettings {}
+
+class _MockGetChapterProgress extends Mock implements GetChapterProgress {}
+
+class _MockSaveChapterProgress extends Mock implements SaveChapterProgress {}

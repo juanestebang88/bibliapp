@@ -8,10 +8,12 @@ import 'package:bibliapp/features/reading/domain/repositories/reading_repository
 import 'package:bibliapp/features/reading/domain/usecases/check_internet_connectivity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/clear_reading_data.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_settings.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_verse.dart';
+import 'package:bibliapp/features/reading/domain/usecases/save_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.dart';
 import 'package:bibliapp/features/reading/domain/usecases/search_verses.dart';
@@ -37,6 +39,8 @@ void registerGetIt() {
   getIt.registerFactory(() => GetVerse(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetChapterVerses(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetChapterCount(getIt<ReadingRepository>()));
+  getIt.registerFactory(() => GetChapterProgress(getIt<ReadingRepository>()));
+  getIt.registerFactory(() => SaveChapterProgress(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetReadingProgress(getIt<ReadingRepository>()));
   getIt.registerFactory(() => SaveReadingProgress(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetReadingSettings(getIt<ReadingRepository>()));
@@ -55,6 +59,8 @@ void registerGetIt() {
       saveReadingProgress: getIt<SaveReadingProgress>(),
       getReadingSettings: getIt<GetReadingSettings>(),
       saveReadingSettings: getIt<SaveReadingSettings>(),
+      getChapterProgress: getIt<GetChapterProgress>(),
+      saveChapterProgress: getIt<SaveChapterProgress>(),
     ),
   );
   getIt.registerFactory(

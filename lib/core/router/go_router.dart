@@ -41,7 +41,8 @@ final GoRouter appRouter = GoRouter(
         );
         return _blockBack(
           BlocProvider(
-            create: (context) => getIt<ReadingCubit>()..initialize(),
+            create: (context) =>
+                getIt<ReadingCubit>()..initialize(applyResume: false),
             child: ReadingScreen(focus: focus),
           ),
         );

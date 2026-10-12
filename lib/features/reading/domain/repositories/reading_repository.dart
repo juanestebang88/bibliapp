@@ -1,4 +1,5 @@
 import 'package:bibliapp/core/error/failure.dart';
+import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
@@ -29,6 +30,15 @@ abstract class ReadingRepository {
 
   Future<Either<Failure, bool>> saveReadingSettings(
     ReadingSettingsEntity settings,
+  );
+
+  Future<Either<Failure, ChapterProgressEntity?>> getChapterProgress(
+    String book,
+    int chapter,
+  );
+
+  Future<Either<Failure, bool>> saveChapterProgress(
+    ChapterProgressEntity progress,
   );
 
   Future<Either<Failure, bool>> clearAllData();

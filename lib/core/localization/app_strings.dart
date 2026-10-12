@@ -35,6 +35,19 @@ class AppStrings {
   static const loadingRae = 'Cargando definición';
   static const errorLoadingRae = 'No se pudo cargar la definición';
 
+  static const chapterProgress = 'Progreso del capítulo';
+  static const markChapterComplete = 'Marcar capítulo completo';
+  static String saveUpToVerse(int verseNumber) =>
+      'Guardar hasta el versículo $verseNumber';
+  static const upToWhichVerse = '¿Hasta qué versículo llegaste?';
+  static const unmarkChapter = 'Desmarcar capítulo';
+  static const readingProgressButton = 'Progreso de lectura';
+  static const tapToConfirm = 'Toca para confirmar la lectura';
+  static const chapterMarkedComplete = 'Capítulo leído';
+  static String percent(int value) => '$value %';
+  static String verseCount(int total) =>
+      total == 1 ? '1 versículo' : '$total versículos';
+
   static String resultsCount(int count) =>
       count == 1 ? '1 resultado' : '$count resultados';
 

@@ -32,13 +32,26 @@ class ReadingSettings extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [Verses, ReadingProgress, ReadingSettings])
+class ChapterProgress extends Table {
+  TextColumn get book => text()();
+  IntColumn get chapter => integer()();
+  IntColumn get lastVerseRead => integer().withDefault(const Constant(0))();
+  BoolColumn get isComplete => boolean().withDefault(const Constant(false))();
+  IntColumn get completedAt => integer().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {book, chapter};
+}
+
+@DriftDatabase(
+  tables: [Verses, ReadingProgress, ReadingSettings, ChapterProgress],
+)
 class ReadingDatabase extends _$ReadingDatabase {
   ReadingDatabase({QueryExecutor? executor})
     : super(executor ?? driftDatabase(name: 'rv1960'));
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -49,6 +62,9 @@ class ReadingDatabase extends _$ReadingDatabase {
       }
       if (from < 3) {
         await m.alterTable(TableMigration(readingProgress));
+      }
+      if (from < 4) {
+        await m.createTable(chapterProgress);
       }
     },
   );

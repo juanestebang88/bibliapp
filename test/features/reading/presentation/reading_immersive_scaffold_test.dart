@@ -168,6 +168,24 @@ void main() {
     expect(topOf(tester, accessoryKey), closeTo(initialAccessory, 0.1));
   });
 
+  testWidgets('keeps the last row visible above the footer when the bottom '
+      'is reached', (tester) async {
+    await pumpSubject(tester);
+    final footerTop = topOf(tester, footerKey);
+
+    await tester.drag(find.byType(ListView), const Offset(0, -300));
+    await tester.pumpAndSettle();
+    expect(topOf(tester, headerKey), lessThan(60));
+
+    await tester.drag(find.byType(ListView), const Offset(0, -10000));
+    await tester.pumpAndSettle();
+
+    expect(topOf(tester, footerKey), closeTo(footerTop, 0.1));
+    final lastRowBottom = tester.getRect(find.text('row 99')).bottom;
+    expect(lastRowBottom, lessThanOrEqualTo(topOf(tester, footerKey) + 0.5));
+    expect(lastRowBottom, greaterThan(60));
+  });
+
   testWidgets('resets to visible when the chapter changes', (tester) async {
     await pumpSubject(tester);
     final initialHeader = topOf(tester, headerKey);
