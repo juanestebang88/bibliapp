@@ -3,14 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:bibliapp/core/router/go_router.dart';
 import 'package:bibliapp/core/di/get_it.dart';
 import 'package:bibliapp/core/theme/theme.dart';
-import 'package:bibliapp/features/reading/data/datasources/reading_local_data_source.dart';
-import 'package:bibliapp/features/reading/data/import_rv1960.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _preloadAppFonts();
   registerGetIt();
-  await importRV1960(dataSource: getIt<ReadingLocalDataSource>());
   runApp(const MyApp());
 }
 

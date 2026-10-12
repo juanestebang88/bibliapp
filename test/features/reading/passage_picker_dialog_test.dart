@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:bibliapp/core/di/get_it.dart';
 import 'package:bibliapp/core/error/failure.dart';
+import 'package:bibliapp/core/router/go_router.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
@@ -122,6 +123,7 @@ void main() {
   testWidgets('opens the picker and navigates book/chapter/verse', (
     tester,
   ) async {
+    appRouter.go('/reading');
     await tester.pumpWidget(const MyApp());
     await tester.pumpAndSettle();
 
@@ -169,6 +171,7 @@ void main() {
   testWidgets('shows the new testament book list restricted to NT', (
     tester,
   ) async {
+    appRouter.go('/reading');
     await tester.pumpWidget(const MyApp());
     await tester.pumpAndSettle();
 

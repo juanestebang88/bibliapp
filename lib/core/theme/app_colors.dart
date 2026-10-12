@@ -5,6 +5,7 @@ class AppColors {
 
   static const outerBackground = Color(0xFF0B0E14);
   static const appBackground = Color(0xFF111721);
+  static const splashBackground = Color(0xFF08101D);
   static const elevatedSurface = Color(0xFF1E2636);
   static const goldAccent = Color(0xFFDFAD6C);
   static const goldLight = Color(0xFFF6CB82);

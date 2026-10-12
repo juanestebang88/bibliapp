@@ -44,4 +44,7 @@ abstract class ReadingRepository {
   Future<Either<Failure, bool>> clearAllData();
 
   Future<Either<Failure, List<VerseEntity>>> searchVerses(List<String> words);
+
+  /// Imports the Bible text into the local database if it is not there yet.
+  Future<Either<Failure, Unit>> ensureBibleImported();
 }

@@ -12,6 +12,8 @@ class AppStrings {
   static const reading = 'Lectura';
   static const statistics = 'Estadísticas';
   static const loading = 'Cargando lectura';
+  static const loadingBible = 'Cargando la Biblia…';
+  static const errorLoadingBible = 'No se pudo cargar la Biblia';
   static const emptyChapter =
       'No hay versículos disponibles para este capítulo.';
   static const retry = 'Reintentar';
