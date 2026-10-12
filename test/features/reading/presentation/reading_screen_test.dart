@@ -13,6 +13,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:bibliapp/core/di/get_it.dart';
 import 'package:bibliapp/core/error/failure.dart';
 import 'package:bibliapp/core/localization/app_strings.dart';
+import 'package:bibliapp/core/router/go_router.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
@@ -112,6 +113,7 @@ void main() {
   });
 
   testWidgets('shows chapter data and adjusts reading text', (tester) async {
+    appRouter.go('/reading');
     await tester.pumpWidget(const MyApp());
     await tester.pumpAndSettle();
 
@@ -140,6 +142,7 @@ void main() {
 
   testWidgets('shows the progress button and its percentage on the root reading'
       ' screen', (tester) async {
+    appRouter.go('/reading');
     await tester.pumpWidget(const MyApp());
     await tester.pumpAndSettle();
 
@@ -166,6 +169,7 @@ void main() {
       ]),
     );
 
+    appRouter.go('/reading');
     await tester.pumpWidget(const MyApp());
     await tester.pumpAndSettle();
 

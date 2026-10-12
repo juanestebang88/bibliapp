@@ -7,6 +7,7 @@ import 'package:bibliapp/features/reading/domain/repositories/connectivity_repos
 import 'package:bibliapp/features/reading/domain/repositories/reading_repository.dart';
 import 'package:bibliapp/features/reading/domain/usecases/check_internet_connectivity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/clear_reading_data.dart';
+import 'package:bibliapp/features/reading/domain/usecases/ensure_bible_imported.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
@@ -20,6 +21,7 @@ import 'package:bibliapp/features/reading/domain/usecases/search_verses.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/passage_picker_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/search_cubit.dart';
+import 'package:bibliapp/features/reading/presentation/cubit/splash_cubit.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -46,11 +48,15 @@ void registerGetIt() {
   getIt.registerFactory(() => GetReadingSettings(getIt<ReadingRepository>()));
   getIt.registerFactory(() => SaveReadingSettings(getIt<ReadingRepository>()));
   getIt.registerFactory(() => ClearReadingData(getIt<ReadingRepository>()));
+  getIt.registerFactory(() => EnsureBibleImported(getIt<ReadingRepository>()));
   getIt.registerFactory(() => SearchVerses(getIt<ReadingRepository>()));
   getIt.registerFactory(
     () => CheckInternetConnectivity(getIt<ConnectivityRepository>()),
   );
   getIt.registerFactory(() => SearchCubit(searchVerses: getIt<SearchVerses>()));
+  getIt.registerFactory(
+    () => SplashCubit(ensureBibleImported: getIt<EnsureBibleImported>()),
+  );
   getIt.registerFactory(
     () => ReadingCubit(
       getChapterVerses: getIt<GetChapterVerses>(),
