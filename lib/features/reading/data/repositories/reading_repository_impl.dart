@@ -5,6 +5,7 @@ import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entit
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
 import 'package:bibliapp/features/reading/domain/repositories/reading_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
@@ -85,6 +86,32 @@ class ReadingRepositoryImpl implements ReadingRepository {
   @override
   Future<Either<Failure, List<VerseEntity>>> searchVerses(List<String> words) =>
       _guard(() => dataSource.searchVerses(words));
+
+  @override
+  Future<Either<Failure, List<VerseHighlightEntity>>> getChapterHighlights(
+    String book,
+    int chapter,
+  ) => _guard(() => dataSource.getChapterHighlights(book, chapter));
+
+  @override
+  Future<Either<Failure, VerseHighlightEntity>> addVerseHighlight(
+    VerseHighlightEntity highlight,
+  ) => _guard(() => dataSource.addVerseHighlight(highlight));
+
+  @override
+  Future<Either<Failure, bool>> updateVerseHighlight(
+    VerseHighlightEntity highlight,
+  ) => _guard(() async {
+    await dataSource.updateVerseHighlight(highlight);
+    return true;
+  });
+
+  @override
+  Future<Either<Failure, bool>> deleteVerseHighlight(int id) =>
+      _guard(() async {
+        await dataSource.deleteVerseHighlight(id);
+        return true;
+      });
 
   @override
   Future<Either<Failure, Unit>> ensureBibleImported() => _guard(() async {

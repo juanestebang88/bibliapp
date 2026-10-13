@@ -27,4 +27,10 @@ class AppColors {
   // Verse selection context menu (white surface, app background blue text)
   static const contextMenuBackground = lightSurface;
   static const contextMenuForeground = appBackground;
+
+  // User verse highlight palette (spec 11)
+  static const highlightGreen = Color(0xFF7CA889);
+  static const highlightBlue = Color(0xFF7C9FD4);
+  static const highlightYellow = Color(0xFFDFAD6C);
+  static const highlightCopper = Color(0xFFE8C29B);
 }

@@ -7,7 +7,11 @@ import 'package:bibliapp/features/reading/domain/entities/reading_progress_entit
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/search_focus.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
+import 'package:bibliapp/features/reading/domain/usecases/add_verse_highlight.dart';
+import 'package:bibliapp/features/reading/domain/usecases/delete_verse_highlight.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_chapter_highlights.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_progress.dart';
@@ -15,6 +19,7 @@ import 'package:bibliapp/features/reading/domain/usecases/get_reading_settings.d
 import 'package:bibliapp/features/reading/domain/usecases/save_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.dart';
+import 'package:bibliapp/features/reading/domain/usecases/update_verse_highlight.dart';
 
 enum ReadingStatus { initial, loading, success, failure }
 
@@ -32,6 +37,7 @@ class ReadingState extends Equatable {
   final int? pendingScrollVerse;
   final SearchFocus? activeFocus;
   final ChapterProgressEntity? chapterProgress;
+  final List<VerseHighlightEntity> chapterHighlights;
 
   const ReadingState({
     this.status = ReadingStatus.initial,
@@ -47,6 +53,7 @@ class ReadingState extends Equatable {
     this.pendingScrollVerse,
     this.activeFocus,
     this.chapterProgress,
+    this.chapterHighlights = const [],
   });
 
   bool get isFirstChapter => currentBook == 'genesis' && currentChapter == 1;
@@ -68,6 +75,7 @@ class ReadingState extends Equatable {
     int? pendingScrollVerse,
     SearchFocus? activeFocus,
     ChapterProgressEntity? chapterProgress,
+    List<VerseHighlightEntity>? chapterHighlights,
     bool clearErrorMessage = false,
     bool clearPreviousChapterReference = false,
     bool clearNextChapterReference = false,
@@ -96,6 +104,7 @@ class ReadingState extends Equatable {
     chapterProgress: clearChapterProgress
         ? null
         : chapterProgress ?? this.chapterProgress,
+    chapterHighlights: chapterHighlights ?? this.chapterHighlights,
   );
 
   @override
@@ -113,6 +122,7 @@ class ReadingState extends Equatable {
     pendingScrollVerse,
     activeFocus,
     chapterProgress,
+    chapterHighlights,
   ];
 }
 
@@ -125,6 +135,10 @@ class ReadingCubit extends Cubit<ReadingState> {
   final SaveReadingSettings saveReadingSettings;
   final GetChapterProgress getChapterProgress;
   final SaveChapterProgress saveChapterProgress;
+  final GetChapterHighlights getChapterHighlights;
+  final AddVerseHighlight addVerseHighlight;
+  final UpdateVerseHighlight updateVerseHighlight;
+  final DeleteVerseHighlight deleteVerseHighlight;
 
   ReadingCubit({
     required this.getChapterVerses,
@@ -135,6 +149,10 @@ class ReadingCubit extends Cubit<ReadingState> {
     required this.saveReadingSettings,
     required this.getChapterProgress,
     required this.saveChapterProgress,
+    required this.getChapterHighlights,
+    required this.addVerseHighlight,
+    required this.updateVerseHighlight,
+    required this.deleteVerseHighlight,
   }) : super(const ReadingState());
 
   Future<void> initialize({bool applyResume = true}) async {
@@ -202,6 +220,7 @@ class ReadingCubit extends Cubit<ReadingState> {
           activeFocus: _focusAfterLoad(book, chapter),
           clearActiveFocus: _focusAfterLoad(book, chapter) == null,
           clearChapterProgress: true,
+          chapterHighlights: const [],
         ),
       );
       return;
@@ -241,6 +260,10 @@ class ReadingCubit extends Cubit<ReadingState> {
       book,
       chapter,
     )).getOrElse((_) => null);
+    final chapterHighlights = (await getChapterHighlights(
+      book,
+      chapter,
+    )).getOrElse((_) => const <VerseHighlightEntity>[]);
     final resumeVerse =
         applyResume &&
             keptFocus == null &&
@@ -267,6 +290,7 @@ class ReadingCubit extends Cubit<ReadingState> {
         clearActiveFocus: keptFocus == null,
         chapterProgress: chapterProgress,
         clearChapterProgress: chapterProgress == null,
+        chapterHighlights: chapterHighlights,
         pendingScrollVerse: resumeVerse,
         clearPendingScrollVerse: resumeVerse == null,
       ),
@@ -452,6 +476,51 @@ class ReadingCubit extends Cubit<ReadingState> {
         ),
       ),
       (_) => emit(state.copyWith(chapterProgress: progress)),
+    );
+  }
+
+  /// Adds a user highlight for the current chapter.
+  Future<void> addHighlight(VerseHighlightEntity highlight) async {
+    await addVerseHighlight(highlight);
+    await _reloadHighlights();
+  }
+
+  /// Changes the color of an existing highlight.
+  Future<void> changeHighlightColor(int id, HighlightColor color) async {
+    final current = _highlightById(id);
+    if (current == null) return;
+    await updateVerseHighlight(
+      current.copyWith(color: color, updatedAt: DateTime.now()),
+    );
+    await _reloadHighlights();
+  }
+
+  /// Removes an existing highlight.
+  Future<void> removeHighlight(int id) async {
+    await deleteVerseHighlight(id);
+    await _reloadHighlights();
+  }
+
+  VerseHighlightEntity? _highlightById(int id) {
+    for (final highlight in state.chapterHighlights) {
+      if (highlight.id == id) return highlight;
+    }
+    return null;
+  }
+
+  Future<void> _reloadHighlights() async {
+    final book = state.currentBook;
+    final chapter = state.currentChapter;
+    final result = await getChapterHighlights(book, chapter);
+    if (state.currentBook != book || state.currentChapter != chapter) return;
+    result.match(
+      (failure) => emit(
+        state.copyWith(
+          status: ReadingStatus.failure,
+          errorMessage: failure.message,
+        ),
+      ),
+      (highlights) => emit(state.copyWith(chapterHighlights: highlights)),
     );
   }
 }

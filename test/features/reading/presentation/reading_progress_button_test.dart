@@ -12,7 +12,11 @@ import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entit
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
+import 'package:bibliapp/features/reading/domain/usecases/add_verse_highlight.dart';
+import 'package:bibliapp/features/reading/domain/usecases/delete_verse_highlight.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_chapter_highlights.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_progress.dart';
@@ -20,6 +24,7 @@ import 'package:bibliapp/features/reading/domain/usecases/get_reading_settings.d
 import 'package:bibliapp/features/reading/domain/usecases/save_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.dart';
+import 'package:bibliapp/features/reading/domain/usecases/update_verse_highlight.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/reading_progress_button.dart';
 
@@ -32,6 +37,10 @@ void main() {
   late _MockSaveReadingSettings saveReadingSettings;
   late _MockGetChapterProgress getChapterProgress;
   late _MockSaveChapterProgress saveChapterProgress;
+  late _MockGetChapterHighlights getChapterHighlights;
+  late _MockAddVerseHighlight addVerseHighlight;
+  late _MockUpdateVerseHighlight updateVerseHighlight;
+  late _MockDeleteVerseHighlight deleteVerseHighlight;
   late ValueNotifier<int> visibleVerse;
 
   setUpAll(() {
@@ -47,6 +56,18 @@ void main() {
         isComplete: false,
       ),
     );
+    registerFallbackValue(
+      VerseHighlightEntity(
+        book: 'genesis',
+        chapter: 1,
+        verse: 1,
+        startOffset: 0,
+        endOffset: 1,
+        color: HighlightColor.yellow,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      ),
+    );
   });
 
   setUp(() {
@@ -58,6 +79,10 @@ void main() {
     saveReadingSettings = _MockSaveReadingSettings();
     getChapterProgress = _MockGetChapterProgress();
     saveChapterProgress = _MockSaveChapterProgress();
+    getChapterHighlights = _MockGetChapterHighlights();
+    addVerseHighlight = _MockAddVerseHighlight();
+    updateVerseHighlight = _MockUpdateVerseHighlight();
+    deleteVerseHighlight = _MockDeleteVerseHighlight();
     visibleVerse = ValueNotifier<int>(1);
     when(() => saveReadingSettings(any()))
         .thenAnswer((_) async => const Right<Failure, bool>(true));
@@ -72,6 +97,9 @@ void main() {
     );
     when(() => saveChapterProgress(any()))
         .thenAnswer((_) async => const Right<Failure, bool>(true));
+    when(() => getChapterHighlights(any(), any())).thenAnswer(
+      (_) async => const Right<Failure, List<VerseHighlightEntity>>([]),
+    );
   });
 
   ReadingCubit createCubit() => ReadingCubit(
@@ -83,6 +111,10 @@ void main() {
     saveReadingSettings: saveReadingSettings,
     getChapterProgress: getChapterProgress,
     saveChapterProgress: saveChapterProgress,
+    getChapterHighlights: getChapterHighlights,
+    addVerseHighlight: addVerseHighlight,
+    updateVerseHighlight: updateVerseHighlight,
+    deleteVerseHighlight: deleteVerseHighlight,
   );
 
   Future<ReadingCubit> loadChapter(WidgetTester tester) async {
@@ -401,3 +433,11 @@ class _MockSaveReadingSettings extends Mock implements SaveReadingSettings {}
 class _MockGetChapterProgress extends Mock implements GetChapterProgress {}
 
 class _MockSaveChapterProgress extends Mock implements SaveChapterProgress {}
+
+class _MockGetChapterHighlights extends Mock implements GetChapterHighlights {}
+
+class _MockAddVerseHighlight extends Mock implements AddVerseHighlight {}
+
+class _MockUpdateVerseHighlight extends Mock implements UpdateVerseHighlight {}
+
+class _MockDeleteVerseHighlight extends Mock implements DeleteVerseHighlight {}

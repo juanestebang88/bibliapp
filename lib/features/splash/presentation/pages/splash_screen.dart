@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:bibliapp/core/theme/app_colors.dart';
-import 'package:bibliapp/features/reading/presentation/cubit/splash_cubit.dart';
-import 'package:bibliapp/features/reading/presentation/cubit/splash_state.dart';
-import 'package:bibliapp/features/reading/presentation/widgets/splash_error_view.dart';
-import 'package:bibliapp/features/reading/presentation/widgets/splash_loading_view.dart';
+import 'package:bibliapp/features/splash/presentation/cubit/splash_cubit.dart';
+import 'package:bibliapp/features/splash/presentation/cubit/splash_state.dart';
+import 'package:bibliapp/features/splash/presentation/widgets/splash_error_view.dart';
+import 'package:bibliapp/features/splash/presentation/widgets/splash_loading_view.dart';
 
 /// App bootstrap screen: shows the breathing logo while the Bible text is
 /// imported and navigates to the reading screen once ready.

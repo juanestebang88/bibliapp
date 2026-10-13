@@ -1,22 +1,22 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bibliapp/core/bootstrap/bible_bootstrap.dart';
 import 'package:bibliapp/core/theme/app_motion.dart';
-import 'package:bibliapp/features/reading/domain/usecases/ensure_bible_imported.dart';
-import 'package:bibliapp/features/reading/presentation/cubit/splash_state.dart';
+import 'package:bibliapp/features/splash/presentation/cubit/splash_state.dart';
 
 /// Orchestrates the app bootstrap: ensures the Bible text is imported and
 /// keeps the splash on screen for a minimum time before reporting ready.
 class SplashCubit extends Cubit<SplashState> {
-  final EnsureBibleImported ensureBibleImported;
+  final BibleBootstrap bibleBootstrap;
 
-  SplashCubit({required this.ensureBibleImported}) : super(const SplashState());
+  SplashCubit({required this.bibleBootstrap}) : super(const SplashState());
 
   Future<void> initialize() async {
     emit(const SplashState(status: SplashStatus.loading));
 
     final minimumElapsed = Future<void>.delayed(AppMotion.splashMinDuration);
-    final result = await ensureBibleImported();
+    final result = await bibleBootstrap.ensureImported();
     await minimumElapsed;
 
     result.match(

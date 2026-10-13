@@ -1,12 +1,12 @@
+import 'package:bibliapp/core/bootstrap/bible_bootstrap.dart';
 import 'package:bibliapp/core/error/failure.dart';
 import 'package:bibliapp/core/localization/app_strings.dart';
 import 'package:bibliapp/core/theme/app_colors.dart';
 import 'package:bibliapp/core/theme/theme.dart';
-import 'package:bibliapp/features/reading/domain/usecases/ensure_bible_imported.dart';
-import 'package:bibliapp/features/reading/presentation/cubit/splash_cubit.dart';
-import 'package:bibliapp/features/reading/presentation/pages/splash_screen.dart';
-import 'package:bibliapp/features/reading/presentation/widgets/splash_error_view.dart';
-import 'package:bibliapp/features/reading/presentation/widgets/splash_logo.dart';
+import 'package:bibliapp/features/splash/presentation/cubit/splash_cubit.dart';
+import 'package:bibliapp/features/splash/presentation/pages/splash_screen.dart';
+import 'package:bibliapp/features/splash/presentation/widgets/splash_error_view.dart';
+import 'package:bibliapp/features/splash/presentation/widgets/splash_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,13 +14,13 @@ import 'package:fpdart/fpdart.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
-class _MockEnsureBibleImported extends Mock implements EnsureBibleImported {}
+class _MockBibleBootstrap extends Mock implements BibleBootstrap {}
 
 void main() {
-  late _MockEnsureBibleImported ensureBibleImported;
+  late _MockBibleBootstrap bibleBootstrap;
 
   setUp(() {
-    ensureBibleImported = _MockEnsureBibleImported();
+    bibleBootstrap = _MockBibleBootstrap();
   });
 
   Widget buildApp(SplashCubit cubit) {
@@ -43,7 +43,7 @@ void main() {
   testWidgets('shows the breathing logo and loading bar while loading', (
     tester,
   ) async {
-    final cubit = SplashCubit(ensureBibleImported: ensureBibleImported);
+    final cubit = SplashCubit(bibleBootstrap: bibleBootstrap);
     await tester.pumpWidget(buildApp(cubit));
 
     expect(find.byType(SplashLogo), findsOneWidget);
@@ -58,10 +58,10 @@ void main() {
   testWidgets('shows an error with retry when the import fails', (
     tester,
   ) async {
-    when(() => ensureBibleImported()).thenAnswer(
+    when(() => bibleBootstrap.ensureImported()).thenAnswer(
       (_) async => Left<Failure, Unit>(const DatabaseFailure('boom')),
     );
-    final cubit = SplashCubit(ensureBibleImported: ensureBibleImported);
+    final cubit = SplashCubit(bibleBootstrap: bibleBootstrap);
     await tester.pumpWidget(buildApp(cubit));
 
     cubit.initialize();
@@ -77,13 +77,13 @@ void main() {
 
   testWidgets('retry recovers and navigates to reading', (tester) async {
     var calls = 0;
-    when(() => ensureBibleImported()).thenAnswer((_) async {
+    when(() => bibleBootstrap.ensureImported()).thenAnswer((_) async {
       calls++;
       return calls == 1
           ? Left<Failure, Unit>(const DatabaseFailure('boom'))
           : Right<Failure, Unit>(unit);
     });
-    final cubit = SplashCubit(ensureBibleImported: ensureBibleImported);
+    final cubit = SplashCubit(bibleBootstrap: bibleBootstrap);
     await tester.pumpWidget(buildApp(cubit));
 
     cubit.initialize();
