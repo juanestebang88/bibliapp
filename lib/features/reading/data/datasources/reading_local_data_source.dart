@@ -5,6 +5,7 @@ import 'package:bibliapp/features/reading/domain/book_order.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
 
 class ReadingLocalDataSource {
   final ReadingDatabase database;
@@ -200,6 +201,42 @@ class ReadingLocalDataSource {
     await database.delete(database.readingProgress).go();
     await database.delete(database.readingSettings).go();
     await database.delete(database.chapterProgress).go();
+    await database.delete(database.verseHighlights).go();
+  }
+
+  Future<List<VerseHighlightEntity>> getChapterHighlights(
+    String book,
+    int chapter,
+  ) async {
+    final rows =
+        await (database.select(database.verseHighlights)..where(
+              (table) =>
+                  table.book.equals(book) & table.chapter.equals(chapter),
+            ))
+            .get();
+
+    return rows.map(_toVerseHighlightEntity).toList(growable: false);
+  }
+
+  Future<VerseHighlightEntity> addVerseHighlight(
+    VerseHighlightEntity highlight,
+  ) async {
+    final id = await database
+        .into(database.verseHighlights)
+        .insert(_toHighlightCompanion(highlight));
+    return highlight.copyWith(id: id);
+  }
+
+  Future<void> updateVerseHighlight(VerseHighlightEntity highlight) async {
+    await database
+        .update(database.verseHighlights)
+        .replace(_toHighlightCompanion(highlight));
+  }
+
+  Future<void> deleteVerseHighlight(int id) async {
+    await (database.delete(
+      database.verseHighlights,
+    )..where((table) => table.id.equals(id))).go();
   }
 
   VerseEntity _toEntity(Verse row) => VerseEntity(
@@ -220,6 +257,40 @@ class ReadingLocalDataSource {
             ? null
             : DateTime.fromMillisecondsSinceEpoch(row.completedAt!),
       );
+
+  VerseHighlightEntity _toVerseHighlightEntity(VerseHighlight row) =>
+      VerseHighlightEntity(
+        id: row.id,
+        book: row.book,
+        chapter: row.chapter,
+        verse: row.verse,
+        startOffset: row.startOffset,
+        endOffset: row.endOffset,
+        color: _colorFromKey(row.colorKey),
+        createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
+      );
+
+  VerseHighlightsCompanion _toHighlightCompanion(
+    VerseHighlightEntity highlight,
+  ) => VerseHighlightsCompanion(
+    id: highlight.id == null ? const Value.absent() : Value(highlight.id!),
+    book: Value(highlight.book),
+    chapter: Value(highlight.chapter),
+    verse: Value(highlight.verse),
+    startOffset: Value(highlight.startOffset),
+    endOffset: Value(highlight.endOffset),
+    colorKey: Value(_colorToKey(highlight.color)),
+    createdAt: Value(highlight.createdAt.millisecondsSinceEpoch),
+    updatedAt: Value(highlight.updatedAt.millisecondsSinceEpoch),
+  );
+
+  String _colorToKey(HighlightColor color) => color.name;
+
+  HighlightColor _colorFromKey(String key) => HighlightColor.values.firstWhere(
+    (color) => color.name == key,
+    orElse: () => HighlightColor.yellow,
+  );
 
   int _bookOrderIndex(String book) {
     final index = bibleBookOrder.indexOf(book);

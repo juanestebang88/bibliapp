@@ -3,6 +3,7 @@ import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entit
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
 import 'package:fpdart/fpdart.dart';
 
 /// Contract for accessing Bible text and reading progress.
@@ -44,6 +45,21 @@ abstract class ReadingRepository {
   Future<Either<Failure, bool>> clearAllData();
 
   Future<Either<Failure, List<VerseEntity>>> searchVerses(List<String> words);
+
+  Future<Either<Failure, List<VerseHighlightEntity>>> getChapterHighlights(
+    String book,
+    int chapter,
+  );
+
+  Future<Either<Failure, VerseHighlightEntity>> addVerseHighlight(
+    VerseHighlightEntity highlight,
+  );
+
+  Future<Either<Failure, bool>> updateVerseHighlight(
+    VerseHighlightEntity highlight,
+  );
+
+  Future<Either<Failure, bool>> deleteVerseHighlight(int id);
 
   /// Imports the Bible text into the local database if it is not there yet.
   Future<Either<Failure, Unit>> ensureBibleImported();

@@ -213,6 +213,11 @@ class _ChapterVersesState extends State<ChapterVerses>
                     highlight: verses[index].verse == _blinkVerse
                         ? _blink
                         : null,
+                    highlights: widget.state.chapterHighlights
+                        .where(
+                          (highlight) => highlight.verse == verses[index].verse,
+                        )
+                        .toList(),
                   ),
                 ),
               ),

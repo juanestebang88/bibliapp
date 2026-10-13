@@ -1,14 +1,18 @@
 import 'package:get_it/get_it.dart';
+import 'package:bibliapp/core/bootstrap/bible_bootstrap.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_database.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_local_data_source.dart';
 import 'package:bibliapp/features/reading/data/repositories/connectivity_repository_impl.dart';
 import 'package:bibliapp/features/reading/data/repositories/reading_repository_impl.dart';
 import 'package:bibliapp/features/reading/domain/repositories/connectivity_repository.dart';
 import 'package:bibliapp/features/reading/domain/repositories/reading_repository.dart';
+import 'package:bibliapp/features/reading/domain/usecases/add_verse_highlight.dart';
 import 'package:bibliapp/features/reading/domain/usecases/check_internet_connectivity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/clear_reading_data.dart';
+import 'package:bibliapp/features/reading/domain/usecases/delete_verse_highlight.dart';
 import 'package:bibliapp/features/reading/domain/usecases/ensure_bible_imported.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_chapter_highlights.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_progress.dart';
@@ -18,10 +22,11 @@ import 'package:bibliapp/features/reading/domain/usecases/save_chapter_progress.
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.dart';
 import 'package:bibliapp/features/reading/domain/usecases/search_verses.dart';
+import 'package:bibliapp/features/reading/domain/usecases/update_verse_highlight.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/passage_picker_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/search_cubit.dart';
-import 'package:bibliapp/features/reading/presentation/cubit/splash_cubit.dart';
+import 'package:bibliapp/features/splash/presentation/cubit/splash_cubit.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -48,14 +53,20 @@ void registerGetIt() {
   getIt.registerFactory(() => GetReadingSettings(getIt<ReadingRepository>()));
   getIt.registerFactory(() => SaveReadingSettings(getIt<ReadingRepository>()));
   getIt.registerFactory(() => ClearReadingData(getIt<ReadingRepository>()));
-  getIt.registerFactory(() => EnsureBibleImported(getIt<ReadingRepository>()));
+  getIt.registerFactory<BibleBootstrap>(
+    () => EnsureBibleImported(getIt<ReadingRepository>()),
+  );
   getIt.registerFactory(() => SearchVerses(getIt<ReadingRepository>()));
+  getIt.registerFactory(() => GetChapterHighlights(getIt<ReadingRepository>()));
+  getIt.registerFactory(() => AddVerseHighlight(getIt<ReadingRepository>()));
+  getIt.registerFactory(() => UpdateVerseHighlight(getIt<ReadingRepository>()));
+  getIt.registerFactory(() => DeleteVerseHighlight(getIt<ReadingRepository>()));
   getIt.registerFactory(
     () => CheckInternetConnectivity(getIt<ConnectivityRepository>()),
   );
   getIt.registerFactory(() => SearchCubit(searchVerses: getIt<SearchVerses>()));
   getIt.registerFactory(
-    () => SplashCubit(ensureBibleImported: getIt<EnsureBibleImported>()),
+    () => SplashCubit(bibleBootstrap: getIt<BibleBootstrap>()),
   );
   getIt.registerFactory(
     () => ReadingCubit(
@@ -67,6 +78,10 @@ void registerGetIt() {
       saveReadingSettings: getIt<SaveReadingSettings>(),
       getChapterProgress: getIt<GetChapterProgress>(),
       saveChapterProgress: getIt<SaveChapterProgress>(),
+      getChapterHighlights: getIt<GetChapterHighlights>(),
+      addVerseHighlight: getIt<AddVerseHighlight>(),
+      updateVerseHighlight: getIt<UpdateVerseHighlight>(),
+      deleteVerseHighlight: getIt<DeleteVerseHighlight>(),
     ),
   );
   getIt.registerFactory(

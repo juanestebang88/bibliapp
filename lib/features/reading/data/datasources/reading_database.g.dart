@@ -1195,6 +1195,557 @@ class ChapterProgressCompanion extends UpdateCompanion<ChapterProgressData> {
   }
 }
 
+class $VerseHighlightsTable extends VerseHighlights
+    with TableInfo<$VerseHighlightsTable, VerseHighlight> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VerseHighlightsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _bookMeta = const VerificationMeta('book');
+  @override
+  late final GeneratedColumn<String> book = GeneratedColumn<String>(
+    'book',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _chapterMeta = const VerificationMeta(
+    'chapter',
+  );
+  @override
+  late final GeneratedColumn<int> chapter = GeneratedColumn<int>(
+    'chapter',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _verseMeta = const VerificationMeta('verse');
+  @override
+  late final GeneratedColumn<int> verse = GeneratedColumn<int>(
+    'verse',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _startOffsetMeta = const VerificationMeta(
+    'startOffset',
+  );
+  @override
+  late final GeneratedColumn<int> startOffset = GeneratedColumn<int>(
+    'start_offset',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _endOffsetMeta = const VerificationMeta(
+    'endOffset',
+  );
+  @override
+  late final GeneratedColumn<int> endOffset = GeneratedColumn<int>(
+    'end_offset',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _colorKeyMeta = const VerificationMeta(
+    'colorKey',
+  );
+  @override
+  late final GeneratedColumn<String> colorKey = GeneratedColumn<String>(
+    'color_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    book,
+    chapter,
+    verse,
+    startOffset,
+    endOffset,
+    colorKey,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'verse_highlights';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<VerseHighlight> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('book')) {
+      context.handle(
+        _bookMeta,
+        book.isAcceptableOrUnknown(data['book']!, _bookMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bookMeta);
+    }
+    if (data.containsKey('chapter')) {
+      context.handle(
+        _chapterMeta,
+        chapter.isAcceptableOrUnknown(data['chapter']!, _chapterMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_chapterMeta);
+    }
+    if (data.containsKey('verse')) {
+      context.handle(
+        _verseMeta,
+        verse.isAcceptableOrUnknown(data['verse']!, _verseMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_verseMeta);
+    }
+    if (data.containsKey('start_offset')) {
+      context.handle(
+        _startOffsetMeta,
+        startOffset.isAcceptableOrUnknown(
+          data['start_offset']!,
+          _startOffsetMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_startOffsetMeta);
+    }
+    if (data.containsKey('end_offset')) {
+      context.handle(
+        _endOffsetMeta,
+        endOffset.isAcceptableOrUnknown(data['end_offset']!, _endOffsetMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_endOffsetMeta);
+    }
+    if (data.containsKey('color_key')) {
+      context.handle(
+        _colorKeyMeta,
+        colorKey.isAcceptableOrUnknown(data['color_key']!, _colorKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_colorKeyMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  VerseHighlight map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VerseHighlight(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      book: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}book'],
+      )!,
+      chapter: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}chapter'],
+      )!,
+      verse: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}verse'],
+      )!,
+      startOffset: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}start_offset'],
+      )!,
+      endOffset: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}end_offset'],
+      )!,
+      colorKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color_key'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $VerseHighlightsTable createAlias(String alias) {
+    return $VerseHighlightsTable(attachedDatabase, alias);
+  }
+}
+
+class VerseHighlight extends DataClass implements Insertable<VerseHighlight> {
+  final int id;
+  final String book;
+  final int chapter;
+  final int verse;
+  final int startOffset;
+  final int endOffset;
+  final String colorKey;
+  final int createdAt;
+  final int updatedAt;
+  const VerseHighlight({
+    required this.id,
+    required this.book,
+    required this.chapter,
+    required this.verse,
+    required this.startOffset,
+    required this.endOffset,
+    required this.colorKey,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['book'] = Variable<String>(book);
+    map['chapter'] = Variable<int>(chapter);
+    map['verse'] = Variable<int>(verse);
+    map['start_offset'] = Variable<int>(startOffset);
+    map['end_offset'] = Variable<int>(endOffset);
+    map['color_key'] = Variable<String>(colorKey);
+    map['created_at'] = Variable<int>(createdAt);
+    map['updated_at'] = Variable<int>(updatedAt);
+    return map;
+  }
+
+  VerseHighlightsCompanion toCompanion(bool nullToAbsent) {
+    return VerseHighlightsCompanion(
+      id: Value(id),
+      book: Value(book),
+      chapter: Value(chapter),
+      verse: Value(verse),
+      startOffset: Value(startOffset),
+      endOffset: Value(endOffset),
+      colorKey: Value(colorKey),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory VerseHighlight.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VerseHighlight(
+      id: serializer.fromJson<int>(json['id']),
+      book: serializer.fromJson<String>(json['book']),
+      chapter: serializer.fromJson<int>(json['chapter']),
+      verse: serializer.fromJson<int>(json['verse']),
+      startOffset: serializer.fromJson<int>(json['startOffset']),
+      endOffset: serializer.fromJson<int>(json['endOffset']),
+      colorKey: serializer.fromJson<String>(json['colorKey']),
+      createdAt: serializer.fromJson<int>(json['createdAt']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'book': serializer.toJson<String>(book),
+      'chapter': serializer.toJson<int>(chapter),
+      'verse': serializer.toJson<int>(verse),
+      'startOffset': serializer.toJson<int>(startOffset),
+      'endOffset': serializer.toJson<int>(endOffset),
+      'colorKey': serializer.toJson<String>(colorKey),
+      'createdAt': serializer.toJson<int>(createdAt),
+      'updatedAt': serializer.toJson<int>(updatedAt),
+    };
+  }
+
+  VerseHighlight copyWith({
+    int? id,
+    String? book,
+    int? chapter,
+    int? verse,
+    int? startOffset,
+    int? endOffset,
+    String? colorKey,
+    int? createdAt,
+    int? updatedAt,
+  }) => VerseHighlight(
+    id: id ?? this.id,
+    book: book ?? this.book,
+    chapter: chapter ?? this.chapter,
+    verse: verse ?? this.verse,
+    startOffset: startOffset ?? this.startOffset,
+    endOffset: endOffset ?? this.endOffset,
+    colorKey: colorKey ?? this.colorKey,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  VerseHighlight copyWithCompanion(VerseHighlightsCompanion data) {
+    return VerseHighlight(
+      id: data.id.present ? data.id.value : this.id,
+      book: data.book.present ? data.book.value : this.book,
+      chapter: data.chapter.present ? data.chapter.value : this.chapter,
+      verse: data.verse.present ? data.verse.value : this.verse,
+      startOffset: data.startOffset.present
+          ? data.startOffset.value
+          : this.startOffset,
+      endOffset: data.endOffset.present ? data.endOffset.value : this.endOffset,
+      colorKey: data.colorKey.present ? data.colorKey.value : this.colorKey,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VerseHighlight(')
+          ..write('id: $id, ')
+          ..write('book: $book, ')
+          ..write('chapter: $chapter, ')
+          ..write('verse: $verse, ')
+          ..write('startOffset: $startOffset, ')
+          ..write('endOffset: $endOffset, ')
+          ..write('colorKey: $colorKey, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    book,
+    chapter,
+    verse,
+    startOffset,
+    endOffset,
+    colorKey,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VerseHighlight &&
+          other.id == this.id &&
+          other.book == this.book &&
+          other.chapter == this.chapter &&
+          other.verse == this.verse &&
+          other.startOffset == this.startOffset &&
+          other.endOffset == this.endOffset &&
+          other.colorKey == this.colorKey &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class VerseHighlightsCompanion extends UpdateCompanion<VerseHighlight> {
+  final Value<int> id;
+  final Value<String> book;
+  final Value<int> chapter;
+  final Value<int> verse;
+  final Value<int> startOffset;
+  final Value<int> endOffset;
+  final Value<String> colorKey;
+  final Value<int> createdAt;
+  final Value<int> updatedAt;
+  const VerseHighlightsCompanion({
+    this.id = const Value.absent(),
+    this.book = const Value.absent(),
+    this.chapter = const Value.absent(),
+    this.verse = const Value.absent(),
+    this.startOffset = const Value.absent(),
+    this.endOffset = const Value.absent(),
+    this.colorKey = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  VerseHighlightsCompanion.insert({
+    this.id = const Value.absent(),
+    required String book,
+    required int chapter,
+    required int verse,
+    required int startOffset,
+    required int endOffset,
+    required String colorKey,
+    required int createdAt,
+    required int updatedAt,
+  }) : book = Value(book),
+       chapter = Value(chapter),
+       verse = Value(verse),
+       startOffset = Value(startOffset),
+       endOffset = Value(endOffset),
+       colorKey = Value(colorKey),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<VerseHighlight> custom({
+    Expression<int>? id,
+    Expression<String>? book,
+    Expression<int>? chapter,
+    Expression<int>? verse,
+    Expression<int>? startOffset,
+    Expression<int>? endOffset,
+    Expression<String>? colorKey,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (book != null) 'book': book,
+      if (chapter != null) 'chapter': chapter,
+      if (verse != null) 'verse': verse,
+      if (startOffset != null) 'start_offset': startOffset,
+      if (endOffset != null) 'end_offset': endOffset,
+      if (colorKey != null) 'color_key': colorKey,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  VerseHighlightsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? book,
+    Value<int>? chapter,
+    Value<int>? verse,
+    Value<int>? startOffset,
+    Value<int>? endOffset,
+    Value<String>? colorKey,
+    Value<int>? createdAt,
+    Value<int>? updatedAt,
+  }) {
+    return VerseHighlightsCompanion(
+      id: id ?? this.id,
+      book: book ?? this.book,
+      chapter: chapter ?? this.chapter,
+      verse: verse ?? this.verse,
+      startOffset: startOffset ?? this.startOffset,
+      endOffset: endOffset ?? this.endOffset,
+      colorKey: colorKey ?? this.colorKey,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (book.present) {
+      map['book'] = Variable<String>(book.value);
+    }
+    if (chapter.present) {
+      map['chapter'] = Variable<int>(chapter.value);
+    }
+    if (verse.present) {
+      map['verse'] = Variable<int>(verse.value);
+    }
+    if (startOffset.present) {
+      map['start_offset'] = Variable<int>(startOffset.value);
+    }
+    if (endOffset.present) {
+      map['end_offset'] = Variable<int>(endOffset.value);
+    }
+    if (colorKey.present) {
+      map['color_key'] = Variable<String>(colorKey.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VerseHighlightsCompanion(')
+          ..write('id: $id, ')
+          ..write('book: $book, ')
+          ..write('chapter: $chapter, ')
+          ..write('verse: $verse, ')
+          ..write('startOffset: $startOffset, ')
+          ..write('endOffset: $endOffset, ')
+          ..write('colorKey: $colorKey, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$ReadingDatabase extends GeneratedDatabase {
   _$ReadingDatabase(QueryExecutor e) : super(e);
   $ReadingDatabaseManager get managers => $ReadingDatabaseManager(this);
@@ -1208,6 +1759,9 @@ abstract class _$ReadingDatabase extends GeneratedDatabase {
   late final $ChapterProgressTable chapterProgress = $ChapterProgressTable(
     this,
   );
+  late final $VerseHighlightsTable verseHighlights = $VerseHighlightsTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1217,6 +1771,7 @@ abstract class _$ReadingDatabase extends GeneratedDatabase {
     readingProgress,
     readingSettings,
     chapterProgress,
+    verseHighlights,
   ];
 }
 
@@ -1931,6 +2486,288 @@ typedef $$ChapterProgressTableProcessedTableManager =
       ChapterProgressData,
       PrefetchHooks Function()
     >;
+typedef $$VerseHighlightsTableCreateCompanionBuilder =
+    VerseHighlightsCompanion Function({
+      Value<int> id,
+      required String book,
+      required int chapter,
+      required int verse,
+      required int startOffset,
+      required int endOffset,
+      required String colorKey,
+      required int createdAt,
+      required int updatedAt,
+    });
+typedef $$VerseHighlightsTableUpdateCompanionBuilder =
+    VerseHighlightsCompanion Function({
+      Value<int> id,
+      Value<String> book,
+      Value<int> chapter,
+      Value<int> verse,
+      Value<int> startOffset,
+      Value<int> endOffset,
+      Value<String> colorKey,
+      Value<int> createdAt,
+      Value<int> updatedAt,
+    });
+
+class $$VerseHighlightsTableFilterComposer
+    extends Composer<_$ReadingDatabase, $VerseHighlightsTable> {
+  $$VerseHighlightsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get book => $composableBuilder(
+    column: $table.book,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get chapter => $composableBuilder(
+    column: $table.chapter,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get verse => $composableBuilder(
+    column: $table.verse,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get startOffset => $composableBuilder(
+    column: $table.startOffset,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get endOffset => $composableBuilder(
+    column: $table.endOffset,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get colorKey => $composableBuilder(
+    column: $table.colorKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VerseHighlightsTableOrderingComposer
+    extends Composer<_$ReadingDatabase, $VerseHighlightsTable> {
+  $$VerseHighlightsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get book => $composableBuilder(
+    column: $table.book,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get chapter => $composableBuilder(
+    column: $table.chapter,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get verse => $composableBuilder(
+    column: $table.verse,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get startOffset => $composableBuilder(
+    column: $table.startOffset,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get endOffset => $composableBuilder(
+    column: $table.endOffset,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get colorKey => $composableBuilder(
+    column: $table.colorKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VerseHighlightsTableAnnotationComposer
+    extends Composer<_$ReadingDatabase, $VerseHighlightsTable> {
+  $$VerseHighlightsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get book =>
+      $composableBuilder(column: $table.book, builder: (column) => column);
+
+  GeneratedColumn<int> get chapter =>
+      $composableBuilder(column: $table.chapter, builder: (column) => column);
+
+  GeneratedColumn<int> get verse =>
+      $composableBuilder(column: $table.verse, builder: (column) => column);
+
+  GeneratedColumn<int> get startOffset => $composableBuilder(
+    column: $table.startOffset,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get endOffset =>
+      $composableBuilder(column: $table.endOffset, builder: (column) => column);
+
+  GeneratedColumn<String> get colorKey =>
+      $composableBuilder(column: $table.colorKey, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$VerseHighlightsTableTableManager
+    extends
+        RootTableManager<
+          _$ReadingDatabase,
+          $VerseHighlightsTable,
+          VerseHighlight,
+          $$VerseHighlightsTableFilterComposer,
+          $$VerseHighlightsTableOrderingComposer,
+          $$VerseHighlightsTableAnnotationComposer,
+          $$VerseHighlightsTableCreateCompanionBuilder,
+          $$VerseHighlightsTableUpdateCompanionBuilder,
+          (
+            VerseHighlight,
+            BaseReferences<
+              _$ReadingDatabase,
+              $VerseHighlightsTable,
+              VerseHighlight
+            >,
+          ),
+          VerseHighlight,
+          PrefetchHooks Function()
+        > {
+  $$VerseHighlightsTableTableManager(
+    _$ReadingDatabase db,
+    $VerseHighlightsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VerseHighlightsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$VerseHighlightsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$VerseHighlightsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> book = const Value.absent(),
+                Value<int> chapter = const Value.absent(),
+                Value<int> verse = const Value.absent(),
+                Value<int> startOffset = const Value.absent(),
+                Value<int> endOffset = const Value.absent(),
+                Value<String> colorKey = const Value.absent(),
+                Value<int> createdAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+              }) => VerseHighlightsCompanion(
+                id: id,
+                book: book,
+                chapter: chapter,
+                verse: verse,
+                startOffset: startOffset,
+                endOffset: endOffset,
+                colorKey: colorKey,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String book,
+                required int chapter,
+                required int verse,
+                required int startOffset,
+                required int endOffset,
+                required String colorKey,
+                required int createdAt,
+                required int updatedAt,
+              }) => VerseHighlightsCompanion.insert(
+                id: id,
+                book: book,
+                chapter: chapter,
+                verse: verse,
+                startOffset: startOffset,
+                endOffset: endOffset,
+                colorKey: colorKey,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VerseHighlightsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$ReadingDatabase,
+      $VerseHighlightsTable,
+      VerseHighlight,
+      $$VerseHighlightsTableFilterComposer,
+      $$VerseHighlightsTableOrderingComposer,
+      $$VerseHighlightsTableAnnotationComposer,
+      $$VerseHighlightsTableCreateCompanionBuilder,
+      $$VerseHighlightsTableUpdateCompanionBuilder,
+      (
+        VerseHighlight,
+        BaseReferences<
+          _$ReadingDatabase,
+          $VerseHighlightsTable,
+          VerseHighlight
+        >,
+      ),
+      VerseHighlight,
+      PrefetchHooks Function()
+    >;
 
 class $ReadingDatabaseManager {
   final _$ReadingDatabase _db;
@@ -1943,4 +2780,6 @@ class $ReadingDatabaseManager {
       $$ReadingSettingsTableTableManager(_db, _db.readingSettings);
   $$ChapterProgressTableTableManager get chapterProgress =>
       $$ChapterProgressTableTableManager(_db, _db.chapterProgress);
+  $$VerseHighlightsTableTableManager get verseHighlights =>
+      $$VerseHighlightsTableTableManager(_db, _db.verseHighlights);
 }

@@ -28,7 +28,7 @@ class AppStrings {
   static const noResults = 'No se encontraron resultados';
   static const backToResults = 'Volver a los resultados';
   static const emptyQuery = 'Escribe al menos una palabra para buscar';
-  static const copyWord = 'Copiar palabra';
+  static const copyWord = 'Copiar';
   static const searchInRae = 'Ver significado';
   static const shareVerse = 'Compartir versículo';
   static const needsInternetForRae =
@@ -36,6 +36,15 @@ class AppStrings {
   static const noInternetConnection = 'Sin conexión a internet';
   static const loadingRae = 'Cargando definición';
   static const errorLoadingRae = 'No se pudo cargar la definición';
+  static const underline = 'Subrayar';
+  static const underlineVerse = 'Subrayar versículo';
+  static const changeColor = 'Cambiar color';
+  static const removeUnderline = 'Quitar subrayado';
+  static const chooseColor = 'Elige un color';
+  static const colorGreen = 'Verde';
+  static const colorBlue = 'Azul';
+  static const colorYellow = 'Amarillo';
+  static const colorCopper = 'Cobre';
 
   static const chapterProgress = 'Progreso del capítulo';
   static const markChapterComplete = 'Marcar capítulo completo';

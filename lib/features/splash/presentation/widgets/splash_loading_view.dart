@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bibliapp/core/theme/app_radius.dart';
 import 'package:bibliapp/core/theme/app_spacing.dart';
 import 'package:bibliapp/core/theme/app_splash_tokens.dart';
-import 'package:bibliapp/features/reading/presentation/widgets/splash_logo.dart';
+import 'package:bibliapp/features/splash/presentation/widgets/splash_logo.dart';
 
 /// Splash loading state: the breathing logo with a loading bar underneath.
 class SplashLoadingView extends StatelessWidget {

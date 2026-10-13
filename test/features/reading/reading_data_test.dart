@@ -7,6 +7,7 @@ import 'package:bibliapp/features/reading/data/repositories/reading_repository_i
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
 
 void main() {
   late ReadingDatabase database;
@@ -144,7 +145,90 @@ void main() {
 
     expect(await dataSource.getChapterProgress('genesis', 1), isNull);
   });
+
+  test('stores a verse highlight and returns it with a generated id', () async {
+    final highlight = _highlight(
+      startOffset: 2,
+      endOffset: 7,
+      color: HighlightColor.green,
+    );
+
+    final saved = await dataSource.addVerseHighlight(highlight);
+
+    expect(saved.id, isNotNull);
+    expect(saved.startOffset, 2);
+    expect(saved.endOffset, 7);
+    expect(saved.color, HighlightColor.green);
+
+    final stored = await dataSource.getChapterHighlights('genesis', 1);
+    expect(stored, [saved]);
+  });
+
+  test('getChapterHighlights only returns the requested chapter', () async {
+    await dataSource.addVerseHighlight(_highlight(verse: 1));
+    await dataSource.addVerseHighlight(_highlight(verse: 2));
+    await dataSource.addVerseHighlight(
+      _highlight(book: 'exodus', chapter: 1, verse: 1),
+    );
+
+    final genesis = await dataSource.getChapterHighlights('genesis', 1);
+
+    expect(genesis, hasLength(2));
+    expect(genesis.every((highlight) => highlight.book == 'genesis'), isTrue);
+  });
+
+  test('updates the color and timestamps of a highlight', () async {
+    final saved = await dataSource.addVerseHighlight(
+      _highlight(color: HighlightColor.yellow),
+    );
+
+    final updated = saved.copyWith(
+      color: HighlightColor.blue,
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(5000),
+    );
+    await dataSource.updateVerseHighlight(updated);
+
+    final stored = await dataSource.getChapterHighlights('genesis', 1);
+    expect(stored, [updated]);
+  });
+
+  test('deletes a highlight by id', () async {
+    final saved = await dataSource.addVerseHighlight(_highlight());
+    await dataSource.addVerseHighlight(_highlight(verse: 2));
+
+    await dataSource.deleteVerseHighlight(saved.id!);
+
+    final stored = await dataSource.getChapterHighlights('genesis', 1);
+    expect(stored, hasLength(1));
+    expect(stored.single.verse, 2);
+  });
+
+  test('clearAllData removes every stored highlight', () async {
+    await dataSource.addVerseHighlight(_highlight());
+
+    await dataSource.clearAllData();
+
+    expect(await dataSource.getChapterHighlights('genesis', 1), isEmpty);
+  });
 }
+
+VerseHighlightEntity _highlight({
+  String book = 'genesis',
+  int chapter = 1,
+  int verse = 1,
+  int startOffset = 0,
+  int endOffset = 3,
+  HighlightColor color = HighlightColor.yellow,
+}) => VerseHighlightEntity(
+  book: book,
+  chapter: chapter,
+  verse: verse,
+  startOffset: startOffset,
+  endOffset: endOffset,
+  color: color,
+  createdAt: DateTime.fromMillisecondsSinceEpoch(1000),
+  updatedAt: DateTime.fromMillisecondsSinceEpoch(1000),
+);
 
 class _FailingReadingLocalDataSource extends Mock
     implements ReadingLocalDataSource {}
