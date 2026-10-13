@@ -138,6 +138,72 @@ void main() {
     await cubit.close();
   });
 
+  testWidgets('shows 0 % with an empty ring and no check before any scroll', (
+    tester,
+  ) async {
+    final cubit = await loadChapter(tester);
+    visibleVerse.value = 0;
+    await pumpButton(tester, cubit);
+
+    expect(find.text(AppStrings.percent(0)), findsOneWidget);
+    expect(find.byIcon(Icons.check_circle), findsNothing);
+    final ring = tester.widget<CircularProgressIndicator>(
+      find.byType(CircularProgressIndicator),
+    );
+    expect(ring.value, 0);
+    await cubit.close();
+  });
+
+  testWidgets('tap at 0 % opens the dialog with the selector at verse 1', (
+    tester,
+  ) async {
+    final cubit = await loadChapter(tester);
+    visibleVerse.value = 0;
+    await pumpButton(tester, cubit);
+
+    await tester.tap(find.byType(ReadingProgressButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text(AppStrings.saveUpToVerse(1)), findsOneWidget);
+    await cubit.close();
+  });
+
+  testWidgets('places the check below the 100 % text at the end', (
+    tester,
+  ) async {
+    final cubit = await loadChapter(tester);
+    await pumpButton(tester, cubit);
+    visibleVerse.value = 4;
+    await tester.pump();
+
+    final textRect = tester.getRect(find.text(AppStrings.percent(100)));
+    final iconRect = tester.getRect(find.byIcon(Icons.check_circle));
+    expect(iconRect.center.dy, greaterThan(textRect.center.dy));
+    await cubit.close();
+  });
+
+  testWidgets('shows a white call-to-action chip at 100 % before saving', (
+    tester,
+  ) async {
+    final cubit = await loadChapter(tester);
+    await pumpButton(tester, cubit);
+
+    expect(find.text(AppStrings.tapToSaveReading), findsNothing);
+
+    visibleVerse.value = 4;
+    await tester.pump();
+
+    expect(find.text(AppStrings.tapToSaveReading), findsOneWidget);
+    expect(find.byIcon(Icons.info_outline), findsOneWidget);
+
+    await tester.tap(find.byKey(ReadingProgressButton.circleKey));
+    await tester.pumpAndSettle();
+
+    expect(find.text(AppStrings.tapToSaveReading), findsNothing);
+    expect(find.text(AppStrings.chapterMarkedComplete), findsOneWidget);
+    await cubit.close();
+  });
+
   testWidgets(
     'shows 100 % with a check when the last verse is visible and a tap marks '
     'the chapter complete immediately',
@@ -150,7 +216,7 @@ void main() {
       expect(find.text(AppStrings.percent(100)), findsOneWidget);
       expect(find.byIcon(Icons.check_circle), findsOneWidget);
 
-      await tester.tap(find.byType(ReadingProgressButton));
+      await tester.tap(find.byKey(ReadingProgressButton.circleKey));
       await tester.pumpAndSettle();
 
       expect(find.text(AppStrings.upToWhichVerse), findsNothing);
@@ -312,7 +378,7 @@ void main() {
 
     expect(find.text(AppStrings.chapterMarkedComplete), findsNothing);
 
-    await tester.tap(find.byType(ReadingProgressButton));
+    await tester.tap(find.byKey(ReadingProgressButton.circleKey));
     await tester.pumpAndSettle();
 
     expect(find.text(AppStrings.chapterMarkedComplete), findsOneWidget);
