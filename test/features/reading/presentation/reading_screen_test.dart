@@ -147,13 +147,43 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(ReadingProgressButton), findsOneWidget);
-    expect(find.text(AppStrings.percent(100)), findsOneWidget);
+    expect(find.text(AppStrings.percent(0)), findsOneWidget);
 
     final buttonRect = tester.getRect(find.byType(ReadingProgressButton));
     final appRect = tester.getRect(find.byType(MaterialApp));
     expect(buttonRect.center.dx, greaterThan(appRect.center.dx));
     expect(buttonRect.center.dy, greaterThan(appRect.center.dy));
   });
+
+  testWidgets(
+    'starts at the saved percentage when the chapter has partial progress',
+    (tester) async {
+      when(() => getChapterVerses('genesis', 1)).thenAnswer(
+        (_) async => const Right<Failure, List<VerseEntity>>([
+          VerseEntity(book: 'genesis', chapter: 1, verse: 1, text: 'Uno'),
+          VerseEntity(book: 'genesis', chapter: 1, verse: 2, text: 'Dos'),
+          VerseEntity(book: 'genesis', chapter: 1, verse: 3, text: 'Tres'),
+          VerseEntity(book: 'genesis', chapter: 1, verse: 4, text: 'Cuatro'),
+        ]),
+      );
+      when(() => getChapterProgress('genesis', 1)).thenAnswer(
+        (_) async => const Right<Failure, ChapterProgressEntity?>(
+          ChapterProgressEntity(
+            book: 'genesis',
+            chapter: 1,
+            lastVerseRead: 1,
+            isComplete: false,
+          ),
+        ),
+      );
+
+      appRouter.go('/reading');
+      await tester.pumpWidget(const MyApp());
+      await tester.pumpAndSettle();
+
+      expect(find.text(AppStrings.percent(25)), findsOneWidget);
+    },
+  );
 
   testWidgets('swipes to the next chapter', (tester) async {
     when(() => getChapterCount('genesis'))

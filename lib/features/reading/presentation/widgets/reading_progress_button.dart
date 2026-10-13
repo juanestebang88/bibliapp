@@ -28,6 +28,10 @@ class ReadingProgressButton extends StatefulWidget {
   /// Identifies the breathing pulse wrapper (used by tests).
   static const Key breathScaleKey = Key('reading-progress-breath-scale');
 
+  /// Identifies the tappable circle (used by tests to tap it precisely when the
+  /// leading chip is present).
+  static const Key circleKey = Key('reading-progress-circle');
+
   const ReadingProgressButton({
     super.key,
     required this.state,
@@ -164,15 +168,24 @@ class _ReadingProgressButtonState extends State<ReadingProgressButton>
           children: [
             AnimatedSwitcher(
               duration: AppMotion.chromeDuration,
-              child: _showAviso
-                  ? const _ConfirmationPill()
-                  : const SizedBox.shrink(),
+              child: _buildLeadingChip(visible: visible, total: total),
             ),
             _buildCircle(context, visible: visible, total: total),
           ],
         );
       },
     );
+  }
+
+  /// Left-side callout: invites the tap once the 100 % is reached, or confirms
+  /// the chapter was just saved. Hidden while reading below the end.
+  Widget _buildLeadingChip({required int visible, required int total}) {
+    if (_showAviso) return const _ConfirmationPill();
+
+    final isComplete = widget.state.chapterProgress?.isComplete ?? false;
+    if (!isComplete && visible >= total) return const _SaveReadingChip();
+
+    return const SizedBox.shrink();
   }
 
   Widget _buildCircle(
@@ -201,6 +214,7 @@ class _ReadingProgressButtonState extends State<ReadingProgressButton>
       child: Opacity(
         opacity: AppProgressButtonTokens.defaultOpacity,
         child: SizedBox(
+          key: ReadingProgressButton.circleKey,
           width: AppProgressButtonTokens.diameter,
           height: AppProgressButtonTokens.diameter,
           child: circle,
@@ -242,16 +256,16 @@ class _ReadingProgressButtonState extends State<ReadingProgressButton>
                 ),
                 Center(
                   child: atEnd
-                      ? Row(
+                      ? Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            Text(AppStrings.percent(100), style: style),
+                            const SizedBox(height: AppSpacing.xs),
                             Icon(
                               Icons.check_circle,
-                              size: AppSpacing.lg,
+                              size: AppSpacing.md,
                               color: accent,
                             ),
-                            const SizedBox(width: AppSpacing.xs),
-                            Text(AppStrings.percent(100), style: style),
                           ],
                         )
                       : Text(
@@ -323,6 +337,49 @@ class _ConfirmationPill extends StatelessWidget {
               AppStrings.chapterMarkedComplete,
               style: theme.textTheme.labelSmall?.copyWith(
                 color: AppColors.greenLight,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// White call-to-action chip shown to the left of the button once the reader
+/// reaches the end of the chapter, inviting the tap that saves the reading. Its
+/// text uses the app background blue for contrast against the white surface.
+class _SaveReadingChip extends StatelessWidget {
+  const _SaveReadingChip();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(right: AppSpacing.sm),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.lightSurface,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.info_outline,
+              size: AppSpacing.md,
+              color: AppColors.appBackground,
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Text(
+              AppStrings.tapToSaveReading,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: AppColors.appBackground,
                 fontWeight: FontWeight.w600,
               ),
             ),

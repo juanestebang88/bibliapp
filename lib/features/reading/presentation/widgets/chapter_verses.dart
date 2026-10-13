@@ -38,7 +38,7 @@ class _ChapterVersesState extends State<ChapterVerses>
   late final AnimationController _blinkController;
   late final Animation<double> _blink;
   int? _blinkVerse;
-  int? _lastVisibleVerse = 1;
+  int? _lastVisibleVerse;
 
   @override
   void initState() {
@@ -79,7 +79,6 @@ class _ChapterVersesState extends State<ChapterVerses>
     ]).animate(_blinkController);
     _blinkController.addStatusListener(_onBlinkStatusChanged);
     _schedulePendingScroll();
-    _scheduleVisibleVerseUpdate();
   }
 
   @override
@@ -94,7 +93,6 @@ class _ChapterVersesState extends State<ChapterVerses>
     final fontSizeChanged = oldWidget.state.fontSize != widget.state.fontSize;
     if (chapterChanged || fontSizeChanged) {
       _lastVisibleVerse = null;
-      _scheduleVisibleVerseUpdate();
     }
   }
 
@@ -125,40 +123,44 @@ class _ChapterVersesState extends State<ChapterVerses>
     });
   }
 
-  void _scheduleVisibleVerseUpdate() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _updateVisibleVerse();
-    });
-  }
-
   /// Computes the last verse whose bottom edge is inside the viewport and
-  /// reports it without rebuilding this widget.
+  /// reports it without rebuilding this widget. Only runs on scroll, so a
+  /// freshly loaded chapter starts at 0 % until the user (or a programmatic
+  /// jump) moves the viewport.
   void _updateVisibleVerse() {
     final verses = widget.state.chapterVerses;
     final viewportBox =
         _scrollViewKey.currentContext?.findRenderObject() as RenderBox?;
     if (viewportBox == null || verses.isEmpty) return;
 
+    // Back at the very top the chapter counts as "not started" again, so the
+    // progress button returns to 0 % until the reader scrolls down once more.
+    final atTop =
+        _scrollController.hasClients &&
+        _scrollController.offset <= _scrollController.position.minScrollExtent;
+
     final viewportTop = viewportBox.localToGlobal(Offset.zero).dy;
     final viewportBottom = viewportTop + viewportBox.size.height;
 
     int? visible;
-    for (int index = 0; index < verses.length; index++) {
-      final box =
-          _verseKeys[index].currentContext?.findRenderObject() as RenderBox?;
-      if (box == null) continue;
-      final bottom = box.localToGlobal(Offset(0, box.size.height)).dy;
-      if (bottom <= viewportBottom) {
-        visible = verses[index].verse;
-      } else {
-        break;
+    if (!atTop) {
+      for (int index = 0; index < verses.length; index++) {
+        final box =
+            _verseKeys[index].currentContext?.findRenderObject() as RenderBox?;
+        if (box == null) continue;
+        final bottom = box.localToGlobal(Offset(0, box.size.height)).dy;
+        if (bottom <= viewportBottom) {
+          visible = verses[index].verse;
+        } else {
+          break;
+        }
       }
     }
 
-    if (visible != null && visible != _lastVisibleVerse) {
-      _lastVisibleVerse = visible;
-      widget.onVisibleVerseChanged?.call(visible);
+    final reported = atTop ? 0 : visible;
+    if (reported != null && reported != _lastVisibleVerse) {
+      _lastVisibleVerse = reported;
+      widget.onVisibleVerseChanged?.call(reported);
     }
   }
 

@@ -45,6 +45,7 @@ class AppStrings {
   static const unmarkChapter = 'Desmarcar capítulo';
   static const readingProgressButton = 'Progreso de lectura';
   static const tapToConfirm = 'Toca para confirmar la lectura';
+  static const tapToSaveReading = 'Toca el botón para guardar tu lectura';
   static const chapterMarkedComplete = 'Capítulo leído';
   static String percent(int value) => '$value %';
   static String verseCount(int total) =>

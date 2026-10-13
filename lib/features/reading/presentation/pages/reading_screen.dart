@@ -32,7 +32,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
   bool _didJump = false;
   String? _loadedBook;
   int? _loadedChapter;
-  final ValueNotifier<int> _visibleVerse = ValueNotifier<int>(1);
+  final ValueNotifier<int> _visibleVerse = ValueNotifier<int>(0);
 
   @override
   void dispose() {
@@ -41,16 +41,25 @@ class _ReadingScreenState extends State<ReadingScreen> {
   }
 
   /// Resets the visible verse tracker when the loaded chapter changes so the
-  /// progress button never mixes verses from a previous chapter.
+  /// progress button never mixes verses from a previous chapter. A chapter with
+  /// saved partial progress starts at that percentage; a fresh one starts at
+  /// 0 % (the "not started" sentinel) until the user scrolls. Only seeds on a
+  /// successful load, when the chapter progress is available.
   void _trackChapterChange(ReadingState state) {
+    if (state.status != ReadingStatus.success) return;
     if (_loadedBook == state.currentBook &&
         _loadedChapter == state.currentChapter) {
       return;
     }
     _loadedBook = state.currentBook;
     _loadedChapter = state.currentChapter;
+    final progress = state.chapterProgress;
+    final seed =
+        progress != null && !progress.isComplete && progress.lastVerseRead > 0
+        ? progress.lastVerseRead
+        : 0;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _visibleVerse.value = 1;
+      if (mounted) _visibleVerse.value = seed;
     });
   }
 
