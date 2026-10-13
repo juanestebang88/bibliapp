@@ -23,7 +23,7 @@ class ToolbarAction extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, size: AppSpacing.xxl, color: color),
-        const SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.xxs),
         Text(
           label,
           style: theme.textTheme.titleMedium?.copyWith(
