@@ -31,6 +31,7 @@ generated_plugin_registrant.dart
 
 # IA
 .agents/
+.opencode/
 specs/
 skills-lock.json
 AGENTS.md
