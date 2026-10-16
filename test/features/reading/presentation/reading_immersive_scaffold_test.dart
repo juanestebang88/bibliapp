@@ -168,22 +168,73 @@ void main() {
     expect(topOf(tester, accessoryKey), closeTo(initialAccessory, 0.1));
   });
 
-  testWidgets('keeps the last row visible above the footer when the bottom '
-      'is reached', (tester) async {
+  testWidgets('keeps row position stable when chrome reappears mid-chapter', (
+    tester,
+  ) async {
     await pumpSubject(tester);
-    final footerTop = topOf(tester, footerKey);
 
     await tester.drag(find.byType(ListView), const Offset(0, -300));
     await tester.pumpAndSettle();
-    expect(topOf(tester, headerKey), lessThan(60));
+    expect(topOf(tester, headerKey), lessThan(0));
+
+    final rowTop = tester.getRect(find.text('row 10')).top;
+
+    await tester.pump(AppMotion.chromeIdleDelay);
+    await tester.pumpAndSettle();
+    expect(topOf(tester, headerKey), closeTo(0, 0.1));
+
+    final rowTopAfter = tester.getRect(find.text('row 10')).top;
+    expect(rowTopAfter, closeTo(rowTop, 1.0));
+  });
+
+  testWidgets('moves content only by the user scroll when chrome hides', (
+    tester,
+  ) async {
+    await pumpSubject(tester);
+
+    await tester.drag(find.byType(ListView), const Offset(0, -300));
+    await tester.pumpAndSettle();
+    await tester.pump(AppMotion.chromeIdleDelay);
+    await tester.pumpAndSettle();
+    expect(topOf(tester, headerKey), closeTo(0, 0.1));
+
+    final rowTop = tester.getRect(find.text('row 10')).top;
+
+    await tester.drag(find.byType(ListView), const Offset(0, -50));
+    await tester.pumpAndSettle();
+    expect(topOf(tester, headerKey), lessThan(0));
+
+    final rowShift = rowTop - tester.getRect(find.text('row 10')).top;
+    expect(rowShift, greaterThan(0));
+    // A 50px drag scrolls ~30px after touch slop. Without anchoring the row
+    // would additionally jump by the 60px top inset.
+    expect(rowShift, lessThan(60));
+  });
+
+  testWidgets('keeps content stable at the chapter bottom', (tester) async {
+    await pumpSubject(tester);
+    final position = tester
+        .state<ScrollableState>(find.byType(Scrollable))
+        .position;
 
     await tester.drag(find.byType(ListView), const Offset(0, -10000));
     await tester.pumpAndSettle();
+    expect(topOf(tester, headerKey), closeTo(0, 0.1));
+    expect(position.pixels, lessThanOrEqualTo(position.maxScrollExtent));
 
-    expect(topOf(tester, footerKey), closeTo(footerTop, 0.1));
-    final lastRowBottom = tester.getRect(find.text('row 99')).bottom;
-    expect(lastRowBottom, lessThanOrEqualTo(topOf(tester, footerKey) + 0.5));
-    expect(lastRowBottom, greaterThan(60));
+    await tester.drag(find.byType(ListView), const Offset(0, 100));
+    await tester.pumpAndSettle();
+    expect(topOf(tester, headerKey), lessThan(0));
+    final pixelsAfterHide = position.pixels;
+
+    await tester.pump(AppMotion.chromeIdleDelay);
+    await tester.pumpAndSettle();
+
+    expect(topOf(tester, headerKey), closeTo(0, 0.1));
+    // Compensation pulls the content back toward the bottom but is clamped
+    // at the scroll boundary (accepted residual movement at the extremes).
+    expect(position.pixels, greaterThan(pixelsAfterHide));
+    expect(position.pixels, lessThanOrEqualTo(position.maxScrollExtent));
   });
 
   testWidgets('resets to visible when the chapter changes', (tester) async {

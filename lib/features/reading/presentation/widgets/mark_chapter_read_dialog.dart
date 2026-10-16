@@ -85,7 +85,7 @@ class _MarkChapterReadDialogState extends State<MarkChapterReadDialog> {
                     child: Text(
                       AppStrings.chapterProgress,
                       textAlign: TextAlign.center,
-                      style: theme.textTheme.titleMedium,
+                      style: theme.textTheme.titleLarge,
                     ),
                   ),
                   IconButton(
@@ -102,7 +102,7 @@ class _MarkChapterReadDialogState extends State<MarkChapterReadDialog> {
                   children: [
                     Text(
                       AppStrings.verseCount(widget.totalVerses),
-                      style: theme.textTheme.labelSmall,
+                      style: theme.textTheme.labelMedium,
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     SizedBox(
@@ -111,6 +111,7 @@ class _MarkChapterReadDialogState extends State<MarkChapterReadDialog> {
                         onPressed: () => _pop(MarkChapterAction.unmark),
                         style: FilledButton.styleFrom(
                           foregroundColor: theme.colorScheme.onPrimary,
+                          textStyle: theme.textTheme.titleMedium,
                         ),
                         child: Text(AppStrings.unmarkChapter),
                       ),
@@ -123,7 +124,7 @@ class _MarkChapterReadDialogState extends State<MarkChapterReadDialog> {
                   children: [
                     Text(
                       AppStrings.upToWhichVerse,
-                      style: theme.textTheme.labelSmall,
+                      style: theme.textTheme.labelMedium,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     Row(
@@ -136,7 +137,7 @@ class _MarkChapterReadDialogState extends State<MarkChapterReadDialog> {
                         const SizedBox(width: AppSpacing.md),
                         Text(
                           '$_verse',
-                          style: theme.textTheme.titleMedium?.copyWith(
+                          style: theme.textTheme.titleLarge?.copyWith(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
@@ -157,6 +158,7 @@ class _MarkChapterReadDialogState extends State<MarkChapterReadDialog> {
                         onPressed: () => _pop(MarkChapterAction.markComplete),
                         style: FilledButton.styleFrom(
                           foregroundColor: theme.colorScheme.onPrimary,
+                          textStyle: theme.textTheme.titleMedium,
                         ),
                         child: Text(AppStrings.markChapterComplete),
                       ),
@@ -166,6 +168,9 @@ class _MarkChapterReadDialogState extends State<MarkChapterReadDialog> {
                       width: double.infinity,
                       child: TextButton(
                         onPressed: () => _pop(MarkChapterAction.saveUntilVerse),
+                        style: TextButton.styleFrom(
+                          textStyle: theme.textTheme.titleMedium,
+                        ),
                         child: Text(AppStrings.saveUpToVerse(_verse)),
                       ),
                     ),
@@ -195,10 +200,10 @@ class _StepButton extends StatelessWidget {
         customBorder: const CircleBorder(),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.sm),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: Icon(
             icon,
-            size: AppSpacing.sm,
+            size: AppSpacing.xl,
             color: onTap == null
                 ? theme.colorScheme.onSurface.withValues(alpha: 0.3)
                 : theme.colorScheme.primary,
