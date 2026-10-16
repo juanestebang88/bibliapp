@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:bibliapp/core/bootstrap/bible_bootstrap.dart';
+import 'package:bibliapp/features/reading/data/bible_db_initialization.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_database.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_local_data_source.dart';
 import 'package:bibliapp/features/reading/data/repositories/connectivity_repository_impl.dart';
@@ -33,7 +34,9 @@ final GetIt getIt = GetIt.instance;
 void registerGetIt() {
   if (getIt.isRegistered<ReadingDatabase>()) return;
 
-  getIt.registerLazySingleton<ReadingDatabase>(ReadingDatabase.new);
+  getIt.registerLazySingleton<ReadingDatabase>(
+    () => ReadingDatabase(executor: openBibleDatabase()),
+  );
   getIt.registerLazySingleton<ReadingLocalDataSource>(
     () => ReadingLocalDataSource(database: getIt<ReadingDatabase>()),
   );

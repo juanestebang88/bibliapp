@@ -1,6 +1,5 @@
 import 'package:bibliapp/core/error/failure.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_local_data_source.dart';
-import 'package:bibliapp/features/reading/data/import_rv1960.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
@@ -115,7 +114,7 @@ class ReadingRepositoryImpl implements ReadingRepository {
 
   @override
   Future<Either<Failure, Unit>> ensureBibleImported() => _guard(() async {
-    await importRV1960(dataSource: dataSource);
+    await dataSource.ensureBibleReady();
     return unit;
   });
 

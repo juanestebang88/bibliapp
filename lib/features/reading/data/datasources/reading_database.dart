@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:drift_flutter/drift_flutter.dart';
 
 part 'reading_database.g.dart';
 
@@ -65,8 +64,7 @@ class VerseHighlights extends Table {
   ],
 )
 class ReadingDatabase extends _$ReadingDatabase {
-  ReadingDatabase({QueryExecutor? executor})
-    : super(executor ?? driftDatabase(name: 'rv1960'));
+  ReadingDatabase({required QueryExecutor executor}) : super(executor);
 
   @override
   int get schemaVersion => 5;
