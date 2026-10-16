@@ -22,6 +22,15 @@ class ReadingLocalDataSource {
     return (count ?? 0) > 0;
   }
 
+  /// Opens the database (seeding it from the prepackaged asset on first run)
+  /// and verifies the Bible text is available. No JSON is parsed at runtime.
+  Future<void> ensureBibleReady() async {
+    final ready = await hasImportedVerses();
+    if (!ready) {
+      throw StateError('Prepackaged Bible database is missing or empty.');
+    }
+  }
+
   Future<void> importRV1960(Iterable<VerseEntity> verses) async {
     await database.batch((batch) {
       batch.insertAll(
