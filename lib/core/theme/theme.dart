@@ -36,6 +36,7 @@ ThemeData appTheme({Brightness brightness = Brightness.dark}) {
         height: 1.7,
       ),
       labelSmall: GoogleFonts.googleSansFlex(color: foreground, fontSize: 12),
+      labelMedium: GoogleFonts.googleSansFlex(color: foreground, fontSize: 14),
     ),
     colorScheme:
         (isDark

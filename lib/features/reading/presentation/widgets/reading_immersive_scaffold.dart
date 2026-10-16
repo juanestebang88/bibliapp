@@ -45,11 +45,18 @@ class _ReadingImmersiveScaffoldState extends State<ReadingImmersiveScaffold>
   double _topInset = 0;
   double _bottomInset = 0;
 
-  /// Scroll compensation used when the chrome becomes visible because the
-  /// chapter bottom was reached: keeps the last verse above the footer while
-  /// the inset grows instead of leaving it obscured behind the overlay.
-  bool _pendingBottomCompensation = false;
-  ScrollPosition? _bottomChromePosition;
+  /// Scrollable driven by the reading body; captured from scroll
+  /// notifications and used to anchor the content while the top inset animates.
+  ScrollPosition? _scrollPosition;
+
+  /// Animated top padding (`_topInset * _controller.value`) on the previous
+  /// animation tick; the difference against the current value is the offset
+  /// delta applied to [ScrollPosition.pixels].
+  double _previousAnimatedTop = 0;
+
+  /// True while a compensating [ScrollPosition.setPixels] is being dispatched,
+  /// so the self-induced scroll notifications are ignored by [_onScroll].
+  bool _isCompensating = false;
 
   @override
   void initState() {
@@ -59,8 +66,7 @@ class _ReadingImmersiveScaffoldState extends State<ReadingImmersiveScaffold>
       duration: AppMotion.chromeDuration,
       value: 1,
     );
-    _controller.addListener(_followBottomScrollPosition);
-    _controller.addStatusListener(_onChromeStatusChanged);
+    _controller.addListener(_onAnimationTick);
     final animation = CurvedAnimation(
       parent: _controller,
       curve: AppMotion.chromeCurve,
@@ -87,9 +93,17 @@ class _ReadingImmersiveScaffoldState extends State<ReadingImmersiveScaffold>
         oldWidget.state.status != ReadingStatus.loading &&
         widget.state.status == ReadingStatus.loading;
     if (chapterChanged || startedLoading) {
+      _resetAnchorTracking();
       _showChrome();
     }
     _scheduleMeasure();
+  }
+
+  /// Drops the captured scrollable and rebases the animated-top baseline so
+  /// the chapter/loading transition does not produce a compensation jump.
+  void _resetAnchorTracking() {
+    _scrollPosition = null;
+    _previousAnimatedTop = _topInset * _controller.value;
   }
 
   void _scheduleMeasure() {
@@ -111,34 +125,29 @@ class _ReadingImmersiveScaffoldState extends State<ReadingImmersiveScaffold>
           _headerHeight = headerHeight;
           _topInset = topInset;
           _bottomInset = bottomInset;
+          _previousAnimatedTop = _topInset * _controller.value;
         });
       }
     });
   }
 
   bool _onScroll(ScrollNotification notification) {
-    if (notification is ScrollStartNotification &&
-        notification.dragDetails != null) {
-      _cancelBottomCompensation();
-    }
+    if (_isCompensating) return false;
+    _captureScrollPosition(notification);
     if (notification is! ScrollUpdateNotification) return false;
 
     final metrics = notification.metrics;
     final pixels = metrics.pixels;
 
     if (pixels >= metrics.maxScrollExtent) {
-      _trackBottomCompensation(notification);
       _showChrome();
       return false;
     }
 
     if (pixels <= metrics.minScrollExtent) {
-      _cancelBottomCompensation();
       _showChrome();
       return false;
     }
-
-    _cancelBottomCompensation();
 
     final delta = notification.scrollDelta;
     if (delta != null) {
@@ -155,6 +164,51 @@ class _ReadingImmersiveScaffoldState extends State<ReadingImmersiveScaffold>
     return false;
   }
 
+  /// Remembers the scrollable that drives the reading body so the anchoring
+  /// compensation can adjust its offset while the top inset animates.
+  void _captureScrollPosition(ScrollNotification notification) {
+    final position = notification.context
+        ?.findAncestorStateOfType<ScrollableState>()
+        ?.position;
+    if (position != null) {
+      _scrollPosition = position;
+    }
+  }
+
+  /// Keeps the visible content anchored on screen while the animated top
+  /// padding changes: every offset delta of the inset is mirrored onto the
+  /// scroll position (clamped to the scrollable's bounds).
+  void _onAnimationTick() {
+    final animatedTop = _topInset * _controller.value;
+    final delta = animatedTop - _previousAnimatedTop;
+    _previousAnimatedTop = animatedTop;
+
+    final position = _scrollPosition;
+    if (delta == 0 ||
+        position == null ||
+        !position.hasContentDimensions ||
+        !position.hasPixels) {
+      return;
+    }
+    final target = (position.pixels + delta).clamp(
+      position.minScrollExtent,
+      position.maxScrollExtent,
+    );
+    if (target == position.pixels) return;
+
+    // `setPixels` keeps an ongoing drag/ballistic scroll alive but asserts
+    // while a scroll activity is running; `jumpTo` is only safe when idle
+    // (it would cancel the user's scroll otherwise). The guard makes the
+    // self-dispatched scroll notification a no-op inside `_onScroll`.
+    _isCompensating = true;
+    if (position.isScrollingNotifier.value) {
+      position.setPixels(target);
+    } else {
+      position.jumpTo(target);
+    }
+    _isCompensating = false;
+  }
+
   void _showChrome() {
     _idleTimer?.cancel();
     _idleTimer = null;
@@ -164,50 +218,6 @@ class _ReadingImmersiveScaffoldState extends State<ReadingImmersiveScaffold>
 
   void _hideChrome() {
     _controller.reverse();
-  }
-
-  /// Remembers the scrollable when the chapter bottom is reached while the
-  /// chrome is still hidden, so its position can be kept pinned at the bottom
-  /// while the inset grows.
-  void _trackBottomCompensation(ScrollNotification notification) {
-    if (_pendingBottomCompensation || _controller.isCompleted) return;
-    final scrollable = notification.context
-        ?.findAncestorStateOfType<ScrollableState>();
-    if (scrollable == null) return;
-    _bottomChromePosition = scrollable.position;
-    _pendingBottomCompensation = true;
-  }
-
-  /// Keeps the last verse anchored at the bottom of the viewport (the footer
-  /// top) while the chrome turns visible at the chapter bottom.
-  void _followBottomScrollPosition() {
-    if (!_pendingBottomCompensation) return;
-    _pinBottomPosition();
-  }
-
-  void _pinBottomPosition() {
-    final position = _bottomChromePosition;
-    if (position == null) return;
-    final max = position.maxScrollExtent;
-    if ((position.pixels - max).abs() > 0.5) {
-      position.jumpTo(max);
-    }
-  }
-
-  void _onChromeStatusChanged(AnimationStatus status) {
-    if (status != AnimationStatus.completed) return;
-    // maxScrollExtent is final only after the layout that applies the full
-    // inset, so the last compensation runs once post-frame.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_pendingBottomCompensation) return;
-      _pinBottomPosition();
-      _cancelBottomCompensation();
-    });
-  }
-
-  void _cancelBottomCompensation() {
-    _pendingBottomCompensation = false;
-    _bottomChromePosition = null;
   }
 
   @override
