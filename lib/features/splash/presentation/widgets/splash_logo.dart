@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:bibliapp/core/theme/app_motion.dart';
 import 'package:bibliapp/core/theme/app_splash_tokens.dart';
+import 'package:bibliapp/core/widgets/app_logo.dart';
 
 /// Splash logo with a continuous breathing pulse (scale + fade) that signals
 /// activity while the app bootstraps.
@@ -54,11 +55,7 @@ class _SplashLogoState extends State<SplashLogo>
       child: ScaleTransition(
         key: SplashLogo.breathScaleKey,
         scale: _scale,
-        child: Image.asset(
-          'assets/images/logo-splash.png',
-          width: AppSplashTokens.logoSize,
-          height: AppSplashTokens.logoSize,
-        ),
+        child: const AppLogo(),
       ),
     );
   }

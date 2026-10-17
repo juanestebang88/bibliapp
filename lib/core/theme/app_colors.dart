@@ -20,6 +20,9 @@ class AppColors {
   static const darkText = Color(0xFF252932);
   static const pillBackground = Color(0xFF29303A);
 
+  // Home reading-days indicators
+  static const noReadingRed = Color(0xFFC4605C);
+
   // Toolbar glass gradient
   static const toolbarGlassStart = Color(0xFF322D2D);
   static const toolbarGlassHighlight = Color(0xFFFFFFFF);

@@ -1,4 +1,5 @@
 import 'package:bibliapp/core/localization/app_strings.dart';
+import 'package:bibliapp/core/widgets/app_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -110,6 +111,7 @@ void main() {
     await pumpReady(tester);
     await tester.pump();
 
+    expect(find.byType(AppLogo), findsOneWidget);
     expect(find.text(_dailyVerse.text), findsOneWidget);
     expect(find.text(AppStrings.chaptersReadSummary(2, 50)), findsOneWidget);
     expect(find.text(AppStrings.today), findsOneWidget);

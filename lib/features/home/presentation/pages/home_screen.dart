@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bibliapp/core/localization/app_strings.dart';
 import 'package:bibliapp/core/theme/app_spacing.dart';
+import 'package:bibliapp/core/theme/app_home_tokens.dart';
+import 'package:bibliapp/core/widgets/app_logo.dart';
 import 'package:bibliapp/core/widgets/bottom_toolbar.dart';
 import 'package:bibliapp/features/home/presentation/cubit/home_cubit.dart';
 import 'package:bibliapp/features/home/presentation/cubit/home_state.dart';
@@ -19,7 +21,6 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        bottom: false,
         child: BlocBuilder<HomeCubit, HomeState>(
           builder: (context, state) {
             if (state.status == HomeStatus.failure) {
@@ -49,6 +50,10 @@ class HomeScreen extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
+                          Center(
+                            child: AppLogo(size: AppHomeTokens.homeLogoSize),
+                          ),
+                          const SizedBox(height: AppSpacing.xl),
                           for (final card in cards) ...[
                             card,
                             const SizedBox(height: AppSpacing.lg),

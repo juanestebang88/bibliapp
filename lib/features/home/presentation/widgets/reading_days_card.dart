@@ -15,11 +15,10 @@ class ReadingDaysCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final todayKey = readingDays.isEmpty ? '' : readingDays.last.date;
 
     return Material(
-      color: theme.colorScheme.surface,
+      color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(AppRadius.border),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -29,7 +28,7 @@ class ReadingDaysCard extends StatelessWidget {
             for (final day in readingDays)
               _ReadingDayIndicator(
                 label: _labelFor(day.date, todayKey),
-                hasRead: day.hasRead,
+                status: _statusFor(day, day.date == todayKey),
               ),
           ],
         ),
@@ -43,13 +42,43 @@ class ReadingDaysCard extends StatelessWidget {
     if (weekday == null) return '';
     return AppStrings.shortDayName(weekday);
   }
+
+  _ReadingDayStatus _statusFor(ReadingDayEntity day, bool isToday) {
+    if (day.hasRead) return _ReadingDayStatus.read;
+    if (isToday) return _ReadingDayStatus.noDataToday;
+    return _ReadingDayStatus.notRead;
+  }
 }
+
+enum _ReadingDayStatus { read, noDataToday, notRead }
 
 class _ReadingDayIndicator extends StatelessWidget {
   final String label;
-  final bool hasRead;
+  final _ReadingDayStatus status;
 
-  const _ReadingDayIndicator({required this.label, required this.hasRead});
+  const _ReadingDayIndicator({required this.label, required this.status});
+
+  IconData get _glyph {
+    switch (status) {
+      case _ReadingDayStatus.read:
+        return Icons.check;
+      case _ReadingDayStatus.noDataToday:
+        return Icons.remove;
+      case _ReadingDayStatus.notRead:
+        return Icons.close;
+    }
+  }
+
+  Color get _glyphColor {
+    switch (status) {
+      case _ReadingDayStatus.read:
+        return AppColors.greenAccent;
+      case _ReadingDayStatus.noDataToday:
+        return AppColors.secondaryText;
+      case _ReadingDayStatus.notRead:
+        return AppColors.noReadingRed;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,12 +89,17 @@ class _ReadingDayIndicator extends StatelessWidget {
         Text(label, style: theme.textTheme.labelSmall),
         const SizedBox(height: AppSpacing.sm),
         SizedBox(
-          width: AppHomeTokens.readingDotSize,
-          height: AppHomeTokens.readingDotSize,
+          width: AppHomeTokens.readingDayCircleSize,
+          height: AppHomeTokens.readingDayCircleSize,
           child: DecoratedBox(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: hasRead ? AppColors.greenAccent : AppColors.secondaryText,
+              border: Border.all(color: _glyphColor.withValues(alpha: 0.45)),
+            ),
+            child: Icon(
+              _glyph,
+              size: AppHomeTokens.readingDayIconSize,
+              color: _glyphColor,
             ),
           ),
         ),
