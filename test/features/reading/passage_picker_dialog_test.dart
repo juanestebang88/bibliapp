@@ -27,6 +27,7 @@ import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart'
 import 'package:bibliapp/features/reading/presentation/widgets/book_chip_grid.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/chapter_grid.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/number_chip_grid.dart';
+import 'package:bibliapp/features/reading/presentation/widgets/passage_picker_header.dart';
 import 'package:bibliapp/main.dart';
 
 void main() {
@@ -162,13 +163,15 @@ void main() {
     await tester.tap(find.text('Génesis 1'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Seleccionar pasaje'), findsOneWidget);
+    expect(_headerTitle('Génesis'), findsOneWidget);
+    expect(find.text('Seleccionar pasaje'), findsNothing);
     expect(find.byType(ChapterGrid), findsOneWidget);
 
     await tester.tap(find.text('AT'));
     await tester.pumpAndSettle();
 
     expect(find.byType(BookChipGrid), findsOneWidget);
+    expect(_headerTitle('Seleccionar pasaje'), findsOneWidget);
     final genesisChip = find.descendant(
       of: find.byType(BookChipGrid),
       matching: find.text('Génesis'),
@@ -183,11 +186,13 @@ void main() {
     await tester.tap(genesisChip);
     await tester.pumpAndSettle();
 
+    expect(_headerTitle('Génesis'), findsOneWidget);
     expect(find.byType(NumberChipGrid), findsOneWidget);
 
     await tester.tap(find.text('3'));
     await tester.pumpAndSettle();
 
+    expect(_headerTitle('Génesis Cap. 3'), findsOneWidget);
     expect(find.byType(NumberChipGrid), findsOneWidget);
 
     await tester.tap(find.text('5'));
@@ -198,6 +203,44 @@ void main() {
     expect(find.text('Seleccionar pasaje'), findsNothing);
     expect(find.text('Génesis 3'), findsOneWidget);
     expect(find.textContaining('Verse'), findsWidgets);
+  });
+
+  testWidgets('shows the selected book and chapter in the header title', (
+    tester,
+  ) async {
+    appRouter.go('/reading');
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Génesis 1'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('AT'));
+    await tester.pumpAndSettle();
+
+    final ruthChip = find.descendant(
+      of: find.byType(BookChipGrid),
+      matching: find.text('Rut'),
+    );
+    await tester.dragUntilVisible(
+      ruthChip,
+      find.byType(BookChipGrid),
+      const Offset(0, -300),
+    );
+    await tester.tap(ruthChip);
+    await tester.pumpAndSettle();
+
+    expect(_headerTitle('Rut'), findsOneWidget);
+
+    await tester.tap(find.text('5'));
+    await tester.pumpAndSettle();
+
+    expect(_headerTitle('Rut Cap. 5'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Volver'));
+    await tester.pumpAndSettle();
+
+    expect(_headerTitle('Rut'), findsOneWidget);
   });
 
   testWidgets('shows the new testament book list restricted to NT', (
@@ -240,6 +283,11 @@ void main() {
     );
   });
 }
+
+Finder _headerTitle(String title) => find.descendant(
+  of: find.byType(PassagePickerHeader),
+  matching: find.text(title),
+);
 
 class _MockGetChapterVerses extends Mock implements GetChapterVerses {}
 

@@ -119,11 +119,7 @@ void main() {
   });
 
   testWidgets('the gesture is ignored on an empty chapter', (tester) async {
-    await pumpBody(
-      tester,
-      status: ReadingStatus.success,
-      emptyChapter: true,
-    );
+    await pumpBody(tester, status: ReadingStatus.success, emptyChapter: true);
 
     await tester.drag(find.byType(SwipeableReadingBody), const Offset(-300, 0));
     await tester.pump();

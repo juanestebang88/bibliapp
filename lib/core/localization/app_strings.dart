@@ -134,5 +134,8 @@ class AppStrings {
 
   static String bookName(String id) => bookNames[id] ?? id;
 
+  static String passageTitle(String bookId, int chapter) =>
+      '${bookName(bookId)} Cap. $chapter';
+
   static String chapter(int number) => 'Capítulo $number';
 }

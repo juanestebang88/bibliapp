@@ -49,6 +49,7 @@ class PassagePickerDialog extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 PassagePickerHeader(
+                  title: state.headerTitle,
                   canGoBack: state.canGoBack,
                   onBack: () => context.read<PassagePickerCubit>().goBack(),
                 ),

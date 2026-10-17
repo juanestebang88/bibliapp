@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bibliapp/core/localization/app_strings.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
 
@@ -42,6 +43,17 @@ class PassagePickerState extends Equatable {
         tab != PassagePickerTab.currentBook &&
         selectedBook != null;
   }
+
+  String get headerTitle => switch (level) {
+    PassagePickerLevel.books => AppStrings.selectPassage,
+    PassagePickerLevel.chapters => AppStrings.bookName(
+      selectedBook ?? currentBook,
+    ),
+    PassagePickerLevel.verses => AppStrings.passageTitle(
+      selectedBook ?? currentBook,
+      selectedChapter ?? currentChapter,
+    ),
+  };
 
   PassagePickerState copyWith({
     PassagePickerTab? tab,
