@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:bibliapp/core/di/get_it.dart';
+import 'package:bibliapp/features/home/presentation/cubit/home_cubit.dart';
+import 'package:bibliapp/features/home/presentation/pages/home_screen.dart';
 import 'package:bibliapp/features/reading/domain/entities/search_focus.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/pages/reading_screen.dart';
@@ -9,7 +11,7 @@ import 'package:bibliapp/features/reading/presentation/pages/search_results_scre
 import 'package:bibliapp/features/splash/presentation/cubit/splash_cubit.dart';
 import 'package:bibliapp/features/splash/presentation/pages/splash_screen.dart';
 
-/// Ruta raíz: pantalla de lectura RV1960
+/// Root routes: splash → home (start) → reading and searches.
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
   routes: [
@@ -20,6 +22,16 @@ final GoRouter appRouter = GoRouter(
         BlocProvider(
           create: (context) => getIt<SplashCubit>()..initialize(),
           child: const SplashScreen(),
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/home',
+      name: 'home',
+      builder: (context, state) => _blockBack(
+        BlocProvider(
+          create: (context) => getIt<HomeCubit>()..initialize(),
+          child: const HomeScreen(),
         ),
       ),
     ),

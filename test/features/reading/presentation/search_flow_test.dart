@@ -21,6 +21,7 @@ import 'package:bibliapp/features/reading/domain/usecases/get_chapter_progress.d
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_settings.dart';
+import 'package:bibliapp/features/reading/domain/usecases/record_daily_reading_event.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.dart';
@@ -53,6 +54,7 @@ void main() {
   late _MockAddVerseHighlight addVerseHighlight;
   late _MockUpdateVerseHighlight updateVerseHighlight;
   late _MockDeleteVerseHighlight deleteVerseHighlight;
+  late _MockRecordDailyReadingEvent recordDailyReadingEvent;
 
   setUpAll(() {
     registerFallbackValue(const ReadingSettingsEntity());
@@ -96,6 +98,7 @@ void main() {
     addVerseHighlight = _MockAddVerseHighlight();
     updateVerseHighlight = _MockUpdateVerseHighlight();
     deleteVerseHighlight = _MockDeleteVerseHighlight();
+    recordDailyReadingEvent = _MockRecordDailyReadingEvent();
     when(() => getReadingProgress()).thenAnswer(
       (_) async => const Right<Failure, ReadingProgressEntity?>(null),
     );
@@ -103,6 +106,8 @@ void main() {
       (_) async => const Right<Failure, ReadingSettingsEntity?>(null),
     );
     when(() => saveReadingSettings(any()))
+        .thenAnswer((_) async => const Right<Failure, bool>(true));
+    when(() => recordDailyReadingEvent(any(), any(), any(), any()))
         .thenAnswer((_) async => const Right<Failure, bool>(true));
     when(() => saveReadingProgress(any()))
         .thenAnswer((_) async => const Right<Failure, bool>(true));
@@ -152,6 +157,7 @@ void main() {
         addVerseHighlight: addVerseHighlight,
         updateVerseHighlight: updateVerseHighlight,
         deleteVerseHighlight: deleteVerseHighlight,
+        recordDailyReadingEvent: recordDailyReadingEvent,
       ),
     );
     getIt.registerFactory(() => SearchCubit(searchVerses: searchVerses));
@@ -506,3 +512,6 @@ class _MockAddVerseHighlight extends Mock implements AddVerseHighlight {}
 class _MockUpdateVerseHighlight extends Mock implements UpdateVerseHighlight {}
 
 class _MockDeleteVerseHighlight extends Mock implements DeleteVerseHighlight {}
+
+class _MockRecordDailyReadingEvent extends Mock
+    implements RecordDailyReadingEvent {}

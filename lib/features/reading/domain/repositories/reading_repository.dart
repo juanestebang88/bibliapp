@@ -1,5 +1,7 @@
 import 'package:bibliapp/core/error/failure.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/daily_verse_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/reading_day_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
@@ -63,4 +65,34 @@ abstract class ReadingRepository {
 
   /// Imports the Bible text into the local database if it is not there yet.
   Future<Either<Failure, Unit>> ensureBibleImported();
+
+  /// Saved daily verse row for [day], or null when nothing is saved yet.
+  /// The returned entity has empty text: fetch it with [getVerse].
+  Future<Either<Failure, DailyVerseEntity?>> getSavedDailyVerse(String day);
+
+  /// Picks a random real verse from the canon (with its text).
+  Future<Either<Failure, DailyVerseEntity>> getRandomVerse();
+
+  /// Persists the daily verse as the single row for [day].
+  Future<Either<Failure, bool>> saveDailyVerse(
+    DailyVerseEntity dailyVerse,
+    String day,
+  );
+
+  /// Records a reading event for [activityDate], keeping the max verse count
+  /// per (date, book, chapter).
+  Future<Either<Failure, bool>> markReadingEvent(
+    String activityDate,
+    String book,
+    int chapter,
+    int verseCount,
+  );
+
+  /// Number of fully completed chapters of [book].
+  Future<Either<Failure, int>> countCompletedChapters(String book);
+
+  /// Reading totals for each requested local date.
+  Future<Either<Failure, List<ReadingDayEntity>>> getReadingDayTotals(
+    List<String> dates,
+  );
 }
