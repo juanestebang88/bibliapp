@@ -33,6 +33,7 @@ import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.
 import 'package:bibliapp/features/reading/domain/usecases/update_verse_highlight.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/reading_progress_button.dart';
+import 'package:bibliapp/features/reading/presentation/widgets/swipeable_reading_body.dart';
 import 'package:bibliapp/main.dart';
 
 void main() {
@@ -237,7 +238,7 @@ void main() {
 
     expect(find.text('Génesis 1'), findsOneWidget);
 
-    await tester.tap(find.byTooltip('Capítulo siguiente'));
+    await tester.drag(find.byType(SwipeableReadingBody), const Offset(-400, 0));
     await tester.pumpAndSettle();
 
     expect(find.text('Génesis 2'), findsOneWidget);
