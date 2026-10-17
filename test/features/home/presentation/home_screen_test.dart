@@ -10,16 +10,16 @@ import 'package:bibliapp/features/home/presentation/cubit/home_cubit.dart';
 import 'package:bibliapp/features/home/presentation/pages/home_screen.dart';
 import 'package:bibliapp/features/reading/domain/entities/daily_verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_day_entity.dart';
-import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/continue_reading_entity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/count_completed_chapters.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_daily_verse.dart';
-import 'package:bibliapp/features/reading/domain/usecases/get_reading_progress.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_continue_reading.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_recent_reading_days.dart';
 
 class _MockGetDailyVerse extends Mock implements GetDailyVerse {}
 
-class _MockGetReadingProgress extends Mock implements GetReadingProgress {}
+class _MockGetContinueReading extends Mock implements GetContinueReading {}
 
 class _MockGetChapterCount extends Mock implements GetChapterCount {}
 
@@ -37,21 +37,21 @@ const _dailyVerse = DailyVerseEntity(
 
 void main() {
   late _MockGetDailyVerse getDailyVerse;
-  late _MockGetReadingProgress getReadingProgress;
+  late _MockGetContinueReading getContinueReading;
   late _MockGetChapterCount getChapterCount;
   late _MockCountCompletedChapters countCompletedChapters;
   late _MockGetRecentReadingDays getRecentReadingDays;
 
   setUp(() {
     getDailyVerse = _MockGetDailyVerse();
-    getReadingProgress = _MockGetReadingProgress();
+    getContinueReading = _MockGetContinueReading();
     getChapterCount = _MockGetChapterCount();
     countCompletedChapters = _MockCountCompletedChapters();
     getRecentReadingDays = _MockGetRecentReadingDays();
 
-    when(() => getReadingProgress()).thenAnswer(
-      (_) async => const Right<Failure, ReadingProgressEntity?>(
-        ReadingProgressEntity(lastBook: 'john', lastChapter: 3),
+    when(() => getContinueReading()).thenAnswer(
+      (_) async => const Right<Failure, ContinueReadingEntity?>(
+        ContinueReadingEntity(book: 'genesis', chapter: 3),
       ),
     );
     when(() => getDailyVerse()).thenAnswer(
@@ -95,7 +95,7 @@ void main() {
   Future<void> pumpReady(WidgetTester tester) async {
     final cubit = HomeCubit(
       getDailyVerse: getDailyVerse,
-      getReadingProgress: getReadingProgress,
+      getContinueReading: getContinueReading,
       getChapterCount: getChapterCount,
       countCompletedChapters: countCompletedChapters,
       getRecentReadingDays: getRecentReadingDays,

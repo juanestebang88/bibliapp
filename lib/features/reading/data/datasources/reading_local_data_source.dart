@@ -3,6 +3,7 @@ import 'package:bibliapp/core/utils/search_text.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_database.dart';
 import 'package:bibliapp/features/reading/domain/book_order.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/continue_reading_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/daily_verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_day_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
@@ -176,6 +177,7 @@ class ReadingLocalDataSource {
   }
 
   Future<void> saveChapterProgress(ChapterProgressEntity progress) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
     await database
         .into(database.chapterProgress)
         .insertOnConflictUpdate(
@@ -185,6 +187,7 @@ class ReadingLocalDataSource {
             lastVerseRead: Value(progress.lastVerseRead),
             isComplete: Value(progress.isComplete),
             completedAt: Value(progress.completedAt?.millisecondsSinceEpoch),
+            updatedAt: Value(now),
           ),
         );
   }
@@ -311,6 +314,46 @@ class ReadingLocalDataSource {
               ))
             .getSingle();
     return row.read(countCompleted) ?? 0;
+  }
+
+  /// Resolves where the user should continue reading: the row with the most
+  /// recent mark (partial or complete) across all books. A recent partial
+  /// wins; otherwise the chapter after the latest completed one. Returns
+  /// null when no chapter has ever been marked.
+  Future<ContinueReadingEntity?> getContinueReading() async {
+    final row =
+        await (database.select(database.chapterProgress)
+              ..where((table) => table.lastVerseRead.isBiggerThanValue(0))
+              ..orderBy([
+                (table) => OrderingTerm.desc(table.updatedAt),
+                (table) => OrderingTerm.desc(table.rowId),
+              ])
+              ..limit(1))
+            .getSingleOrNull();
+    if (row == null) return null;
+
+    if (!row.isComplete) {
+      return ContinueReadingEntity(
+        book: row.book,
+        chapter: row.chapter,
+        lastVerseRead: row.lastVerseRead,
+      );
+    }
+
+    final nextChapter = row.chapter + 1;
+    final chapterCount = await getMaxChapter(row.book);
+    if (chapterCount > 0 && nextChapter > chapterCount) {
+      return ContinueReadingEntity(
+        book: row.book,
+        chapter: chapterCount,
+        lastVerseRead: null,
+      );
+    }
+    return ContinueReadingEntity(
+      book: row.book,
+      chapter: nextChapter,
+      lastVerseRead: null,
+    );
   }
 
   /// Reading totals for each requested local date.

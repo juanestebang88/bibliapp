@@ -1,5 +1,6 @@
 import 'package:bibliapp/core/error/failure.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/continue_reading_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/daily_verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_day_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
@@ -90,6 +91,9 @@ abstract class ReadingRepository {
 
   /// Number of fully completed chapters of [book].
   Future<Either<Failure, int>> countCompletedChapters(String book);
+
+  /// Where the user should continue reading (null when nothing is marked).
+  Future<Either<Failure, ContinueReadingEntity?>> getContinueReading();
 
   /// Reading totals for each requested local date.
   Future<Either<Failure, List<ReadingDayEntity>>> getReadingDayTotals(

@@ -5,6 +5,39 @@ import 'package:bibliapp/features/reading/data/datasources/reading_local_data_so
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 
+Future<void> _complete(
+  ReadingLocalDataSource dataSource,
+  String book,
+  int chapter, {
+  required int verses,
+}) async {
+  await dataSource.saveChapterProgress(
+    ChapterProgressEntity(
+      book: book,
+      chapter: chapter,
+      lastVerseRead: verses,
+      isComplete: true,
+      completedAt: DateTime.now(),
+    ),
+  );
+}
+
+Future<void> _partial(
+  ReadingLocalDataSource dataSource,
+  String book,
+  int chapter, {
+  required int verse,
+}) async {
+  await dataSource.saveChapterProgress(
+    ChapterProgressEntity(
+      book: book,
+      chapter: chapter,
+      lastVerseRead: verse,
+      isComplete: false,
+    ),
+  );
+}
+
 void main() {
   late ReadingDatabase database;
   late ReadingLocalDataSource dataSource;
@@ -147,4 +180,51 @@ void main() {
       expect(await dataSource.countCompletedChapters('jude'), 0);
     },
   );
+
+  group('getContinueReading', () {
+    test('returns null when nothing has been marked', () async {
+      expect(await dataSource.getContinueReading(), isNull);
+    });
+
+    test('points at the chapter after the last completed one', () async {
+      await _complete(dataSource, 'genesis', 1, verses: 31);
+      await _complete(dataSource, 'genesis', 2, verses: 25);
+
+      final location = await dataSource.getContinueReading();
+      expect(location!.book, 'genesis');
+      expect(location.chapter, 3);
+      expect(location.lastVerseRead, isNull);
+    });
+
+    test('a later partial wins over earlier completes', () async {
+      await _complete(dataSource, 'genesis', 1, verses: 31);
+      await _complete(dataSource, 'genesis', 2, verses: 25);
+      await _partial(dataSource, 'genesis', 3, verse: 12);
+
+      final location = await dataSource.getContinueReading();
+      expect(location!.book, 'genesis');
+      expect(location.chapter, 3);
+      expect(location.lastVerseRead, 12);
+    });
+
+    test('a later completed chapter wins over an earlier partial', () async {
+      await _partial(dataSource, 'genesis', 3, verse: 12);
+      await _complete(dataSource, 'genesis', 5, verses: 26);
+
+      final location = await dataSource.getContinueReading();
+      expect(location!.book, 'genesis');
+      expect(location.chapter, 6);
+      expect(location.lastVerseRead, isNull);
+    });
+
+    test('uses the book of the most recent mark, across books', () async {
+      await _complete(dataSource, 'genesis', 1, verses: 31);
+      await _partial(dataSource, 'revelation', 2, verse: 7);
+
+      final location = await dataSource.getContinueReading();
+      expect(location!.book, 'revelation');
+      expect(location.chapter, 2);
+      expect(location.lastVerseRead, 7);
+    });
+  });
 }

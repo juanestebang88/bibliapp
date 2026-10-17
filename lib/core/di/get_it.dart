@@ -17,6 +17,7 @@ import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_highlights.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_continue_reading.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_daily_verse.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_settings.dart';
@@ -69,6 +70,7 @@ void registerGetIt() {
   getIt.registerFactory(() => AddVerseHighlight(getIt<ReadingRepository>()));
   getIt.registerFactory(() => UpdateVerseHighlight(getIt<ReadingRepository>()));
   getIt.registerFactory(() => DeleteVerseHighlight(getIt<ReadingRepository>()));
+  getIt.registerFactory(() => GetContinueReading(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetDailyVerse(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetRecentReadingDays(getIt<ReadingRepository>()));
   getIt.registerFactory(
@@ -104,7 +106,7 @@ void registerGetIt() {
   getIt.registerFactory(
     () => HomeCubit(
       getDailyVerse: getIt<GetDailyVerse>(),
-      getReadingProgress: getIt<GetReadingProgress>(),
+      getContinueReading: getIt<GetContinueReading>(),
       getChapterCount: getIt<GetChapterCount>(),
       countCompletedChapters: getIt<CountCompletedChapters>(),
       getRecentReadingDays: getIt<GetRecentReadingDays>(),

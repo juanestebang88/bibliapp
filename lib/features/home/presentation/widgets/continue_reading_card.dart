@@ -6,16 +6,29 @@ import 'package:bibliapp/core/theme/app_splash_tokens.dart';
 import 'package:bibliapp/core/theme/app_spacing.dart';
 import 'package:bibliapp/features/home/presentation/cubit/home_state.dart';
 
-/// Reading card: current passage, book progress and "continue reading".
+/// Reading card: continues at the chapter after the last completed one (or
+/// at the partial chapter when it is the most recent mark).
 class ContinueReadingCard extends StatelessWidget {
   final HomeState state;
 
   const ContinueReadingCard({super.key, required this.state});
 
+  String _readingRoute() {
+    final location = state.continueLocation;
+    if (location == null || state.bookCompleted) {
+      return '/reading';
+    }
+    final locationPart = location.isPartial
+        ? '&verse=${location.lastVerseRead}'
+        : '';
+    return '/reading?book=${location.book}&chapter=${location.chapter}'
+        '$locationPart';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bookName = AppStrings.bookName(state.lastLocation.lastBook);
+    final bookName = AppStrings.bookName(state.continueBook);
     final chapterCount = state.chapterCount;
     final progress = chapterCount <= 0
         ? 0.0
@@ -34,8 +47,8 @@ class ContinueReadingCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     AppStrings.readingLocationTitle(
-                      state.lastLocation.lastBook,
-                      state.lastLocation.lastChapter,
+                      state.continueBook,
+                      state.continueChapter,
                     ),
                     style: theme.textTheme.titleMedium,
                     maxLines: 1,
@@ -76,7 +89,7 @@ class ContinueReadingCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () => context.go('/reading'),
+                onPressed: () => context.go(_readingRoute()),
                 style: FilledButton.styleFrom(
                   textStyle: theme.textTheme.titleMedium,
                 ),

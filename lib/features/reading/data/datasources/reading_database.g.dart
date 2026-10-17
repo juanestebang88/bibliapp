@@ -880,6 +880,18 @@ class $ChapterProgressTable extends ChapterProgress
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     book,
@@ -887,6 +899,7 @@ class $ChapterProgressTable extends ChapterProgress
     lastVerseRead,
     isComplete,
     completedAt,
+    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -940,6 +953,12 @@ class $ChapterProgressTable extends ChapterProgress
         ),
       );
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -969,6 +988,10 @@ class $ChapterProgressTable extends ChapterProgress
         DriftSqlType.int,
         data['${effectivePrefix}completed_at'],
       ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -985,12 +1008,17 @@ class ChapterProgressData extends DataClass
   final int lastVerseRead;
   final bool isComplete;
   final int? completedAt;
+
+  /// Stamp of the latest mark of this row, used to resolve the most recent
+  /// partial against a later completed chapter.
+  final int updatedAt;
   const ChapterProgressData({
     required this.book,
     required this.chapter,
     required this.lastVerseRead,
     required this.isComplete,
     this.completedAt,
+    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1002,6 +1030,7 @@ class ChapterProgressData extends DataClass
     if (!nullToAbsent || completedAt != null) {
       map['completed_at'] = Variable<int>(completedAt);
     }
+    map['updated_at'] = Variable<int>(updatedAt);
     return map;
   }
 
@@ -1014,6 +1043,7 @@ class ChapterProgressData extends DataClass
       completedAt: completedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(completedAt),
+      updatedAt: Value(updatedAt),
     );
   }
 
@@ -1028,6 +1058,7 @@ class ChapterProgressData extends DataClass
       lastVerseRead: serializer.fromJson<int>(json['lastVerseRead']),
       isComplete: serializer.fromJson<bool>(json['isComplete']),
       completedAt: serializer.fromJson<int?>(json['completedAt']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
     );
   }
   @override
@@ -1039,6 +1070,7 @@ class ChapterProgressData extends DataClass
       'lastVerseRead': serializer.toJson<int>(lastVerseRead),
       'isComplete': serializer.toJson<bool>(isComplete),
       'completedAt': serializer.toJson<int?>(completedAt),
+      'updatedAt': serializer.toJson<int>(updatedAt),
     };
   }
 
@@ -1048,12 +1080,14 @@ class ChapterProgressData extends DataClass
     int? lastVerseRead,
     bool? isComplete,
     Value<int?> completedAt = const Value.absent(),
+    int? updatedAt,
   }) => ChapterProgressData(
     book: book ?? this.book,
     chapter: chapter ?? this.chapter,
     lastVerseRead: lastVerseRead ?? this.lastVerseRead,
     isComplete: isComplete ?? this.isComplete,
     completedAt: completedAt.present ? completedAt.value : this.completedAt,
+    updatedAt: updatedAt ?? this.updatedAt,
   );
   ChapterProgressData copyWithCompanion(ChapterProgressCompanion data) {
     return ChapterProgressData(
@@ -1068,6 +1102,7 @@ class ChapterProgressData extends DataClass
       completedAt: data.completedAt.present
           ? data.completedAt.value
           : this.completedAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -1078,14 +1113,21 @@ class ChapterProgressData extends DataClass
           ..write('chapter: $chapter, ')
           ..write('lastVerseRead: $lastVerseRead, ')
           ..write('isComplete: $isComplete, ')
-          ..write('completedAt: $completedAt')
+          ..write('completedAt: $completedAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(book, chapter, lastVerseRead, isComplete, completedAt);
+  int get hashCode => Object.hash(
+    book,
+    chapter,
+    lastVerseRead,
+    isComplete,
+    completedAt,
+    updatedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1094,7 +1136,8 @@ class ChapterProgressData extends DataClass
           other.chapter == this.chapter &&
           other.lastVerseRead == this.lastVerseRead &&
           other.isComplete == this.isComplete &&
-          other.completedAt == this.completedAt);
+          other.completedAt == this.completedAt &&
+          other.updatedAt == this.updatedAt);
 }
 
 class ChapterProgressCompanion extends UpdateCompanion<ChapterProgressData> {
@@ -1103,6 +1146,7 @@ class ChapterProgressCompanion extends UpdateCompanion<ChapterProgressData> {
   final Value<int> lastVerseRead;
   final Value<bool> isComplete;
   final Value<int?> completedAt;
+  final Value<int> updatedAt;
   final Value<int> rowid;
   const ChapterProgressCompanion({
     this.book = const Value.absent(),
@@ -1110,6 +1154,7 @@ class ChapterProgressCompanion extends UpdateCompanion<ChapterProgressData> {
     this.lastVerseRead = const Value.absent(),
     this.isComplete = const Value.absent(),
     this.completedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ChapterProgressCompanion.insert({
@@ -1118,6 +1163,7 @@ class ChapterProgressCompanion extends UpdateCompanion<ChapterProgressData> {
     this.lastVerseRead = const Value.absent(),
     this.isComplete = const Value.absent(),
     this.completedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : book = Value(book),
        chapter = Value(chapter);
@@ -1127,6 +1173,7 @@ class ChapterProgressCompanion extends UpdateCompanion<ChapterProgressData> {
     Expression<int>? lastVerseRead,
     Expression<bool>? isComplete,
     Expression<int>? completedAt,
+    Expression<int>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1135,6 +1182,7 @@ class ChapterProgressCompanion extends UpdateCompanion<ChapterProgressData> {
       if (lastVerseRead != null) 'last_verse_read': lastVerseRead,
       if (isComplete != null) 'is_complete': isComplete,
       if (completedAt != null) 'completed_at': completedAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1145,6 +1193,7 @@ class ChapterProgressCompanion extends UpdateCompanion<ChapterProgressData> {
     Value<int>? lastVerseRead,
     Value<bool>? isComplete,
     Value<int?>? completedAt,
+    Value<int>? updatedAt,
     Value<int>? rowid,
   }) {
     return ChapterProgressCompanion(
@@ -1153,6 +1202,7 @@ class ChapterProgressCompanion extends UpdateCompanion<ChapterProgressData> {
       lastVerseRead: lastVerseRead ?? this.lastVerseRead,
       isComplete: isComplete ?? this.isComplete,
       completedAt: completedAt ?? this.completedAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1175,6 +1225,9 @@ class ChapterProgressCompanion extends UpdateCompanion<ChapterProgressData> {
     if (completedAt.present) {
       map['completed_at'] = Variable<int>(completedAt.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1189,6 +1242,7 @@ class ChapterProgressCompanion extends UpdateCompanion<ChapterProgressData> {
           ..write('lastVerseRead: $lastVerseRead, ')
           ..write('isComplete: $isComplete, ')
           ..write('completedAt: $completedAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2948,6 +3002,7 @@ typedef $$ChapterProgressTableCreateCompanionBuilder =
       Value<int> lastVerseRead,
       Value<bool> isComplete,
       Value<int?> completedAt,
+      Value<int> updatedAt,
       Value<int> rowid,
     });
 typedef $$ChapterProgressTableUpdateCompanionBuilder =
@@ -2957,6 +3012,7 @@ typedef $$ChapterProgressTableUpdateCompanionBuilder =
       Value<int> lastVerseRead,
       Value<bool> isComplete,
       Value<int?> completedAt,
+      Value<int> updatedAt,
       Value<int> rowid,
     });
 
@@ -2991,6 +3047,11 @@ class $$ChapterProgressTableFilterComposer
 
   ColumnFilters<int> get completedAt => $composableBuilder(
     column: $table.completedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -3028,6 +3089,11 @@ class $$ChapterProgressTableOrderingComposer
     column: $table.completedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ChapterProgressTableAnnotationComposer
@@ -3059,6 +3125,9 @@ class $$ChapterProgressTableAnnotationComposer
     column: $table.completedAt,
     builder: (column) => column,
   );
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$ChapterProgressTableTableManager
@@ -3103,6 +3172,7 @@ class $$ChapterProgressTableTableManager
                 Value<int> lastVerseRead = const Value.absent(),
                 Value<bool> isComplete = const Value.absent(),
                 Value<int?> completedAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChapterProgressCompanion(
                 book: book,
@@ -3110,6 +3180,7 @@ class $$ChapterProgressTableTableManager
                 lastVerseRead: lastVerseRead,
                 isComplete: isComplete,
                 completedAt: completedAt,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -3119,6 +3190,7 @@ class $$ChapterProgressTableTableManager
                 Value<int> lastVerseRead = const Value.absent(),
                 Value<bool> isComplete = const Value.absent(),
                 Value<int?> completedAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChapterProgressCompanion.insert(
                 book: book,
@@ -3126,6 +3198,7 @@ class $$ChapterProgressTableTableManager
                 lastVerseRead: lastVerseRead,
                 isComplete: isComplete,
                 completedAt: completedAt,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

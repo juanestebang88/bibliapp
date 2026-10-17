@@ -5,11 +5,10 @@ import 'package:bibliapp/core/localization/app_strings.dart';
 import 'package:bibliapp/features/home/presentation/cubit/home_state.dart';
 import 'package:bibliapp/features/reading/domain/entities/daily_verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_day_entity.dart';
-import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/count_completed_chapters.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_continue_reading.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_daily_verse.dart';
-import 'package:bibliapp/features/reading/domain/usecases/get_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_recent_reading_days.dart';
 
 /// Orchestrates all the home screen data. Every mount re-queries the daily
@@ -17,14 +16,14 @@ import 'package:bibliapp/features/reading/domain/usecases/get_recent_reading_day
 /// user marks progress and comes back.
 class HomeCubit extends Cubit<HomeState> {
   final GetDailyVerse getDailyVerse;
-  final GetReadingProgress getReadingProgress;
+  final GetContinueReading getContinueReading;
   final GetChapterCount getChapterCount;
   final CountCompletedChapters countCompletedChapters;
   final GetRecentReadingDays getRecentReadingDays;
 
   HomeCubit({
     required this.getDailyVerse,
-    required this.getReadingProgress,
+    required this.getContinueReading,
     required this.getChapterCount,
     required this.countCompletedChapters,
     required this.getRecentReadingDays,
@@ -33,8 +32,8 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> initialize() async {
     emit(state.copyWith(status: HomeStatus.loading, errorMessage: ''));
 
-    final progressResult = await getReadingProgress();
-    if (progressResult.isLeft()) {
+    final continueResult = await getContinueReading();
+    if (continueResult.isLeft()) {
       emit(
         state.copyWith(
           status: HomeStatus.failure,
@@ -43,12 +42,9 @@ class HomeCubit extends Cubit<HomeState> {
       );
       return;
     }
-    final savedProgress = progressResult.getRight().toNullable();
-    final progress =
-        savedProgress ??
-        const ReadingProgressEntity(lastBook: 'genesis', lastChapter: 1);
+    final continueLocation = continueResult.getRight().toNullable();
+    final book = continueLocation?.book ?? 'genesis';
 
-    final book = progress.lastBook;
     final results = await Future.wait([
       getDailyVerse(),
       getChapterCount(book),
@@ -101,10 +97,9 @@ class HomeCubit extends Cubit<HomeState> {
         status: HomeStatus.success,
         errorMessage: '',
         dailyVerse: dailyVerse,
-        lastLocation: ReadingProgressEntity(
-          lastBook: book,
-          lastChapter: progress.lastChapter,
-        ),
+        continueLocation: continueLocation,
+        clearContinueLocation: continueLocation == null,
+        continueBook: book,
         chaptersCompleted: chaptersCompleted,
         chapterCount: chapterCount,
         readingDays: readingDays,

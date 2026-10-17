@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'package:bibliapp/features/reading/domain/entities/continue_reading_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/daily_verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_day_entity.dart';
-import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 
 enum HomeStatus { initial, loading, success, failure }
 
@@ -9,23 +9,29 @@ class HomeState extends Equatable {
   final HomeStatus status;
   final String errorMessage; // UI-ready message
   final DailyVerseEntity? dailyVerse;
-  final ReadingProgressEntity lastLocation;
-  final int chaptersCompleted; // of the current book
-  final int chapterCount; // of the current book
+
+  /// Where the user should continue reading (null = nothing marked yet).
+  final ContinueReadingEntity? continueLocation;
+
+  /// The book the continue location points at (or 'genesis' by default).
+  final String continueBook;
+
+  final int chaptersCompleted; // of continueBook
+  final int chapterCount; // of continueBook
   final List<ReadingDayEntity> readingDays; // oldest first, today last
 
   const HomeState({
     this.status = HomeStatus.initial,
     this.errorMessage = '',
     this.dailyVerse,
-    this.lastLocation = const ReadingProgressEntity(
-      lastBook: 'genesis',
-      lastChapter: 1,
-    ),
+    this.continueLocation,
+    this.continueBook = 'genesis',
     this.chaptersCompleted = 0,
     this.chapterCount = 0,
     this.readingDays = const [],
   });
+
+  int get continueChapter => continueLocation?.chapter ?? 1;
 
   int get remainingChapters {
     final remaining = chapterCount - chaptersCompleted;
@@ -39,15 +45,20 @@ class HomeState extends Equatable {
     HomeStatus? status,
     String? errorMessage,
     DailyVerseEntity? dailyVerse,
-    ReadingProgressEntity? lastLocation,
+    ContinueReadingEntity? continueLocation,
+    String? continueBook,
     int? chaptersCompleted,
     int? chapterCount,
     List<ReadingDayEntity>? readingDays,
+    bool clearContinueLocation = false,
   }) => HomeState(
     status: status ?? this.status,
     errorMessage: errorMessage ?? this.errorMessage,
     dailyVerse: dailyVerse ?? this.dailyVerse,
-    lastLocation: lastLocation ?? this.lastLocation,
+    continueLocation: clearContinueLocation
+        ? null
+        : continueLocation ?? this.continueLocation,
+    continueBook: continueBook ?? this.continueBook,
     chaptersCompleted: chaptersCompleted ?? this.chaptersCompleted,
     chapterCount: chapterCount ?? this.chapterCount,
     readingDays: readingDays ?? this.readingDays,
@@ -58,7 +69,8 @@ class HomeState extends Equatable {
     status,
     errorMessage,
     dailyVerse,
-    lastLocation,
+    continueLocation,
+    continueBook,
     chaptersCompleted,
     chapterCount,
     readingDays,

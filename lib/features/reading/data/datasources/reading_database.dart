@@ -38,6 +38,10 @@ class ChapterProgress extends Table {
   BoolColumn get isComplete => boolean().withDefault(const Constant(false))();
   IntColumn get completedAt => integer().nullable()();
 
+  /// Stamp of the latest mark of this row, used to resolve the most recent
+  /// partial against a later completed chapter.
+  IntColumn get updatedAt => integer().withDefault(const Constant(0))();
+
   @override
   Set<Column> get primaryKey => {book, chapter};
 }
@@ -95,7 +99,7 @@ class ReadingDatabase extends _$ReadingDatabase {
   ReadingDatabase({required QueryExecutor executor}) : super(executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -116,6 +120,9 @@ class ReadingDatabase extends _$ReadingDatabase {
       if (from < 6) {
         await m.createTable(dailyVerses);
         await m.createTable(readingEvents);
+      }
+      if (from < 7) {
+        await m.addColumn(chapterProgress, chapterProgress.updatedAt);
       }
     },
   );
