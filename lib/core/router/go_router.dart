@@ -46,7 +46,8 @@ final GoRouter appRouter = GoRouter(
           child: _blockBack(
             BlocProvider(
               create: (context) =>
-                  getIt<ReadingCubit>()..initialize(applyResume: location == null),
+                  getIt<ReadingCubit>()
+                    ..initialize(applyResume: location == null),
               child: location == null
                   ? const ReadingScreen()
                   : ReadingScreen(initialLocation: location),

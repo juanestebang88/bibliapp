@@ -57,7 +57,11 @@ class ConsultationContinueButton extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.arrow_forward, color: foreground, size: AppSpacing.xl),
+                  Icon(
+                    Icons.arrow_forward,
+                    color: foreground,
+                    size: AppSpacing.xl,
+                  ),
                   const SizedBox(width: AppSpacing.xs),
                   Flexible(
                     child: Text(
