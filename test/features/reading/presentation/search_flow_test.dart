@@ -30,9 +30,13 @@ import 'package:bibliapp/features/reading/presentation/cubit/passage_picker_cubi
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/search_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/book_chip_grid.dart';
+import 'package:bibliapp/features/reading/presentation/widgets/chapter_navigation.dart';
+import 'package:bibliapp/features/reading/presentation/widgets/consultation_continue_button.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/number_chip_grid.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/passage_picker_header.dart';
+import 'package:bibliapp/features/reading/presentation/widgets/reading_focus_actions.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/reading_progress_button.dart';
+import 'package:bibliapp/features/reading/presentation/widgets/swipeable_reading_body.dart';
 import 'package:bibliapp/main.dart';
 
 void main() {
@@ -257,7 +261,7 @@ void main() {
     expect(find.text(AppStrings.backToResults), findsOneWidget);
   });
 
-  testWidgets('changing chapter hides the back-to-results button', (
+  testWidgets('consultation screen blocks chapter navigation by swipe', (
     tester,
   ) async {
     when(() => getChapterCount('genesis'))
@@ -277,12 +281,110 @@ void main() {
     await jumpToFirstResult(tester);
 
     expect(find.text(AppStrings.backToResults), findsOneWidget);
+    expect(find.text(AppStrings.backToMyReading), findsOneWidget);
+    expect(find.byType(ChapterNavigation), findsNothing);
+    expect(find.byType(ConsultationContinueButton), findsOneWidget);
 
-    await tester.tap(find.byTooltip('Capítulo siguiente'));
+    await tester.drag(find.byType(SwipeableReadingBody), const Offset(-400, 0));
     await tester.pumpAndSettle();
 
-    expect(find.text('Génesis 2'), findsOneWidget);
+    expect(find.text('Génesis 2'), findsNothing);
+    expect(find.text('Génesis 1'), findsOneWidget);
+    expect(find.textContaining('Chapter two text'), findsNothing);
+  });
+
+  testWidgets('green pill returns to my current reading and ends the search '
+      'session', (tester) async {
+    await pumpReadingApp(tester);
+    await jumpToFirstResult(tester);
+
+    await tester.tap(find.text(AppStrings.backToMyReading));
+    await tester.pumpAndSettle();
+
+    expect(find.text(AppStrings.backToMyReading), findsNothing);
     expect(find.text(AppStrings.backToResults), findsNothing);
+    expect(find.text(AppStrings.searchResults), findsNothing);
+    expect(find.byType(ConsultationContinueButton), findsNothing);
+    expect(find.byType(ReadingFocusActions), findsNothing);
+    expect(find.text('Génesis 1'), findsOneWidget);
+    expect(find.byType(ReadingProgressButton), findsOneWidget);
+  });
+
+  testWidgets('continue-from-here opens the real reading at the consulted '
+      'verse', (tester) async {
+    await pumpReadingApp(tester);
+    await jumpToFirstResult(tester);
+
+    await tester.tap(find.byType(ConsultationContinueButton));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ReadingProgressButton), findsOneWidget);
+    expect(find.text(AppStrings.percent(0)), findsOneWidget);
+    expect(find.text(AppStrings.backToResults), findsNothing);
+    expect(find.byType(ConsultationContinueButton), findsNothing);
+    expect(find.text('Génesis 1'), findsOneWidget);
+    expect(find.textContaining('Test verse text'), findsOneWidget);
+  });
+
+  testWidgets('continue-from-here keeps an already-read chapter at 100 %', (
+    tester,
+  ) async {
+    when(() => getChapterProgress('genesis', 1)).thenAnswer(
+      (_) async => const Right<Failure, ChapterProgressEntity?>(
+        ChapterProgressEntity(
+          book: 'genesis',
+          chapter: 1,
+          lastVerseRead: 1,
+          isComplete: true,
+        ),
+      ),
+    );
+
+    await pumpReadingApp(tester);
+    await jumpToFirstResult(tester);
+
+    await tester.tap(find.byType(ConsultationContinueButton));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byKey(ReadingProgressButton.circleKey),
+        matching: find.byIcon(Icons.check),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('continue-from-here starts a partially read chapter at 0 %', (
+    tester,
+  ) async {
+    when(() => getChapterVerses('genesis', 1)).thenAnswer(
+      (_) async => const Right<Failure, List<VerseEntity>>([
+        VerseEntity(book: 'genesis', chapter: 1, verse: 1, text: 'Uno'),
+        VerseEntity(book: 'genesis', chapter: 1, verse: 2, text: 'Dos'),
+        VerseEntity(book: 'genesis', chapter: 1, verse: 3, text: 'Tres'),
+        VerseEntity(book: 'genesis', chapter: 1, verse: 4, text: 'Cuatro'),
+      ]),
+    );
+    when(() => getChapterProgress('genesis', 1)).thenAnswer(
+      (_) async => const Right<Failure, ChapterProgressEntity?>(
+        ChapterProgressEntity(
+          book: 'genesis',
+          chapter: 1,
+          lastVerseRead: 1,
+          isComplete: false,
+        ),
+      ),
+    );
+
+    await pumpReadingApp(tester);
+    await jumpToFirstResult(tester);
+
+    await tester.tap(find.byType(ConsultationContinueButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text(AppStrings.percent(0)), findsOneWidget);
+    expect(find.text(AppStrings.percent(25)), findsNothing);
   });
 
   testWidgets('aborting a second search hides the back-to-results button', (
@@ -307,6 +409,7 @@ void main() {
 
     expect(find.text('Génesis 1'), findsOneWidget);
     expect(find.text(AppStrings.backToResults), findsNothing);
+    expect(find.text(AppStrings.backToMyReading), findsOneWidget);
   });
 
   testWidgets(
@@ -372,6 +475,8 @@ void main() {
 
       expect(find.text('Apocalipsis 1'), findsOneWidget);
       expect(find.text(AppStrings.backToResults), findsNothing);
+      expect(find.text(AppStrings.backToMyReading), findsOneWidget);
+      expect(find.byType(ConsultationContinueButton), findsOneWidget);
     },
   );
 }

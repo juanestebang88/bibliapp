@@ -133,6 +133,35 @@ void main() {
 
     expect(find.byType(ReadingBody), findsOneWidget);
   });
+
+  testWidgets('swiping does nothing when chapter navigation is disabled', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: appTheme(),
+        home: Scaffold(
+          body: BlocProvider<ReadingCubit>.value(
+            value: cubit,
+            child: SwipeableReadingBody(
+              state: ReadingState(
+                status: ReadingStatus.success,
+                chapterVerses: _sampleVerses,
+              ),
+              chapterSwipeEnabled: false,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.drag(find.byType(SwipeableReadingBody), const Offset(-300, 0));
+    await tester.pump();
+
+    verifyNever(() => cubit.nextChapter());
+    verifyNever(() => cubit.previousChapter());
+  });
 }
 
 class _MockReadingCubit extends Mock implements ReadingCubit {}

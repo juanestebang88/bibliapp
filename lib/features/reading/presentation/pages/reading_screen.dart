@@ -116,8 +116,8 @@ class _ReadingScreenState extends State<ReadingScreen> {
     if (target == null || _didJump) return;
     if (state.status != ReadingStatus.success) return;
     _didJump = true;
-    if (widget.initialLocation != null) {
-      if (!_counterUserScrollOnly) setState(() => _counterUserScrollOnly = true);
+    if (widget.initialLocation != null && !_counterUserScrollOnly) {
+      setState(() => _counterUserScrollOnly = true);
     }
     context.read<ReadingCubit>().loadChapterAndScrollTo(
       target.book,

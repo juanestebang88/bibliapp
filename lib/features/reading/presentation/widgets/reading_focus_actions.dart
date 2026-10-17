@@ -26,21 +26,26 @@ class ReadingFocusActions extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (showBackToResults) ...[
-              _ReadingFocusPill(
-                background: AppColors.lightSurface,
-                foreground: AppColors.darkText,
-                icon: Icons.arrow_back,
-                label: AppStrings.backToResults,
-                onTap: () => Navigator.of(context).pop(),
+              Flexible(
+                child: _ReadingFocusPill(
+                  background: AppColors.lightSurface,
+                  foreground: AppColors.darkText,
+                  icon: Icons.arrow_back,
+                  label: AppStrings.backToResults,
+                  onTap: () => Navigator.of(context).pop(),
+                ),
               ),
               const SizedBox(width: AppSpacing.sm),
             ],
-            _ReadingFocusPill(
-              background: AppColors.greenAccent,
-              foreground: AppColors.darkText,
-              icon: Icons.menu_book_outlined,
-              label: AppStrings.backToMyReading,
-              onTap: () => Navigator.of(context).popUntil((route) => route.isFirst),
+            Flexible(
+              child: _ReadingFocusPill(
+                background: AppColors.greenAccent,
+                foreground: AppColors.darkText,
+                icon: Icons.menu_book_outlined,
+                label: AppStrings.backToMyReading,
+                onTap: () =>
+                    Navigator.of(context).popUntil((route) => route.isFirst),
+              ),
             ),
           ],
         ),
