@@ -12,6 +12,11 @@ import 'package:bibliapp/features/reading/presentation/widgets/reading_body.dart
 /// A swipe counts either by distance (a fraction of the body width) or by a
 /// fast fling velocity, so both slow and quick gestures work.
 ///
+/// Navigation can be disabled entirely ([chapterSwipeEnabled]) for screens that
+/// must stay as consultation screens, such as the reading pushed from search
+/// results. The scroll counter can also be restricted to the user's own drags
+/// ([userScrollOnly]) so a programmatic landing jump keeps the counter at 0 %.
+///
 /// Raw pointer events are tracked with a [Listener] instead of a competing
 /// [GestureDetector]: the verse text uses `SelectableText`, whose internal
 /// gesture detector eagerly wins horizontal drags on Android and would swallow
@@ -27,11 +32,20 @@ class SwipeableReadingBody extends StatefulWidget {
   /// verse clear of the floating progress button.
   final double bottomContentInset;
 
+  /// When false, horizontal swipes never change the chapter.
+  final bool chapterSwipeEnabled;
+
+  /// When true, only the user's own drags update the scroll counter; scrolls
+  /// driven programmatically (landing jumps, retakes) are ignored.
+  final bool userScrollOnly;
+
   const SwipeableReadingBody({
     super.key,
     required this.state,
     this.onVisibleVerseChanged,
     this.bottomContentInset = 0,
+    this.chapterSwipeEnabled = true,
+    this.userScrollOnly = false,
   });
 
   @override
@@ -49,6 +63,7 @@ class _SwipeableReadingBodyState extends State<SwipeableReadingBody> {
   Duration _lastMoveTime = Duration.zero;
 
   void _onPointerDown(PointerDownEvent event) {
+    if (!widget.chapterSwipeEnabled) return;
     if (_tracking) {
       // A second pointer means a multi-touch gesture: ignore the sequence.
       _cancelled = true;
@@ -146,6 +161,7 @@ class _SwipeableReadingBodyState extends State<SwipeableReadingBody> {
         state: widget.state,
         onVisibleVerseChanged: widget.onVisibleVerseChanged,
         bottomContentInset: widget.bottomContentInset,
+        userScrollOnly: widget.userScrollOnly,
       ),
     );
   }

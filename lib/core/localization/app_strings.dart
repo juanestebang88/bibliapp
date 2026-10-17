@@ -27,6 +27,8 @@ class AppStrings {
   static const searchResults = 'Resultados de búsqueda';
   static const noResults = 'No se encontraron resultados';
   static const backToResults = 'Volver a los resultados';
+  static const backToMyReading = 'Volver a mi lectura actual';
+  static const continueFromHere = 'Continuar mi lectura desde aquí';
   static const emptyQuery = 'Escribe al menos una palabra para buscar';
   static const copyWord = 'Copiar';
   static const searchInRae = 'Ver significado';

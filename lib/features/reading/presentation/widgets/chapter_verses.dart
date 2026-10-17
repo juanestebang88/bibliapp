@@ -14,11 +14,16 @@ class ChapterVerses extends StatefulWidget {
   /// of the floating progress button at the bottom of the chapter.
   final double bottomContentInset;
 
+  /// When true, only scroll updates caused by the user's own drag update the
+  /// counter; scrolls driven programmatically (landing jumps) are ignored.
+  final bool userScrollOnly;
+
   const ChapterVerses({
     super.key,
     required this.state,
     this.onVisibleVerseChanged,
     this.bottomContentInset = 0,
+    this.userScrollOnly = false,
   });
 
   @override
@@ -184,6 +189,11 @@ class _ChapterVersesState extends State<ChapterVerses>
 
     return NotificationListener<ScrollUpdateNotification>(
       onNotification: (notification) {
+        // While restricted, a programmatic scroll (dragDetails == null) must
+        // not update the counter; only the reader's own drag reports.
+        if (widget.userScrollOnly && notification.dragDetails == null) {
+          return false;
+        }
         _updateVisibleVerse();
         return false;
       },
