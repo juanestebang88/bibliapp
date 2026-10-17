@@ -26,12 +26,35 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/reading',
       name: 'reading',
-      builder: (context, state) => _blockBack(
-        BlocProvider(
-          create: (context) => getIt<ReadingCubit>()..initialize(),
-          child: const ReadingScreen(),
-        ),
-      ),
+      pageBuilder: (context, state) {
+        final params = state.uri.queryParameters;
+        final book = params['book'];
+        final chapter = int.tryParse(params['chapter'] ?? '') ?? 1;
+        final verse = int.tryParse(params['verse'] ?? '') ?? 1;
+        // Opens the real reading at a specific location ("continue my reading
+        // from here"): a fresh screen instance and cubit, no resume, so the
+        // progress counter reflects this landing instead of the last session.
+        final location = book == null
+            ? null
+            : SearchFocus(book: book, chapter: chapter, verse: verse);
+        return MaterialPage(
+          key: location == null
+              ? const ValueKey<String>('/reading')
+              : ValueKey<String>(
+                  '/reading?book=$book&chapter=$chapter&verse=$verse',
+                ),
+          child: _blockBack(
+            BlocProvider(
+              create: (context) =>
+                  getIt<ReadingCubit>()
+                    ..initialize(applyResume: location == null),
+              child: location == null
+                  ? const ReadingScreen()
+                  : ReadingScreen(initialLocation: location),
+            ),
+          ),
+        );
+      },
     ),
     GoRoute(
       path: '/search-results',

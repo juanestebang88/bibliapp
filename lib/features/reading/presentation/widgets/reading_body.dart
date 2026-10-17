@@ -15,11 +15,15 @@ class ReadingBody extends StatelessWidget {
   /// verse clear of the floating progress button.
   final double bottomContentInset;
 
+  /// When true, only the user's own drags update the scroll counter.
+  final bool userScrollOnly;
+
   const ReadingBody({
     super.key,
     required this.state,
     this.onVisibleVerseChanged,
     this.bottomContentInset = 0,
+    this.userScrollOnly = false,
   });
 
   @override
@@ -42,6 +46,7 @@ class ReadingBody extends StatelessWidget {
         state: state,
         onVisibleVerseChanged: onVisibleVerseChanged,
         bottomContentInset: bottomContentInset,
+        userScrollOnly: userScrollOnly,
       ),
     };
   }
