@@ -4,6 +4,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:bibliapp/core/error/failure.dart';
+import 'package:bibliapp/core/localization/app_strings.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
@@ -199,19 +200,57 @@ void main() {
       await cubit.selectBook('exodus');
       await cubit.selectChapter(3);
       expect(cubit.state.level, PassagePickerLevel.verses);
+      expect(cubit.state.headerTitle, 'Éxodo Cap. 3');
 
       cubit.goBack();
       expect(cubit.state.level, PassagePickerLevel.chapters);
       expect(cubit.state.selectedChapter, isNull);
       expect(cubit.state.canGoBack, isTrue);
+      expect(cubit.state.headerTitle, 'Éxodo');
 
       cubit.goBack();
       expect(cubit.state.level, PassagePickerLevel.books);
       expect(cubit.state.selectedBook, isNull);
       expect(cubit.state.canGoBack, isFalse);
+      expect(cubit.state.headerTitle, AppStrings.selectPassage);
       await cubit.close();
     },
   );
+
+  test('builds the header title from the current level', () {
+    expect(
+      const PassagePickerState(
+        level: PassagePickerLevel.books,
+        tab: PassagePickerTab.oldTestament,
+      ).headerTitle,
+      AppStrings.selectPassage,
+    );
+    expect(
+      const PassagePickerState(
+        level: PassagePickerLevel.chapters,
+        tab: PassagePickerTab.currentBook,
+        currentBook: 'genesis',
+      ).headerTitle,
+      'Génesis',
+    );
+    expect(
+      const PassagePickerState(
+        level: PassagePickerLevel.chapters,
+        tab: PassagePickerTab.oldTestament,
+        selectedBook: 'ruth',
+      ).headerTitle,
+      'Rut',
+    );
+    expect(
+      const PassagePickerState(
+        level: PassagePickerLevel.verses,
+        tab: PassagePickerTab.oldTestament,
+        selectedBook: 'ruth',
+        selectedChapter: 5,
+      ).headerTitle,
+      'Rut Cap. 5',
+    );
+  });
 }
 
 class _MockGetChapterCount extends Mock implements GetChapterCount {}

@@ -31,6 +31,7 @@ import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart'
 import 'package:bibliapp/features/reading/presentation/cubit/search_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/book_chip_grid.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/number_chip_grid.dart';
+import 'package:bibliapp/features/reading/presentation/widgets/passage_picker_header.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/reading_progress_button.dart';
 import 'package:bibliapp/main.dart';
 
@@ -331,7 +332,13 @@ void main() {
 
       await tester.tap(find.text('Génesis 1'));
       await tester.pumpAndSettle();
-      expect(find.text('Seleccionar pasaje'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(PassagePickerHeader),
+          matching: find.text('Génesis'),
+        ),
+        findsOneWidget,
+      );
 
       await tester.tap(find.text('NT'));
       await tester.pumpAndSettle();

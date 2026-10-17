@@ -3,11 +3,13 @@ import 'package:bibliapp/core/localization/app_strings.dart';
 import 'package:bibliapp/core/theme/app_spacing.dart';
 
 class PassagePickerHeader extends StatelessWidget {
+  final String title;
   final bool canGoBack;
   final VoidCallback onBack;
 
   const PassagePickerHeader({
     super.key,
+    required this.title,
     required this.canGoBack,
     required this.onBack,
   });
@@ -33,8 +35,10 @@ class PassagePickerHeader extends StatelessWidget {
             const SizedBox(width: AppSpacing.xxl + AppSpacing.sm),
           Expanded(
             child: Text(
-              AppStrings.selectPassage,
+              title,
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: theme.textTheme.titleMedium,
             ),
           ),
