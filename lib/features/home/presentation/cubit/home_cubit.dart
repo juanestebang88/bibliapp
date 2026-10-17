@@ -1,6 +1,7 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bibliapp/core/error/failure.dart';
+import 'package:bibliapp/core/localization/app_strings.dart';
 import 'package:bibliapp/features/home/presentation/cubit/home_state.dart';
 import 'package:bibliapp/features/reading/domain/entities/daily_verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_day_entity.dart';
@@ -33,16 +34,19 @@ class HomeCubit extends Cubit<HomeState> {
     emit(state.copyWith(status: HomeStatus.loading, errorMessage: ''));
 
     final progressResult = await getReadingProgress();
-    final progress = progressResult.match((failure) {
+    if (progressResult.isLeft()) {
       emit(
         state.copyWith(
           status: HomeStatus.failure,
-          errorMessage: failure.message,
+          errorMessage: AppStrings.errorLoadingHome,
         ),
       );
-      return null;
-    }, (value) => value);
-    if (progress == null) return;
+      return;
+    }
+    final savedProgress = progressResult.getRight().toNullable();
+    final progress =
+        savedProgress ??
+        const ReadingProgressEntity(lastBook: 'genesis', lastChapter: 1);
 
     final book = progress.lastBook;
     final results = await Future.wait([
@@ -59,7 +63,10 @@ class HomeCubit extends Cubit<HomeState> {
     var readingDays = const <ReadingDayEntity>[];
 
     void collect<E>(Either<Failure, E> result, void Function(E) onSuccess) {
-      result.match((error) => failureMessage ??= error.message, onSuccess);
+      result.match(
+        (_) => failureMessage ??= AppStrings.errorLoadingHome,
+        onSuccess,
+      );
     }
 
     collect(

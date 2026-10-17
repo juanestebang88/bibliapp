@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:bibliapp/core/error/failure.dart';
+import 'package:bibliapp/core/utils/local_date_key.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_reference.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
@@ -1042,6 +1043,97 @@ void main() {
       verify(() => deleteVerseHighlight(5)).called(1);
       await cubit.close();
     },
+  );
+
+  blocTest<ReadingCubit, ReadingState>(
+    'recording the daily event for markChapterComplete uses the full verse count',
+    setUp: () {
+      when(() => getChapterVerses('genesis', 1)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(8, book: 'genesis', chapter: 1),
+        ),
+      );
+    },
+    build: createCubit,
+    act: (cubit) async {
+      await cubit.loadChapter('genesis', 1);
+      await cubit.markChapterComplete();
+    },
+    verify: (_) {
+      verify(
+        () => recordDailyReadingEvent(
+          localDateKey(DateTime.now()),
+          'genesis',
+          1,
+          8,
+        ),
+      ).called(1);
+    },
+  );
+
+  blocTest<ReadingCubit, ReadingState>(
+    'recording the daily event for savePartialProgress uses the marked verse',
+    setUp: () {
+      when(() => getChapterVerses('genesis', 1)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(30, book: 'genesis', chapter: 1),
+        ),
+      );
+    },
+    build: createCubit,
+    act: (cubit) async {
+      await cubit.loadChapter('genesis', 1);
+      await cubit.savePartialProgress(12);
+    },
+    verify: (_) {
+      verify(
+        () => recordDailyReadingEvent(
+          localDateKey(DateTime.now()),
+          'genesis',
+          1,
+          12,
+        ),
+      ).called(1);
+    },
+  );
+
+  blocTest<ReadingCubit, ReadingState>(
+    'a failed daily-event record does not fail the chapter persistence',
+    setUp: () {
+      when(() => getChapterVerses('genesis', 1)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(3, book: 'genesis', chapter: 1),
+        ),
+      );
+      when(() => recordDailyReadingEvent(any(), any(), any(), any()))
+          .thenAnswer(
+            (_) async => const Left<Failure, bool>(DatabaseFailure('boom')),
+          );
+    },
+    build: createCubit,
+    act: (cubit) async {
+      await cubit.loadChapter('genesis', 1);
+      await cubit.savePartialProgress(1);
+    },
+    expect: () => [
+      isA<ReadingState>().having(
+        (state) => state.status,
+        'status',
+        ReadingStatus.loading,
+      ),
+      isA<ReadingState>().having(
+        (state) => state.status,
+        'status',
+        ReadingStatus.success,
+      ),
+      isA<ReadingState>()
+          .having((state) => state.status, 'status', ReadingStatus.success)
+          .having(
+            (state) => state.chapterProgress?.lastVerseRead,
+            'lastVerseRead',
+            1,
+          ),
+    ],
   );
 }
 
