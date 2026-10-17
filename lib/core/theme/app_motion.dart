@@ -8,6 +8,14 @@ class AppMotion {
   static const Duration chromeIdleDelay = Duration(milliseconds: 1800);
   static const double scrollHideThreshold = 24;
 
+  /// Fraction of the reading body width a horizontal drag must travel to change
+  /// the chapter.
+  static const double chapterSwipeDistanceFraction = 0.25;
+
+  /// Minimum fling velocity (px/s) that changes the chapter even below the
+  /// distance threshold.
+  static const double chapterSwipeVelocity = 300;
+
   /// Breathing pulse of the reading progress button when the last verse is
   /// visible (invites the user to tap and confirm the chapter as read).
   static const Duration progressBreathDuration = Duration(milliseconds: 1200);
