@@ -1746,6 +1746,673 @@ class VerseHighlightsCompanion extends UpdateCompanion<VerseHighlight> {
   }
 }
 
+class $DailyVersesTable extends DailyVerses
+    with TableInfo<$DailyVersesTable, DailyVerse> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DailyVersesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _dayMeta = const VerificationMeta('day');
+  @override
+  late final GeneratedColumn<String> day = GeneratedColumn<String>(
+    'day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bookMeta = const VerificationMeta('book');
+  @override
+  late final GeneratedColumn<String> book = GeneratedColumn<String>(
+    'book',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _chapterMeta = const VerificationMeta(
+    'chapter',
+  );
+  @override
+  late final GeneratedColumn<int> chapter = GeneratedColumn<int>(
+    'chapter',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _verseMeta = const VerificationMeta('verse');
+  @override
+  late final GeneratedColumn<int> verse = GeneratedColumn<int>(
+    'verse',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, day, book, chapter, verse];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'daily_verses';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DailyVerse> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('day')) {
+      context.handle(
+        _dayMeta,
+        day.isAcceptableOrUnknown(data['day']!, _dayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dayMeta);
+    }
+    if (data.containsKey('book')) {
+      context.handle(
+        _bookMeta,
+        book.isAcceptableOrUnknown(data['book']!, _bookMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bookMeta);
+    }
+    if (data.containsKey('chapter')) {
+      context.handle(
+        _chapterMeta,
+        chapter.isAcceptableOrUnknown(data['chapter']!, _chapterMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_chapterMeta);
+    }
+    if (data.containsKey('verse')) {
+      context.handle(
+        _verseMeta,
+        verse.isAcceptableOrUnknown(data['verse']!, _verseMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_verseMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DailyVerse map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DailyVerse(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      day: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}day'],
+      )!,
+      book: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}book'],
+      )!,
+      chapter: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}chapter'],
+      )!,
+      verse: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}verse'],
+      )!,
+    );
+  }
+
+  @override
+  $DailyVersesTable createAlias(String alias) {
+    return $DailyVersesTable(attachedDatabase, alias);
+  }
+}
+
+class DailyVerse extends DataClass implements Insertable<DailyVerse> {
+  final int id;
+
+  /// Local date the verse was picked for ('yyyy-MM-dd').
+  final String day;
+  final String book;
+  final int chapter;
+  final int verse;
+  const DailyVerse({
+    required this.id,
+    required this.day,
+    required this.book,
+    required this.chapter,
+    required this.verse,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['day'] = Variable<String>(day);
+    map['book'] = Variable<String>(book);
+    map['chapter'] = Variable<int>(chapter);
+    map['verse'] = Variable<int>(verse);
+    return map;
+  }
+
+  DailyVersesCompanion toCompanion(bool nullToAbsent) {
+    return DailyVersesCompanion(
+      id: Value(id),
+      day: Value(day),
+      book: Value(book),
+      chapter: Value(chapter),
+      verse: Value(verse),
+    );
+  }
+
+  factory DailyVerse.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DailyVerse(
+      id: serializer.fromJson<int>(json['id']),
+      day: serializer.fromJson<String>(json['day']),
+      book: serializer.fromJson<String>(json['book']),
+      chapter: serializer.fromJson<int>(json['chapter']),
+      verse: serializer.fromJson<int>(json['verse']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'day': serializer.toJson<String>(day),
+      'book': serializer.toJson<String>(book),
+      'chapter': serializer.toJson<int>(chapter),
+      'verse': serializer.toJson<int>(verse),
+    };
+  }
+
+  DailyVerse copyWith({
+    int? id,
+    String? day,
+    String? book,
+    int? chapter,
+    int? verse,
+  }) => DailyVerse(
+    id: id ?? this.id,
+    day: day ?? this.day,
+    book: book ?? this.book,
+    chapter: chapter ?? this.chapter,
+    verse: verse ?? this.verse,
+  );
+  DailyVerse copyWithCompanion(DailyVersesCompanion data) {
+    return DailyVerse(
+      id: data.id.present ? data.id.value : this.id,
+      day: data.day.present ? data.day.value : this.day,
+      book: data.book.present ? data.book.value : this.book,
+      chapter: data.chapter.present ? data.chapter.value : this.chapter,
+      verse: data.verse.present ? data.verse.value : this.verse,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DailyVerse(')
+          ..write('id: $id, ')
+          ..write('day: $day, ')
+          ..write('book: $book, ')
+          ..write('chapter: $chapter, ')
+          ..write('verse: $verse')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, day, book, chapter, verse);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DailyVerse &&
+          other.id == this.id &&
+          other.day == this.day &&
+          other.book == this.book &&
+          other.chapter == this.chapter &&
+          other.verse == this.verse);
+}
+
+class DailyVersesCompanion extends UpdateCompanion<DailyVerse> {
+  final Value<int> id;
+  final Value<String> day;
+  final Value<String> book;
+  final Value<int> chapter;
+  final Value<int> verse;
+  const DailyVersesCompanion({
+    this.id = const Value.absent(),
+    this.day = const Value.absent(),
+    this.book = const Value.absent(),
+    this.chapter = const Value.absent(),
+    this.verse = const Value.absent(),
+  });
+  DailyVersesCompanion.insert({
+    this.id = const Value.absent(),
+    required String day,
+    required String book,
+    required int chapter,
+    required int verse,
+  }) : day = Value(day),
+       book = Value(book),
+       chapter = Value(chapter),
+       verse = Value(verse);
+  static Insertable<DailyVerse> custom({
+    Expression<int>? id,
+    Expression<String>? day,
+    Expression<String>? book,
+    Expression<int>? chapter,
+    Expression<int>? verse,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (day != null) 'day': day,
+      if (book != null) 'book': book,
+      if (chapter != null) 'chapter': chapter,
+      if (verse != null) 'verse': verse,
+    });
+  }
+
+  DailyVersesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? day,
+    Value<String>? book,
+    Value<int>? chapter,
+    Value<int>? verse,
+  }) {
+    return DailyVersesCompanion(
+      id: id ?? this.id,
+      day: day ?? this.day,
+      book: book ?? this.book,
+      chapter: chapter ?? this.chapter,
+      verse: verse ?? this.verse,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (day.present) {
+      map['day'] = Variable<String>(day.value);
+    }
+    if (book.present) {
+      map['book'] = Variable<String>(book.value);
+    }
+    if (chapter.present) {
+      map['chapter'] = Variable<int>(chapter.value);
+    }
+    if (verse.present) {
+      map['verse'] = Variable<int>(verse.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DailyVersesCompanion(')
+          ..write('id: $id, ')
+          ..write('day: $day, ')
+          ..write('book: $book, ')
+          ..write('chapter: $chapter, ')
+          ..write('verse: $verse')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ReadingEventsTable extends ReadingEvents
+    with TableInfo<$ReadingEventsTable, ReadingEvent> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ReadingEventsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _activityDateMeta = const VerificationMeta(
+    'activityDate',
+  );
+  @override
+  late final GeneratedColumn<String> activityDate = GeneratedColumn<String>(
+    'activity_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bookMeta = const VerificationMeta('book');
+  @override
+  late final GeneratedColumn<String> book = GeneratedColumn<String>(
+    'book',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _chapterMeta = const VerificationMeta(
+    'chapter',
+  );
+  @override
+  late final GeneratedColumn<int> chapter = GeneratedColumn<int>(
+    'chapter',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _verseCountMeta = const VerificationMeta(
+    'verseCount',
+  );
+  @override
+  late final GeneratedColumn<int> verseCount = GeneratedColumn<int>(
+    'verse_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    activityDate,
+    book,
+    chapter,
+    verseCount,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'reading_events';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ReadingEvent> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('activity_date')) {
+      context.handle(
+        _activityDateMeta,
+        activityDate.isAcceptableOrUnknown(
+          data['activity_date']!,
+          _activityDateMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_activityDateMeta);
+    }
+    if (data.containsKey('book')) {
+      context.handle(
+        _bookMeta,
+        book.isAcceptableOrUnknown(data['book']!, _bookMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bookMeta);
+    }
+    if (data.containsKey('chapter')) {
+      context.handle(
+        _chapterMeta,
+        chapter.isAcceptableOrUnknown(data['chapter']!, _chapterMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_chapterMeta);
+    }
+    if (data.containsKey('verse_count')) {
+      context.handle(
+        _verseCountMeta,
+        verseCount.isAcceptableOrUnknown(data['verse_count']!, _verseCountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_verseCountMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {activityDate, book, chapter};
+  @override
+  ReadingEvent map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ReadingEvent(
+      activityDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}activity_date'],
+      )!,
+      book: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}book'],
+      )!,
+      chapter: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}chapter'],
+      )!,
+      verseCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}verse_count'],
+      )!,
+    );
+  }
+
+  @override
+  $ReadingEventsTable createAlias(String alias) {
+    return $ReadingEventsTable(attachedDatabase, alias);
+  }
+}
+
+class ReadingEvent extends DataClass implements Insertable<ReadingEvent> {
+  /// Local date of the day the reading was marked ('yyyy-MM-dd').
+  final String activityDate;
+  final String book;
+  final int chapter;
+
+  /// Verses marked for this chapter that day (max kept on upsert).
+  final int verseCount;
+  const ReadingEvent({
+    required this.activityDate,
+    required this.book,
+    required this.chapter,
+    required this.verseCount,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['activity_date'] = Variable<String>(activityDate);
+    map['book'] = Variable<String>(book);
+    map['chapter'] = Variable<int>(chapter);
+    map['verse_count'] = Variable<int>(verseCount);
+    return map;
+  }
+
+  ReadingEventsCompanion toCompanion(bool nullToAbsent) {
+    return ReadingEventsCompanion(
+      activityDate: Value(activityDate),
+      book: Value(book),
+      chapter: Value(chapter),
+      verseCount: Value(verseCount),
+    );
+  }
+
+  factory ReadingEvent.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ReadingEvent(
+      activityDate: serializer.fromJson<String>(json['activityDate']),
+      book: serializer.fromJson<String>(json['book']),
+      chapter: serializer.fromJson<int>(json['chapter']),
+      verseCount: serializer.fromJson<int>(json['verseCount']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'activityDate': serializer.toJson<String>(activityDate),
+      'book': serializer.toJson<String>(book),
+      'chapter': serializer.toJson<int>(chapter),
+      'verseCount': serializer.toJson<int>(verseCount),
+    };
+  }
+
+  ReadingEvent copyWith({
+    String? activityDate,
+    String? book,
+    int? chapter,
+    int? verseCount,
+  }) => ReadingEvent(
+    activityDate: activityDate ?? this.activityDate,
+    book: book ?? this.book,
+    chapter: chapter ?? this.chapter,
+    verseCount: verseCount ?? this.verseCount,
+  );
+  ReadingEvent copyWithCompanion(ReadingEventsCompanion data) {
+    return ReadingEvent(
+      activityDate: data.activityDate.present
+          ? data.activityDate.value
+          : this.activityDate,
+      book: data.book.present ? data.book.value : this.book,
+      chapter: data.chapter.present ? data.chapter.value : this.chapter,
+      verseCount: data.verseCount.present
+          ? data.verseCount.value
+          : this.verseCount,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReadingEvent(')
+          ..write('activityDate: $activityDate, ')
+          ..write('book: $book, ')
+          ..write('chapter: $chapter, ')
+          ..write('verseCount: $verseCount')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(activityDate, book, chapter, verseCount);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ReadingEvent &&
+          other.activityDate == this.activityDate &&
+          other.book == this.book &&
+          other.chapter == this.chapter &&
+          other.verseCount == this.verseCount);
+}
+
+class ReadingEventsCompanion extends UpdateCompanion<ReadingEvent> {
+  final Value<String> activityDate;
+  final Value<String> book;
+  final Value<int> chapter;
+  final Value<int> verseCount;
+  final Value<int> rowid;
+  const ReadingEventsCompanion({
+    this.activityDate = const Value.absent(),
+    this.book = const Value.absent(),
+    this.chapter = const Value.absent(),
+    this.verseCount = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ReadingEventsCompanion.insert({
+    required String activityDate,
+    required String book,
+    required int chapter,
+    required int verseCount,
+    this.rowid = const Value.absent(),
+  }) : activityDate = Value(activityDate),
+       book = Value(book),
+       chapter = Value(chapter),
+       verseCount = Value(verseCount);
+  static Insertable<ReadingEvent> custom({
+    Expression<String>? activityDate,
+    Expression<String>? book,
+    Expression<int>? chapter,
+    Expression<int>? verseCount,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (activityDate != null) 'activity_date': activityDate,
+      if (book != null) 'book': book,
+      if (chapter != null) 'chapter': chapter,
+      if (verseCount != null) 'verse_count': verseCount,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ReadingEventsCompanion copyWith({
+    Value<String>? activityDate,
+    Value<String>? book,
+    Value<int>? chapter,
+    Value<int>? verseCount,
+    Value<int>? rowid,
+  }) {
+    return ReadingEventsCompanion(
+      activityDate: activityDate ?? this.activityDate,
+      book: book ?? this.book,
+      chapter: chapter ?? this.chapter,
+      verseCount: verseCount ?? this.verseCount,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (activityDate.present) {
+      map['activity_date'] = Variable<String>(activityDate.value);
+    }
+    if (book.present) {
+      map['book'] = Variable<String>(book.value);
+    }
+    if (chapter.present) {
+      map['chapter'] = Variable<int>(chapter.value);
+    }
+    if (verseCount.present) {
+      map['verse_count'] = Variable<int>(verseCount.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReadingEventsCompanion(')
+          ..write('activityDate: $activityDate, ')
+          ..write('book: $book, ')
+          ..write('chapter: $chapter, ')
+          ..write('verseCount: $verseCount, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$ReadingDatabase extends GeneratedDatabase {
   _$ReadingDatabase(QueryExecutor e) : super(e);
   $ReadingDatabaseManager get managers => $ReadingDatabaseManager(this);
@@ -1762,6 +2429,8 @@ abstract class _$ReadingDatabase extends GeneratedDatabase {
   late final $VerseHighlightsTable verseHighlights = $VerseHighlightsTable(
     this,
   );
+  late final $DailyVersesTable dailyVerses = $DailyVersesTable(this);
+  late final $ReadingEventsTable readingEvents = $ReadingEventsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1772,6 +2441,8 @@ abstract class _$ReadingDatabase extends GeneratedDatabase {
     readingSettings,
     chapterProgress,
     verseHighlights,
+    dailyVerses,
+    readingEvents,
   ];
 }
 
@@ -2768,6 +3439,391 @@ typedef $$VerseHighlightsTableProcessedTableManager =
       VerseHighlight,
       PrefetchHooks Function()
     >;
+typedef $$DailyVersesTableCreateCompanionBuilder =
+    DailyVersesCompanion Function({
+      Value<int> id,
+      required String day,
+      required String book,
+      required int chapter,
+      required int verse,
+    });
+typedef $$DailyVersesTableUpdateCompanionBuilder =
+    DailyVersesCompanion Function({
+      Value<int> id,
+      Value<String> day,
+      Value<String> book,
+      Value<int> chapter,
+      Value<int> verse,
+    });
+
+class $$DailyVersesTableFilterComposer
+    extends Composer<_$ReadingDatabase, $DailyVersesTable> {
+  $$DailyVersesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get book => $composableBuilder(
+    column: $table.book,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get chapter => $composableBuilder(
+    column: $table.chapter,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get verse => $composableBuilder(
+    column: $table.verse,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DailyVersesTableOrderingComposer
+    extends Composer<_$ReadingDatabase, $DailyVersesTable> {
+  $$DailyVersesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get book => $composableBuilder(
+    column: $table.book,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get chapter => $composableBuilder(
+    column: $table.chapter,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get verse => $composableBuilder(
+    column: $table.verse,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DailyVersesTableAnnotationComposer
+    extends Composer<_$ReadingDatabase, $DailyVersesTable> {
+  $$DailyVersesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get day =>
+      $composableBuilder(column: $table.day, builder: (column) => column);
+
+  GeneratedColumn<String> get book =>
+      $composableBuilder(column: $table.book, builder: (column) => column);
+
+  GeneratedColumn<int> get chapter =>
+      $composableBuilder(column: $table.chapter, builder: (column) => column);
+
+  GeneratedColumn<int> get verse =>
+      $composableBuilder(column: $table.verse, builder: (column) => column);
+}
+
+class $$DailyVersesTableTableManager
+    extends
+        RootTableManager<
+          _$ReadingDatabase,
+          $DailyVersesTable,
+          DailyVerse,
+          $$DailyVersesTableFilterComposer,
+          $$DailyVersesTableOrderingComposer,
+          $$DailyVersesTableAnnotationComposer,
+          $$DailyVersesTableCreateCompanionBuilder,
+          $$DailyVersesTableUpdateCompanionBuilder,
+          (
+            DailyVerse,
+            BaseReferences<_$ReadingDatabase, $DailyVersesTable, DailyVerse>,
+          ),
+          DailyVerse,
+          PrefetchHooks Function()
+        > {
+  $$DailyVersesTableTableManager(_$ReadingDatabase db, $DailyVersesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DailyVersesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DailyVersesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DailyVersesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> day = const Value.absent(),
+                Value<String> book = const Value.absent(),
+                Value<int> chapter = const Value.absent(),
+                Value<int> verse = const Value.absent(),
+              }) => DailyVersesCompanion(
+                id: id,
+                day: day,
+                book: book,
+                chapter: chapter,
+                verse: verse,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String day,
+                required String book,
+                required int chapter,
+                required int verse,
+              }) => DailyVersesCompanion.insert(
+                id: id,
+                day: day,
+                book: book,
+                chapter: chapter,
+                verse: verse,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DailyVersesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$ReadingDatabase,
+      $DailyVersesTable,
+      DailyVerse,
+      $$DailyVersesTableFilterComposer,
+      $$DailyVersesTableOrderingComposer,
+      $$DailyVersesTableAnnotationComposer,
+      $$DailyVersesTableCreateCompanionBuilder,
+      $$DailyVersesTableUpdateCompanionBuilder,
+      (
+        DailyVerse,
+        BaseReferences<_$ReadingDatabase, $DailyVersesTable, DailyVerse>,
+      ),
+      DailyVerse,
+      PrefetchHooks Function()
+    >;
+typedef $$ReadingEventsTableCreateCompanionBuilder =
+    ReadingEventsCompanion Function({
+      required String activityDate,
+      required String book,
+      required int chapter,
+      required int verseCount,
+      Value<int> rowid,
+    });
+typedef $$ReadingEventsTableUpdateCompanionBuilder =
+    ReadingEventsCompanion Function({
+      Value<String> activityDate,
+      Value<String> book,
+      Value<int> chapter,
+      Value<int> verseCount,
+      Value<int> rowid,
+    });
+
+class $$ReadingEventsTableFilterComposer
+    extends Composer<_$ReadingDatabase, $ReadingEventsTable> {
+  $$ReadingEventsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get activityDate => $composableBuilder(
+    column: $table.activityDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get book => $composableBuilder(
+    column: $table.book,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get chapter => $composableBuilder(
+    column: $table.chapter,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get verseCount => $composableBuilder(
+    column: $table.verseCount,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ReadingEventsTableOrderingComposer
+    extends Composer<_$ReadingDatabase, $ReadingEventsTable> {
+  $$ReadingEventsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get activityDate => $composableBuilder(
+    column: $table.activityDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get book => $composableBuilder(
+    column: $table.book,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get chapter => $composableBuilder(
+    column: $table.chapter,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get verseCount => $composableBuilder(
+    column: $table.verseCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ReadingEventsTableAnnotationComposer
+    extends Composer<_$ReadingDatabase, $ReadingEventsTable> {
+  $$ReadingEventsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get activityDate => $composableBuilder(
+    column: $table.activityDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get book =>
+      $composableBuilder(column: $table.book, builder: (column) => column);
+
+  GeneratedColumn<int> get chapter =>
+      $composableBuilder(column: $table.chapter, builder: (column) => column);
+
+  GeneratedColumn<int> get verseCount => $composableBuilder(
+    column: $table.verseCount,
+    builder: (column) => column,
+  );
+}
+
+class $$ReadingEventsTableTableManager
+    extends
+        RootTableManager<
+          _$ReadingDatabase,
+          $ReadingEventsTable,
+          ReadingEvent,
+          $$ReadingEventsTableFilterComposer,
+          $$ReadingEventsTableOrderingComposer,
+          $$ReadingEventsTableAnnotationComposer,
+          $$ReadingEventsTableCreateCompanionBuilder,
+          $$ReadingEventsTableUpdateCompanionBuilder,
+          (
+            ReadingEvent,
+            BaseReferences<
+              _$ReadingDatabase,
+              $ReadingEventsTable,
+              ReadingEvent
+            >,
+          ),
+          ReadingEvent,
+          PrefetchHooks Function()
+        > {
+  $$ReadingEventsTableTableManager(
+    _$ReadingDatabase db,
+    $ReadingEventsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ReadingEventsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ReadingEventsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ReadingEventsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> activityDate = const Value.absent(),
+                Value<String> book = const Value.absent(),
+                Value<int> chapter = const Value.absent(),
+                Value<int> verseCount = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ReadingEventsCompanion(
+                activityDate: activityDate,
+                book: book,
+                chapter: chapter,
+                verseCount: verseCount,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String activityDate,
+                required String book,
+                required int chapter,
+                required int verseCount,
+                Value<int> rowid = const Value.absent(),
+              }) => ReadingEventsCompanion.insert(
+                activityDate: activityDate,
+                book: book,
+                chapter: chapter,
+                verseCount: verseCount,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ReadingEventsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$ReadingDatabase,
+      $ReadingEventsTable,
+      ReadingEvent,
+      $$ReadingEventsTableFilterComposer,
+      $$ReadingEventsTableOrderingComposer,
+      $$ReadingEventsTableAnnotationComposer,
+      $$ReadingEventsTableCreateCompanionBuilder,
+      $$ReadingEventsTableUpdateCompanionBuilder,
+      (
+        ReadingEvent,
+        BaseReferences<_$ReadingDatabase, $ReadingEventsTable, ReadingEvent>,
+      ),
+      ReadingEvent,
+      PrefetchHooks Function()
+    >;
 
 class $ReadingDatabaseManager {
   final _$ReadingDatabase _db;
@@ -2782,4 +3838,8 @@ class $ReadingDatabaseManager {
       $$ChapterProgressTableTableManager(_db, _db.chapterProgress);
   $$VerseHighlightsTableTableManager get verseHighlights =>
       $$VerseHighlightsTableTableManager(_db, _db.verseHighlights);
+  $$DailyVersesTableTableManager get dailyVerses =>
+      $$DailyVersesTableTableManager(_db, _db.dailyVerses);
+  $$ReadingEventsTableTableManager get readingEvents =>
+      $$ReadingEventsTableTableManager(_db, _db.readingEvents);
 }
