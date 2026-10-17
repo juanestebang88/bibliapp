@@ -28,9 +28,7 @@ class ConsultationContinueButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(AppRadius.pill);
-    final background = enabled
-        ? AppColors.greenAccent
-        : AppColors.pillBackground;
+    final background = enabled         ? AppColors.highlightCopper : AppColors.pillBackground;
     final foreground = enabled ? AppColors.darkText : AppColors.offWhite;
 
     return Padding(
