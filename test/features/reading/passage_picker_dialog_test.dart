@@ -2,9 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:bibliapp/core/di/get_it.dart';
+import 'package:bibliapp/app/di/get_it.dart';
 import 'package:bibliapp/core/error/failure.dart';
-import 'package:bibliapp/core/router/go_router.dart';
+import 'package:bibliapp/app/router/go_router.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';

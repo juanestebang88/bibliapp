@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:bibliapp/core/theme/app_radius.dart';
 import 'package:bibliapp/core/theme/app_spacing.dart';
-import 'package:bibliapp/core/theme/highlight_palette.dart';
+import 'package:bibliapp/features/reading/presentation/theme/highlight_palette.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
 
 /// Pure resolver that turns a verse text plus its inline highlights into styled

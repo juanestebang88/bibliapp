@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:bibliapp/core/di/get_it.dart';
+import 'package:bibliapp/app/di/get_it.dart';
 import 'package:bibliapp/features/home/presentation/cubit/home_cubit.dart';
 import 'package:bibliapp/features/home/presentation/pages/home_screen.dart';
 import 'package:bibliapp/features/reading/domain/entities/search_focus.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:bibliapp/core/di/get_it.dart';
+import 'package:bibliapp/app/di/get_it.dart';
 import 'package:bibliapp/core/theme/app_radius.dart';
 import 'package:bibliapp/core/theme/app_spacing.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_reference.dart';

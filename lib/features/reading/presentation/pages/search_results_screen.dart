@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:bibliapp/core/di/get_it.dart';
+import 'package:bibliapp/app/di/get_it.dart';
 import 'package:bibliapp/core/localization/app_strings.dart';
 import 'package:bibliapp/core/theme/app_spacing.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bibliapp/core/localization/app_strings.dart';
 import 'package:bibliapp/core/theme/app_radius.dart';
 import 'package:bibliapp/core/theme/app_spacing.dart';
-import 'package:bibliapp/core/theme/highlight_palette.dart';
+import 'package:bibliapp/features/reading/presentation/theme/highlight_palette.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
 
 /// Bottom sheet that lets the reader pick one of the four highlight colors.

@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
-import 'package:bibliapp/core/di/get_it.dart';
+import 'package:bibliapp/app/di/get_it.dart';
 import 'package:bibliapp/core/error/failure.dart';
 import 'package:bibliapp/core/localization/app_strings.dart';
 import 'package:bibliapp/core/theme/app_colors.dart';

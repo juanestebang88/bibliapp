@@ -29,15 +29,13 @@ import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.dart';
 import 'package:bibliapp/features/reading/domain/usecases/search_verses.dart';
 import 'package:bibliapp/features/reading/domain/usecases/update_verse_highlight.dart';
-import 'package:bibliapp/features/home/presentation/cubit/home_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/passage_picker_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/search_cubit.dart';
-import 'package:bibliapp/features/splash/presentation/cubit/splash_cubit.dart';
 
-final GetIt getIt = GetIt.instance;
-
-void registerGetIt() {
+/// Registers the reading feature: local database, repositories, use cases
+/// and cubits. Other features resolve reading use cases from here.
+void registerReadingModule(GetIt getIt) {
   if (getIt.isRegistered<ReadingDatabase>()) return;
 
   getIt.registerLazySingleton<ReadingDatabase>(
@@ -84,9 +82,6 @@ void registerGetIt() {
   );
   getIt.registerFactory(() => SearchCubit(searchVerses: getIt<SearchVerses>()));
   getIt.registerFactory(
-    () => SplashCubit(bibleBootstrap: getIt<BibleBootstrap>()),
-  );
-  getIt.registerFactory(
     () => ReadingCubit(
       getChapterVerses: getIt<GetChapterVerses>(),
       getChapterCount: getIt<GetChapterCount>(),
@@ -101,15 +96,6 @@ void registerGetIt() {
       updateVerseHighlight: getIt<UpdateVerseHighlight>(),
       deleteVerseHighlight: getIt<DeleteVerseHighlight>(),
       recordDailyReadingEvent: getIt<RecordDailyReadingEvent>(),
-    ),
-  );
-  getIt.registerFactory(
-    () => HomeCubit(
-      getDailyVerse: getIt<GetDailyVerse>(),
-      getContinueReading: getIt<GetContinueReading>(),
-      getChapterCount: getIt<GetChapterCount>(),
-      countCompletedChapters: getIt<CountCompletedChapters>(),
-      getRecentReadingDays: getIt<GetRecentReadingDays>(),
     ),
   );
   getIt.registerFactory(
