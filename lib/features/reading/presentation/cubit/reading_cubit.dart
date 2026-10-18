@@ -12,6 +12,7 @@ import 'package:bibliapp/features/reading/domain/entities/search_focus.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/add_verse_highlight.dart';
+import 'package:bibliapp/features/reading/domain/usecases/check_internet_connectivity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/delete_verse_highlight.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_highlights.dart';
@@ -26,6 +27,11 @@ import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.
 import 'package:bibliapp/features/reading/domain/usecases/update_verse_highlight.dart';
 
 enum ReadingStatus { initial, loading, success, failure }
+
+/// One-shot outcome of a RAE lookup connectivity check. The cubit returns to
+/// [unknown] after emitting a result so the same event can fire again without
+/// repeating dialogs on rebuilds.
+enum RaeAvailability { unknown, checking, available, unavailable }
 
 class ReadingState extends Equatable {
   final ReadingStatus status;
@@ -42,6 +48,8 @@ class ReadingState extends Equatable {
   final SearchFocus? activeFocus;
   final ChapterProgressEntity? chapterProgress;
   final List<VerseHighlightEntity> chapterHighlights;
+  final RaeAvailability raeAvailability;
+  final String raeWord;
 
   const ReadingState({
     this.status = ReadingStatus.initial,
@@ -58,6 +66,8 @@ class ReadingState extends Equatable {
     this.activeFocus,
     this.chapterProgress,
     this.chapterHighlights = const [],
+    this.raeAvailability = RaeAvailability.unknown,
+    this.raeWord = '',
   });
 
   bool get isFirstChapter => currentBook == 'genesis' && currentChapter == 1;
@@ -80,6 +90,8 @@ class ReadingState extends Equatable {
     SearchFocus? activeFocus,
     ChapterProgressEntity? chapterProgress,
     List<VerseHighlightEntity>? chapterHighlights,
+    RaeAvailability? raeAvailability,
+    String? raeWord,
     bool clearErrorMessage = false,
     bool clearPreviousChapterReference = false,
     bool clearNextChapterReference = false,
@@ -109,6 +121,8 @@ class ReadingState extends Equatable {
         ? null
         : chapterProgress ?? this.chapterProgress,
     chapterHighlights: chapterHighlights ?? this.chapterHighlights,
+    raeAvailability: raeAvailability ?? this.raeAvailability,
+    raeWord: raeWord ?? this.raeWord,
   );
 
   @override
@@ -127,6 +141,8 @@ class ReadingState extends Equatable {
     activeFocus,
     chapterProgress,
     chapterHighlights,
+    raeAvailability,
+    raeWord,
   ];
 }
 
@@ -144,6 +160,7 @@ class ReadingCubit extends Cubit<ReadingState> {
   final UpdateVerseHighlight updateVerseHighlight;
   final DeleteVerseHighlight deleteVerseHighlight;
   final RecordDailyReadingEvent recordDailyReadingEvent;
+  final CheckInternetConnectivity checkInternetConnectivity;
 
   ReadingCubit({
     required this.getChapterVerses,
@@ -159,6 +176,7 @@ class ReadingCubit extends Cubit<ReadingState> {
     required this.updateVerseHighlight,
     required this.deleteVerseHighlight,
     required this.recordDailyReadingEvent,
+    required this.checkInternetConnectivity,
   }) : super(const ReadingState());
 
   Future<void> initialize({bool applyResume = true}) async {
@@ -377,6 +395,21 @@ class ReadingCubit extends Cubit<ReadingState> {
   void clearFocus() {
     if (state.activeFocus == null) return;
     emit(state.copyWith(clearActiveFocus: true));
+  }
+
+  /// One-shot connectivity check for a RAE lookup of [word]: emits the
+  /// checking state, then the result, and finally returns to unknown so a
+  /// later lookup can fire the listener again.
+  Future<void> checkRaeConnectivity(String word) async {
+    emit(
+      state.copyWith(raeAvailability: RaeAvailability.checking, raeWord: word),
+    );
+    final result = await checkInternetConnectivity();
+    final availability = result.getOrElse((_) => false)
+        ? RaeAvailability.available
+        : RaeAvailability.unavailable;
+    emit(state.copyWith(raeAvailability: availability));
+    emit(state.copyWith(raeAvailability: RaeAvailability.unknown, raeWord: ''));
   }
 
   void consumePendingScroll() {

@@ -1,4 +1,4 @@
-import 'package:bibliapp/core/bootstrap/bible_bootstrap.dart';
+import 'package:bibliapp/features/reading/domain/usecases/ensure_bible_imported.dart';
 import 'package:bibliapp/core/error/failure.dart';
 import 'package:bibliapp/core/localization/app_strings.dart';
 import 'package:bibliapp/core/theme/app_colors.dart';
@@ -14,13 +14,13 @@ import 'package:fpdart/fpdart.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 
-class _MockBibleBootstrap extends Mock implements BibleBootstrap {}
+class _MockEnsureBibleImported extends Mock implements EnsureBibleImported {}
 
 void main() {
-  late _MockBibleBootstrap bibleBootstrap;
+  late _MockEnsureBibleImported ensureBibleImported;
 
   setUp(() {
-    bibleBootstrap = _MockBibleBootstrap();
+    ensureBibleImported = _MockEnsureBibleImported();
   });
 
   Widget buildApp(SplashCubit cubit) {
@@ -47,7 +47,7 @@ void main() {
   testWidgets('shows the breathing logo and loading bar while loading', (
     tester,
   ) async {
-    final cubit = SplashCubit(bibleBootstrap: bibleBootstrap);
+    final cubit = SplashCubit(ensureBibleImported: ensureBibleImported);
     await tester.pumpWidget(buildApp(cubit));
 
     expect(find.byType(SplashLogo), findsOneWidget);
@@ -62,10 +62,10 @@ void main() {
   testWidgets('shows an error with retry when the import fails', (
     tester,
   ) async {
-    when(() => bibleBootstrap.ensureImported()).thenAnswer(
+    when(() => ensureBibleImported.ensureImported()).thenAnswer(
       (_) async => Left<Failure, Unit>(const DatabaseFailure('boom')),
     );
-    final cubit = SplashCubit(bibleBootstrap: bibleBootstrap);
+    final cubit = SplashCubit(ensureBibleImported: ensureBibleImported);
     await tester.pumpWidget(buildApp(cubit));
 
     cubit.initialize();
@@ -81,13 +81,13 @@ void main() {
 
   testWidgets('retry recovers and navigates to home', (tester) async {
     var calls = 0;
-    when(() => bibleBootstrap.ensureImported()).thenAnswer((_) async {
+    when(() => ensureBibleImported.ensureImported()).thenAnswer((_) async {
       calls++;
       return calls == 1
           ? Left<Failure, Unit>(const DatabaseFailure('boom'))
           : Right<Failure, Unit>(unit);
     });
-    final cubit = SplashCubit(bibleBootstrap: bibleBootstrap);
+    final cubit = SplashCubit(ensureBibleImported: ensureBibleImported);
     await tester.pumpWidget(buildApp(cubit));
 
     cubit.initialize();

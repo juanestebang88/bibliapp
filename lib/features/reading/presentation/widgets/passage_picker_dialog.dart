@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:bibliapp/app/di/get_it.dart';
 import 'package:bibliapp/core/theme/app_radius.dart';
 import 'package:bibliapp/core/theme/app_spacing.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_reference.dart';
@@ -11,6 +10,8 @@ import 'package:bibliapp/features/reading/presentation/widgets/passage_picker_ta
 
 typedef PassageSelection = ({ChapterReference reference, int verse});
 
+/// Renders the picker; the [PassagePickerCubit] is provided by the caller so
+/// the dialog never touches the DI container.
 class PassagePickerDialog extends StatelessWidget {
   static const double _maxWidth = 420;
   static const double _maxHeightFactor = 0.7;
@@ -28,52 +29,42 @@ class PassagePickerDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<PassagePickerCubit>()
-        ..initialize(
-          currentBook: currentBook,
-          currentChapter: currentChapter,
-          currentVerseNumber: currentVerseNumber,
+    return BlocBuilder<PassagePickerCubit, PassagePickerState>(
+      builder: (context, state) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
-      child: BlocBuilder<PassagePickerCubit, PassagePickerState>(
-        builder: (context, state) => Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: _maxWidth,
+            maxHeight: MediaQuery.of(context).size.height * _maxHeightFactor,
           ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: _maxWidth,
-              maxHeight: MediaQuery.of(context).size.height * _maxHeightFactor,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                PassagePickerHeader(
-                  title: state.headerTitle,
-                  canGoBack: state.canGoBack,
-                  onBack: () => context.read<PassagePickerCubit>().goBack(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              PassagePickerHeader(
+                title: state.headerTitle,
+                canGoBack: state.canGoBack,
+                onBack: () => context.read<PassagePickerCubit>().goBack(),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: PassagePickerTabs(
+                  selectedTab: state.tab,
+                  currentBook: state.currentBook,
+                  onTabSelected: (tab) =>
+                      context.read<PassagePickerCubit>().selectTab(tab),
                 ),
-                Padding(
+              ),
+              Flexible(
+                child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.lg,
                   ),
-                  child: PassagePickerTabs(
-                    selectedTab: state.tab,
-                    currentBook: state.currentBook,
-                    onTabSelected: (tab) =>
-                        context.read<PassagePickerCubit>().selectTab(tab),
-                  ),
+                  child: const PassagePickerBody(),
                 ),
-                Flexible(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.lg,
-                    ),
-                    child: const PassagePickerBody(),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

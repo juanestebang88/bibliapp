@@ -1,5 +1,4 @@
 import 'package:get_it/get_it.dart';
-import 'package:bibliapp/core/bootstrap/bible_bootstrap.dart';
 import 'package:bibliapp/features/reading/data/bible_db_initialization.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_database.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_local_data_source.dart';
@@ -60,9 +59,7 @@ void registerReadingModule(GetIt getIt) {
   getIt.registerFactory(() => GetReadingSettings(getIt<ReadingRepository>()));
   getIt.registerFactory(() => SaveReadingSettings(getIt<ReadingRepository>()));
   getIt.registerFactory(() => ClearReadingData(getIt<ReadingRepository>()));
-  getIt.registerFactory<BibleBootstrap>(
-    () => EnsureBibleImported(getIt<ReadingRepository>()),
-  );
+  getIt.registerFactory(() => EnsureBibleImported(getIt<ReadingRepository>()));
   getIt.registerFactory(() => SearchVerses(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetChapterHighlights(getIt<ReadingRepository>()));
   getIt.registerFactory(() => AddVerseHighlight(getIt<ReadingRepository>()));
@@ -96,6 +93,7 @@ void registerReadingModule(GetIt getIt) {
       updateVerseHighlight: getIt<UpdateVerseHighlight>(),
       deleteVerseHighlight: getIt<DeleteVerseHighlight>(),
       recordDailyReadingEvent: getIt<RecordDailyReadingEvent>(),
+      checkInternetConnectivity: getIt<CheckInternetConnectivity>(),
     ),
   );
   getIt.registerFactory(

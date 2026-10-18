@@ -1,13 +1,13 @@
 import 'package:get_it/get_it.dart';
-import 'package:bibliapp/core/bootstrap/bible_bootstrap.dart';
+import 'package:bibliapp/features/reading/domain/usecases/ensure_bible_imported.dart';
 import 'package:bibliapp/features/splash/presentation/cubit/splash_cubit.dart';
 
-/// Registers the splash cubit, wired to the bootstrap port implemented by the
-/// reading feature.
+/// Registers the splash cubit, wired to the Bible availability check provided
+/// by the reading domain.
 void registerSplashModule(GetIt getIt) {
   if (getIt.isRegistered<SplashCubit>()) return;
 
   getIt.registerFactory(
-    () => SplashCubit(bibleBootstrap: getIt<BibleBootstrap>()),
+    () => SplashCubit(ensureBibleImported: getIt<EnsureBibleImported>()),
   );
 }

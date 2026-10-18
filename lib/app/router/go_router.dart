@@ -5,7 +5,9 @@ import 'package:bibliapp/app/di/get_it.dart';
 import 'package:bibliapp/features/home/presentation/cubit/home_cubit.dart';
 import 'package:bibliapp/features/home/presentation/pages/home_screen.dart';
 import 'package:bibliapp/features/reading/domain/entities/search_focus.dart';
+import 'package:bibliapp/features/reading/presentation/cubit/passage_picker_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
+import 'package:bibliapp/features/reading/presentation/cubit/search_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/pages/reading_screen.dart';
 import 'package:bibliapp/features/reading/presentation/pages/search_results_screen.dart';
 import 'package:bibliapp/features/splash/presentation/cubit/splash_cubit.dart';
@@ -61,8 +63,13 @@ final GoRouter appRouter = GoRouter(
                   getIt<ReadingCubit>()
                     ..initialize(applyResume: location == null),
               child: location == null
-                  ? const ReadingScreen()
-                  : ReadingScreen(initialLocation: location),
+                  ? ReadingScreen(
+                      createPassagePickerCubit: _createPassagePickerCubit,
+                    )
+                  : ReadingScreen(
+                      initialLocation: location,
+                      createPassagePickerCubit: _createPassagePickerCubit,
+                    ),
             ),
           ),
         );
@@ -73,7 +80,12 @@ final GoRouter appRouter = GoRouter(
       name: 'searchResults',
       builder: (context, state) {
         final query = state.uri.queryParameters['q'] ?? '';
-        return _blockBack(SearchResultsScreen(query: query));
+        return _blockBack(
+          BlocProvider(
+            create: (_) => getIt<SearchCubit>()..search(query),
+            child: SearchResultsScreen(query: query),
+          ),
+        );
       },
     ),
     GoRoute(
@@ -90,13 +102,19 @@ final GoRouter appRouter = GoRouter(
           BlocProvider(
             create: (context) =>
                 getIt<ReadingCubit>()..initialize(applyResume: false),
-            child: ReadingScreen(focus: focus),
+            child: ReadingScreen(
+              focus: focus,
+              createPassagePickerCubit: _createPassagePickerCubit,
+            ),
           ),
         );
       },
     ),
   ],
 );
+
+/// Fresh passage-picker cubit per dialog open (factory semantics).
+PassagePickerCubit _createPassagePickerCubit() => getIt<PassagePickerCubit>();
 
 /// System back is disabled app-wide; navigation uses visible in-app buttons.
 Widget _blockBack(Widget child) => PopScope(canPop: false, child: child);
