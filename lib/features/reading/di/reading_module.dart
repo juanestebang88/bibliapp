@@ -8,7 +8,6 @@ import 'package:bibliapp/features/reading/domain/repositories/connectivity_repos
 import 'package:bibliapp/features/reading/domain/repositories/reading_repository.dart';
 import 'package:bibliapp/features/reading/domain/usecases/add_verse_highlight.dart';
 import 'package:bibliapp/features/reading/domain/usecases/check_internet_connectivity.dart';
-import 'package:bibliapp/features/reading/domain/usecases/clear_reading_data.dart';
 import 'package:bibliapp/features/reading/domain/usecases/count_completed_chapters.dart';
 import 'package:bibliapp/features/reading/domain/usecases/delete_verse_highlight.dart';
 import 'package:bibliapp/features/reading/domain/usecases/ensure_bible_imported.dart';
@@ -21,7 +20,6 @@ import 'package:bibliapp/features/reading/domain/usecases/get_daily_verse.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_settings.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_recent_reading_days.dart';
-import 'package:bibliapp/features/reading/domain/usecases/get_verse.dart';
 import 'package:bibliapp/features/reading/domain/usecases/record_daily_reading_event.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.dart';
@@ -49,7 +47,6 @@ void registerReadingModule(GetIt getIt) {
   getIt.registerLazySingleton<ConnectivityRepository>(
     ConnectivityRepositoryImpl.new,
   );
-  getIt.registerFactory(() => GetVerse(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetChapterVerses(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetChapterCount(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetChapterProgress(getIt<ReadingRepository>()));
@@ -58,7 +55,6 @@ void registerReadingModule(GetIt getIt) {
   getIt.registerFactory(() => SaveReadingProgress(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetReadingSettings(getIt<ReadingRepository>()));
   getIt.registerFactory(() => SaveReadingSettings(getIt<ReadingRepository>()));
-  getIt.registerFactory(() => ClearReadingData(getIt<ReadingRepository>()));
   getIt.registerFactory(() => EnsureBibleImported(getIt<ReadingRepository>()));
   getIt.registerFactory(() => SearchVerses(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetChapterHighlights(getIt<ReadingRepository>()));
