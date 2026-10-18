@@ -1,12 +1,11 @@
-import 'package:flutter/services.dart';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bibliapp/features/reading/data/rv1960_parser.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
-  test('parses all books and verses from the RV1960 asset', () async {
-    final jsonString = await rootBundle.loadString('assets/data/RV1960.json');
+  test('parses all books and verses from the RV1960 source file', () {
+    final jsonString = File('tool/data/RV1960.json').readAsStringSync();
 
     final verses = parseRV1960(jsonString);
 

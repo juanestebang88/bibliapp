@@ -9,6 +9,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:bibliapp/core/error/failure.dart';
 import 'package:bibliapp/features/home/presentation/cubit/home_cubit.dart';
 import 'package:bibliapp/features/home/presentation/pages/home_screen.dart';
+import 'package:bibliapp/features/home/presentation/widgets/home_error_view.dart';
 import 'package:bibliapp/features/reading/domain/entities/daily_verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_day_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/continue_reading_entity.dart';
@@ -127,5 +128,41 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('reading-body'), findsOneWidget);
+  });
+
+  testWidgets('shows HomeErrorView on failure and recovers on retry', (
+    tester,
+  ) async {
+    when(() => getContinueReading()).thenAnswer(
+      (_) async =>
+          const Left<Failure, ContinueReadingEntity?>(DatabaseFailure('boom')),
+    );
+
+    final cubit = HomeCubit(
+      getDailyVerse: getDailyVerse,
+      getContinueReading: getContinueReading,
+      getChapterCount: getChapterCount,
+      countCompletedChapters: countCompletedChapters,
+      getRecentReadingDays: getRecentReadingDays,
+    );
+    await cubit.initialize();
+    await tester.pumpWidget(buildApp(cubit));
+    await tester.pumpAndSettle();
+    addTearDown(cubit.close);
+
+    expect(find.byType(HomeErrorView), findsOneWidget);
+    expect(find.text(AppStrings.errorLoadingHome), findsOneWidget);
+
+    when(() => getContinueReading()).thenAnswer(
+      (_) async => const Right<Failure, ContinueReadingEntity?>(
+        ContinueReadingEntity(book: 'genesis', chapter: 3),
+      ),
+    );
+
+    await tester.tap(find.text(AppStrings.retry));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HomeErrorView), findsNothing);
+    expect(find.text(_dailyVerse.text), findsOneWidget);
   });
 }

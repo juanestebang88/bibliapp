@@ -10,16 +10,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:bibliapp/core/di/get_it.dart';
+import 'package:bibliapp/app/di/get_it.dart';
 import 'package:bibliapp/core/error/failure.dart';
 import 'package:bibliapp/core/localization/app_strings.dart';
-import 'package:bibliapp/core/router/go_router.dart';
+import 'package:bibliapp/app/router/go_router.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/add_verse_highlight.dart';
+import 'package:bibliapp/features/reading/domain/usecases/check_internet_connectivity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/delete_verse_highlight.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_highlights.dart';
@@ -51,6 +52,7 @@ void main() {
   late _MockUpdateVerseHighlight updateVerseHighlight;
   late _MockDeleteVerseHighlight deleteVerseHighlight;
   late _MockRecordDailyReadingEvent recordDailyReadingEvent;
+  late _MockCheckInternetConnectivity checkInternetConnectivity;
 
   setUpAll(() {
     registerFallbackValue(const ReadingSettingsEntity());
@@ -94,6 +96,7 @@ void main() {
     updateVerseHighlight = _MockUpdateVerseHighlight();
     deleteVerseHighlight = _MockDeleteVerseHighlight();
     recordDailyReadingEvent = _MockRecordDailyReadingEvent();
+    checkInternetConnectivity = _MockCheckInternetConnectivity();
     when(() => getReadingProgress()).thenAnswer(
       (_) async => const Right<Failure, ReadingProgressEntity?>(null),
     );
@@ -143,6 +146,7 @@ void main() {
         updateVerseHighlight: updateVerseHighlight,
         deleteVerseHighlight: deleteVerseHighlight,
         recordDailyReadingEvent: recordDailyReadingEvent,
+        checkInternetConnectivity: checkInternetConnectivity,
       ),
     );
   });
@@ -278,3 +282,6 @@ class _MockDeleteVerseHighlight extends Mock implements DeleteVerseHighlight {}
 
 class _MockRecordDailyReadingEvent extends Mock
     implements RecordDailyReadingEvent {}
+
+class _MockCheckInternetConnectivity extends Mock
+    implements CheckInternetConnectivity {}

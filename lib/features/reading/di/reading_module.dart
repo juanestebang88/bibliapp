@@ -1,5 +1,4 @@
 import 'package:get_it/get_it.dart';
-import 'package:bibliapp/core/bootstrap/bible_bootstrap.dart';
 import 'package:bibliapp/features/reading/data/bible_db_initialization.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_database.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_local_data_source.dart';
@@ -9,7 +8,6 @@ import 'package:bibliapp/features/reading/domain/repositories/connectivity_repos
 import 'package:bibliapp/features/reading/domain/repositories/reading_repository.dart';
 import 'package:bibliapp/features/reading/domain/usecases/add_verse_highlight.dart';
 import 'package:bibliapp/features/reading/domain/usecases/check_internet_connectivity.dart';
-import 'package:bibliapp/features/reading/domain/usecases/clear_reading_data.dart';
 import 'package:bibliapp/features/reading/domain/usecases/count_completed_chapters.dart';
 import 'package:bibliapp/features/reading/domain/usecases/delete_verse_highlight.dart';
 import 'package:bibliapp/features/reading/domain/usecases/ensure_bible_imported.dart';
@@ -22,22 +20,19 @@ import 'package:bibliapp/features/reading/domain/usecases/get_daily_verse.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_settings.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_recent_reading_days.dart';
-import 'package:bibliapp/features/reading/domain/usecases/get_verse.dart';
 import 'package:bibliapp/features/reading/domain/usecases/record_daily_reading_event.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.dart';
 import 'package:bibliapp/features/reading/domain/usecases/search_verses.dart';
 import 'package:bibliapp/features/reading/domain/usecases/update_verse_highlight.dart';
-import 'package:bibliapp/features/home/presentation/cubit/home_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/passage_picker_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/search_cubit.dart';
-import 'package:bibliapp/features/splash/presentation/cubit/splash_cubit.dart';
 
-final GetIt getIt = GetIt.instance;
-
-void registerGetIt() {
+/// Registers the reading feature: local database, repositories, use cases
+/// and cubits. Other features resolve reading use cases from here.
+void registerReadingModule(GetIt getIt) {
   if (getIt.isRegistered<ReadingDatabase>()) return;
 
   getIt.registerLazySingleton<ReadingDatabase>(
@@ -52,7 +47,6 @@ void registerGetIt() {
   getIt.registerLazySingleton<ConnectivityRepository>(
     ConnectivityRepositoryImpl.new,
   );
-  getIt.registerFactory(() => GetVerse(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetChapterVerses(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetChapterCount(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetChapterProgress(getIt<ReadingRepository>()));
@@ -61,10 +55,7 @@ void registerGetIt() {
   getIt.registerFactory(() => SaveReadingProgress(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetReadingSettings(getIt<ReadingRepository>()));
   getIt.registerFactory(() => SaveReadingSettings(getIt<ReadingRepository>()));
-  getIt.registerFactory(() => ClearReadingData(getIt<ReadingRepository>()));
-  getIt.registerFactory<BibleBootstrap>(
-    () => EnsureBibleImported(getIt<ReadingRepository>()),
-  );
+  getIt.registerFactory(() => EnsureBibleImported(getIt<ReadingRepository>()));
   getIt.registerFactory(() => SearchVerses(getIt<ReadingRepository>()));
   getIt.registerFactory(() => GetChapterHighlights(getIt<ReadingRepository>()));
   getIt.registerFactory(() => AddVerseHighlight(getIt<ReadingRepository>()));
@@ -84,9 +75,6 @@ void registerGetIt() {
   );
   getIt.registerFactory(() => SearchCubit(searchVerses: getIt<SearchVerses>()));
   getIt.registerFactory(
-    () => SplashCubit(bibleBootstrap: getIt<BibleBootstrap>()),
-  );
-  getIt.registerFactory(
     () => ReadingCubit(
       getChapterVerses: getIt<GetChapterVerses>(),
       getChapterCount: getIt<GetChapterCount>(),
@@ -101,15 +89,7 @@ void registerGetIt() {
       updateVerseHighlight: getIt<UpdateVerseHighlight>(),
       deleteVerseHighlight: getIt<DeleteVerseHighlight>(),
       recordDailyReadingEvent: getIt<RecordDailyReadingEvent>(),
-    ),
-  );
-  getIt.registerFactory(
-    () => HomeCubit(
-      getDailyVerse: getIt<GetDailyVerse>(),
-      getContinueReading: getIt<GetContinueReading>(),
-      getChapterCount: getIt<GetChapterCount>(),
-      countCompletedChapters: getIt<CountCompletedChapters>(),
-      getRecentReadingDays: getIt<GetRecentReadingDays>(),
+      checkInternetConnectivity: getIt<CheckInternetConnectivity>(),
     ),
   );
   getIt.registerFactory(

@@ -51,7 +51,7 @@ Aplicación móvil de lectura bíblica desarrollada en **Flutter** para **Androi
 | Base de datos local | Almacenamiento local (rachas, notas, referencias, plan) |
 | Backend | Firebase (Authentication y base de datos) |
 | Notificaciones | Notificaciones locales programadas |
-| Texto bíblico | `RV1960.json` (Reina-Valera 1960) |
+| Texto bíblico | `tool/data/RV1960.json` (Reina-Valera 1960) |
 | Plataformas | Android e iOS |
 
 ---
@@ -63,7 +63,7 @@ El proyecto sigue **Clean Architecture**, separando la lógica de la interfaz:
 ```
 lib/
 ├── core/            # Tema, constantes, utilidades, componentes reutilizables
-├── data/            # Fuentes de datos (local, Firebase, RV1960.json), modelos, repositorios impl.
+├── data/            # Fuentes de datos (local, Firebase), modelos, repositorios impl.
 ├── domain/          # Entidades, contratos de repositorios, casos de uso
 └── presentation/    # Pantallas, widgets, Cubits
 ```
@@ -120,7 +120,7 @@ fvm flutter run
 
 ## 📂 Texto bíblico
 
-El archivo `RV1960.json` se encuentra en la raíz del proyecto y se copia a la capa de datos para ser consumido por la aplicación.
+El archivo `tool/data/RV1960.json` es la fuente con la que se genera la base de datos preempaquetada (`assets/db/bible_prepacked.db`) mediante `fvm dart run tool/prepack_bible.dart`. En tiempo de ejecución la app copia esa base de datos a la primera arranque; no lee el JSON.
 
 ---
 

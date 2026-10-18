@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:bibliapp/core/router/go_router.dart';
-import 'package:bibliapp/core/di/get_it.dart';
+import 'package:bibliapp/app/router/go_router.dart';
+import 'package:bibliapp/app/di/get_it.dart';
 import 'package:bibliapp/core/theme/theme.dart';
 
 Future<void> main() async {

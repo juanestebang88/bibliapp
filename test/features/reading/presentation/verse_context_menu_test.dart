@@ -1,33 +1,35 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
-import 'package:bibliapp/core/di/get_it.dart';
-import 'package:bibliapp/core/error/failure.dart';
 import 'package:bibliapp/core/localization/app_strings.dart';
 import 'package:bibliapp/core/theme/app_colors.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
-import 'package:bibliapp/features/reading/domain/usecases/check_internet_connectivity.dart';
-import 'package:bibliapp/features/reading/presentation/widgets/rae_webview_dialog.dart';
+import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
+import 'package:bibliapp/features/reading/presentation/widgets/highlight_color_sheet.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/verse_context_menu.dart';
 
-import 'fake_webview_platform.dart';
-
-class _MockCheckInternetConnectivity extends Mock
-    implements CheckInternetConnectivity {}
+class _MockReadingCubit extends Mock implements ReadingCubit {}
 
 const _verse = VerseEntity(book: 'john', chapter: 3, verse: 16, text: 'paz');
 
 void main() {
-  setUp(() async {
-    await getIt.reset();
+  late _MockReadingCubit readingCubit;
+
+  setUp(() {
+    readingCubit = _MockReadingCubit();
+    when(() => readingCubit.state).thenReturn(const ReadingState());
+    when(() => readingCubit.stream)
+        .thenAnswer((_) => const Stream<ReadingState>.empty());
+    when(() => readingCubit.checkRaeConnectivity(any()))
+        .thenAnswer((_) async {});
+    when(() => readingCubit.close()).thenAnswer((_) async {});
   });
 
-  tearDown(() async {
+  tearDown(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, null);
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -35,7 +37,6 @@ void main() {
           const MethodChannel('dev.fluttercommunity.plus/share'),
           null,
         );
-    await getIt.reset();
   });
 
   // The short verse text keeps the long-press selection ("paz", offsets
@@ -54,16 +55,19 @@ void main() {
   }) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: SelectableText.rich(
-              TextSpan(text: verse.text),
-              contextMenuBuilder: (context, editableTextState) =>
-                  VerseContextMenu(
-                    editableTextState: editableTextState,
-                    verse: verse,
-                    highlights: highlights,
-                  ),
+        home: BlocProvider<ReadingCubit>(
+          create: (_) => readingCubit,
+          child: Scaffold(
+            body: Center(
+              child: SelectableText.rich(
+                TextSpan(text: verse.text),
+                contextMenuBuilder: (context, editableTextState) =>
+                    VerseContextMenu(
+                      editableTextState: editableTextState,
+                      verse: verse,
+                      highlights: highlights,
+                    ),
+              ),
             ),
           ),
         ),
@@ -100,10 +104,12 @@ void main() {
   }
 
   VerseHighlightEntity highlight({
+    int? id,
     int startOffset = 0,
     int endOffset = 3,
     HighlightColor color = HighlightColor.green,
   }) => VerseHighlightEntity(
+    id: id,
     book: selectionVerse.book,
     chapter: selectionVerse.chapter,
     verse: selectionVerse.verse,
@@ -113,13 +119,6 @@ void main() {
     createdAt: DateTime.fromMillisecondsSinceEpoch(1000),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(1000),
   );
-
-  void registerConnectivity({required bool hasInternet}) {
-    final useCase = _MockCheckInternetConnectivity();
-    when(() => useCase())
-        .thenAnswer((_) async => Right<Failure, bool>(hasInternet));
-    getIt.registerFactory<CheckInternetConnectivity>(() => useCase);
-  }
 
   testWidgets('shows the context actions in order', (tester) async {
     await pumpMenu(tester);
@@ -349,37 +348,37 @@ void main() {
     expect(shared, 'paz — Juan 3:16');
   });
 
-  testWidgets('search in RAE shows the no-internet dialog when offline', (
+  testWidgets('search in RAE asks the cubit to check connectivity', (
     tester,
   ) async {
-    registerConnectivity(hasInternet: false);
-
     await pumpMenu(tester);
     await tester.tap(find.text(AppStrings.searchInRae));
     await tester.pumpAndSettle();
 
-    expect(find.text(AppStrings.needsInternetForRae), findsOneWidget);
-    expect(find.byType(RaeWebViewDialog), findsNothing);
+    verify(() => readingCubit.checkRaeConnectivity('paz')).called(1);
   });
 
-  testWidgets('search in RAE opens the webview dialog when online', (
+  testWidgets('change color opens the sheet and updates the highlight', (
     tester,
   ) async {
-    WebViewPlatform.instance = FakeWebViewPlatform();
-    registerConnectivity(hasInternet: true);
+    when(() => readingCubit.changeHighlightColor(7, HighlightColor.blue))
+        .thenAnswer((_) async {});
 
-    await pumpMenu(tester);
-    await tester.tap(find.text(AppStrings.searchInRae));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
-    expect(find.byType(RaeWebViewDialog), findsOneWidget);
-    expect(
-      find.descendant(
-        of: find.byType(RaeWebViewDialog),
-        matching: find.text('paz'),
-      ),
-      findsOneWidget,
+    await pumpMenu(
+      tester,
+      verse: selectionVerse,
+      highlights: [highlight(id: 7)],
     );
+    await tester.tap(find.text(AppStrings.changeColor));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HighlightColorSheet), findsOneWidget);
+    expect(find.text(AppStrings.chooseColor), findsOneWidget);
+
+    await tester.tap(find.text(AppStrings.colorBlue));
+    await tester.pumpAndSettle();
+
+    verify(() => readingCubit.changeHighlightColor(7, HighlightColor.blue))
+        .called(1);
   });
 }

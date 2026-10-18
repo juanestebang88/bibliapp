@@ -1,4 +1,4 @@
-import 'package:bibliapp/core/bootstrap/bible_bootstrap.dart';
+import 'package:bibliapp/features/reading/domain/usecases/ensure_bible_imported.dart';
 import 'package:bibliapp/core/error/failure.dart';
 import 'package:bibliapp/features/splash/presentation/cubit/splash_cubit.dart';
 import 'package:bibliapp/features/splash/presentation/cubit/splash_state.dart';
@@ -7,17 +7,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 
-class _MockBibleBootstrap extends Mock implements BibleBootstrap {}
+class _MockEnsureBibleImported extends Mock implements EnsureBibleImported {}
 
 void main() {
-  late _MockBibleBootstrap bibleBootstrap;
+  late _MockEnsureBibleImported ensureBibleImported;
 
   setUp(() {
-    bibleBootstrap = _MockBibleBootstrap();
+    ensureBibleImported = _MockEnsureBibleImported();
   });
 
   test('initial state is loading', () {
-    final cubit = SplashCubit(bibleBootstrap: bibleBootstrap);
+    final cubit = SplashCubit(ensureBibleImported: ensureBibleImported);
     expect(cubit.state.status, SplashStatus.loading);
     cubit.close();
   });
@@ -25,9 +25,9 @@ void main() {
   blocTest<SplashCubit, SplashState>(
     'emits ready after a successful import',
     build: () {
-      when(() => bibleBootstrap.ensureImported())
+      when(() => ensureBibleImported.ensureImported())
           .thenAnswer((_) async => const Right<Failure, Unit>(unit));
-      return SplashCubit(bibleBootstrap: bibleBootstrap);
+      return SplashCubit(ensureBibleImported: ensureBibleImported);
     },
     act: (cubit) => cubit.initialize(),
     wait: const Duration(milliseconds: 1300),
@@ -40,10 +40,10 @@ void main() {
   blocTest<SplashCubit, SplashState>(
     'emits failure when the import fails',
     build: () {
-      when(() => bibleBootstrap.ensureImported()).thenAnswer(
+      when(() => ensureBibleImported.ensureImported()).thenAnswer(
         (_) async => const Left<Failure, Unit>(DatabaseFailure('boom')),
       );
-      return SplashCubit(bibleBootstrap: bibleBootstrap);
+      return SplashCubit(ensureBibleImported: ensureBibleImported);
     },
     act: (cubit) => cubit.initialize(),
     wait: const Duration(milliseconds: 1300),
@@ -57,13 +57,13 @@ void main() {
     'retry re-runs the import and reaches ready',
     build: () {
       var calls = 0;
-      when(() => bibleBootstrap.ensureImported()).thenAnswer((_) async {
+      when(() => ensureBibleImported.ensureImported()).thenAnswer((_) async {
         calls++;
         return calls == 1
             ? const Left<Failure, Unit>(DatabaseFailure('boom'))
             : const Right<Failure, Unit>(unit);
       });
-      return SplashCubit(bibleBootstrap: bibleBootstrap);
+      return SplashCubit(ensureBibleImported: ensureBibleImported);
     },
     act: (cubit) async {
       await cubit.initialize();

@@ -12,6 +12,7 @@ import 'package:bibliapp/features/reading/domain/entities/search_focus.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/add_verse_highlight.dart';
+import 'package:bibliapp/features/reading/domain/usecases/check_internet_connectivity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/delete_verse_highlight.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_highlights.dart';
@@ -40,6 +41,7 @@ void main() {
   late _MockUpdateVerseHighlight updateVerseHighlight;
   late _MockDeleteVerseHighlight deleteVerseHighlight;
   late _MockRecordDailyReadingEvent recordDailyReadingEvent;
+  late _MockCheckInternetConnectivity checkInternetConnectivity;
 
   setUpAll(() {
     registerFallbackValue(const ReadingSettingsEntity());
@@ -82,6 +84,7 @@ void main() {
     updateVerseHighlight = _MockUpdateVerseHighlight();
     deleteVerseHighlight = _MockDeleteVerseHighlight();
     recordDailyReadingEvent = _MockRecordDailyReadingEvent();
+    checkInternetConnectivity = _MockCheckInternetConnectivity();
     when(() => getReadingSettings()).thenAnswer(
       (_) async => const Right<Failure, ReadingSettingsEntity?>(null),
     );
@@ -103,6 +106,8 @@ void main() {
     );
     when(() => recordDailyReadingEvent(any(), any(), any(), any()))
         .thenAnswer((_) async => const Right<Failure, bool>(true));
+    when(() => checkInternetConnectivity())
+        .thenAnswer((_) async => const Right<Failure, bool>(true));
   });
 
   ReadingCubit createCubit() => ReadingCubit(
@@ -119,6 +124,7 @@ void main() {
     updateVerseHighlight: updateVerseHighlight,
     deleteVerseHighlight: deleteVerseHighlight,
     recordDailyReadingEvent: recordDailyReadingEvent,
+    checkInternetConnectivity: checkInternetConnectivity,
   );
 
   List<VerseEntity> versesFor(
@@ -1135,6 +1141,44 @@ void main() {
           ),
     ],
   );
+
+  blocTest<ReadingCubit, ReadingState>(
+    'checkRaeConnectivity emits checking, available and back to unknown when online',
+    build: createCubit,
+    act: (cubit) => cubit.checkRaeConnectivity('paz'),
+    expect: () => [
+      const ReadingState(
+        raeAvailability: RaeAvailability.checking,
+        raeWord: 'paz',
+      ),
+      const ReadingState(
+        raeAvailability: RaeAvailability.available,
+        raeWord: 'paz',
+      ),
+      const ReadingState(),
+    ],
+  );
+
+  blocTest<ReadingCubit, ReadingState>(
+    'checkRaeConnectivity emits checking, unavailable and back to unknown when offline',
+    setUp: () {
+      when(() => checkInternetConnectivity())
+          .thenAnswer((_) async => const Right<Failure, bool>(false));
+    },
+    build: createCubit,
+    act: (cubit) => cubit.checkRaeConnectivity('paz'),
+    expect: () => [
+      const ReadingState(
+        raeAvailability: RaeAvailability.checking,
+        raeWord: 'paz',
+      ),
+      const ReadingState(
+        raeAvailability: RaeAvailability.unavailable,
+        raeWord: 'paz',
+      ),
+      const ReadingState(),
+    ],
+  );
 }
 
 class _MockGetChapterVerses extends Mock implements GetChapterVerses {}
@@ -1163,3 +1207,6 @@ class _MockDeleteVerseHighlight extends Mock implements DeleteVerseHighlight {}
 
 class _MockRecordDailyReadingEvent extends Mock
     implements RecordDailyReadingEvent {}
+
+class _MockCheckInternetConnectivity extends Mock
+    implements CheckInternetConnectivity {}

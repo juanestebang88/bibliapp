@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:bibliapp/core/theme/highlight_palette.dart';
+import 'package:bibliapp/features/reading/presentation/theme/highlight_palette.dart';
 import 'package:bibliapp/core/theme/theme.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';

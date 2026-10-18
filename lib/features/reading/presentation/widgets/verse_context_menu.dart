@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:bibliapp/core/di/get_it.dart';
 import 'package:bibliapp/core/localization/app_strings.dart';
 import 'package:bibliapp/core/theme/app_colors.dart';
 import 'package:bibliapp/core/theme/app_context_menu_tokens.dart';
@@ -11,11 +10,9 @@ import 'package:bibliapp/core/theme/app_spacing.dart';
 import 'package:bibliapp/core/utils/word_extraction.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
-import 'package:bibliapp/features/reading/domain/usecases/check_internet_connectivity.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/highlight_color_sheet.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/highlight_spans.dart';
-import 'package:bibliapp/features/reading/presentation/widgets/rae_webview_dialog.dart';
 
 /// Replaces the native selection toolbar with the reading screen actions:
 /// copy the word, look it up in the RAE, share the verse and underline the
@@ -133,36 +130,11 @@ class VerseContextMenu extends StatelessWidget {
     );
   }
 
-  Future<void> _searchInRae() async {
+  void _searchInRae() {
     final word = extractSelectedWord(_rawSelection);
     _dismiss();
     if (word.isEmpty) return;
-
-    final result = await getIt<CheckInternetConnectivity>()();
-    final hasInternet = result.getOrElse((_) => false);
-    if (!_anchorContext.mounted) return;
-
-    if (!hasInternet) {
-      await showDialog<void>(
-        context: _anchorContext,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text(AppStrings.noInternetConnection),
-          content: const Text(AppStrings.needsInternetForRae),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text(AppStrings.close),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
-    await showDialog<void>(
-      context: _anchorContext,
-      builder: (_) => RaeWebViewDialog(word: word),
-    );
+    _anchorContext.read<ReadingCubit>().checkRaeConnectivity(word);
   }
 
   Future<void> _underlineSelection() async {

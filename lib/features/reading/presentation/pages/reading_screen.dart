@@ -6,10 +6,12 @@ import 'package:bibliapp/core/theme/app_progress_button_tokens.dart';
 import 'package:bibliapp/core/theme/app_spacing.dart';
 import 'package:bibliapp/core/widgets/bottom_toolbar.dart';
 import 'package:bibliapp/features/reading/domain/entities/search_focus.dart';
+import 'package:bibliapp/features/reading/presentation/cubit/passage_picker_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/chapter_navigation.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/consultation_continue_button.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/passage_picker_dialog.dart';
+import 'package:bibliapp/features/reading/presentation/widgets/rae_lookup_listener.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/reading_focus_actions.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/reading_header.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/reading_immersive_scaffold.dart';
@@ -28,7 +30,16 @@ class ReadingScreen extends StatefulWidget {
   /// counter visible and no back button.
   final SearchFocus? initialLocation;
 
-  const ReadingScreen({super.key, this.focus, this.initialLocation});
+  /// Injected by the composition root so the passage picker dialog gets a
+  /// fresh cubit per open without the widget touching the DI container.
+  final PassagePickerCubit Function() createPassagePickerCubit;
+
+  const ReadingScreen({
+    super.key,
+    this.focus,
+    this.initialLocation,
+    required this.createPassagePickerCubit,
+  });
 
   @override
   State<ReadingScreen> createState() => _ReadingScreenState();
@@ -86,10 +97,18 @@ class _ReadingScreenState extends State<ReadingScreen> {
     final cubit = context.read<ReadingCubit>();
     final selection = await showDialog<PassageSelection>(
       context: context,
-      builder: (_) => PassagePickerDialog(
-        currentBook: state.currentBook,
-        currentChapter: state.currentChapter,
-        currentVerseNumber: state.currentVerseNumber,
+      builder: (_) => BlocProvider(
+        create: (_) => widget.createPassagePickerCubit()
+          ..initialize(
+            currentBook: state.currentBook,
+            currentChapter: state.currentChapter,
+            currentVerseNumber: state.currentVerseNumber,
+          ),
+        child: PassagePickerDialog(
+          currentBook: state.currentBook,
+          currentChapter: state.currentChapter,
+          currentVerseNumber: state.currentVerseNumber,
+        ),
       ),
     );
     if (selection == null) return;
@@ -140,95 +159,97 @@ class _ReadingScreenState extends State<ReadingScreen> {
   Widget build(BuildContext context) {
     return BlocListener<ReadingCubit, ReadingState>(
       listener: _onStateChanged,
-      child: Scaffold(
-        body: BlocBuilder<ReadingCubit, ReadingState>(
-          builder: (context, state) {
-            _trackChapterChange(state);
-            final isConsultation = widget.focus != null;
-            return ReadingImmersiveScaffold(
-              state: state,
-              header: ReadingHeader(
+      child: RaeLookupListener(
+        child: Scaffold(
+          body: BlocBuilder<ReadingCubit, ReadingState>(
+            builder: (context, state) {
+              _trackChapterChange(state);
+              final isConsultation = widget.focus != null;
+              return ReadingImmersiveScaffold(
                 state: state,
-                onOpenPicker: () => _openPassagePicker(context, state),
-                onSearch: () => _openSearch(context),
-              ),
-              topAccessory: isConsultation
-                  ? Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                      child: ReadingFocusActions(
-                        showBackToResults: state.activeFocus != null,
-                      ),
-                    )
-                  : null,
-              body: !isConsultation
-                  ? Stack(
-                      children: [
-                        Positioned.fill(
-                          child: SwipeableReadingBody(
-                            state: state,
-                            bottomContentInset:
-                                AppProgressButtonTokens.contentBottomClearance,
-                            userScrollOnly: _counterUserScrollOnly,
-                            onVisibleVerseChanged: _onVisibleVerseChanged,
-                          ),
+                header: ReadingHeader(
+                  state: state,
+                  onOpenPicker: () => _openPassagePicker(context, state),
+                  onSearch: () => _openSearch(context),
+                ),
+                topAccessory: isConsultation
+                    ? Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                        child: ReadingFocusActions(
+                          showBackToResults: state.activeFocus != null,
                         ),
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              right: AppSpacing.md,
-                              bottom: AppProgressButtonTokens.bottomMargin,
-                            ),
-                            child: ReadingProgressButton(
+                      )
+                    : null,
+                body: !isConsultation
+                    ? Stack(
+                        children: [
+                          Positioned.fill(
+                            child: SwipeableReadingBody(
                               state: state,
-                              visibleVerse: _visibleVerse,
+                              bottomContentInset: AppProgressButtonTokens
+                                  .contentBottomClearance,
+                              userScrollOnly: _counterUserScrollOnly,
+                              onVisibleVerseChanged: _onVisibleVerseChanged,
                             ),
                           ),
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                right: AppSpacing.md,
+                                bottom: AppProgressButtonTokens.bottomMargin,
+                              ),
+                              child: ReadingProgressButton(
+                                state: state,
+                                visibleVerse: _visibleVerse,
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    : SwipeableReadingBody(
+                        state: state,
+                        chapterSwipeEnabled: false,
+                      ),
+                footer: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: AppSpacing.sm),
+                    if (isConsultation)
+                      ConsultationContinueButton(
+                        book: state.currentBook,
+                        chapter: state.currentChapter,
+                        verse: state.currentVerseNumber,
+                        enabled: state.status == ReadingStatus.success,
+                      )
+                    else
+                      ChapterNavigation(state: state),
+                    BottomToolbar(
+                      items: [
+                        BottomToolbarItem(
+                          icon: Icons.home_outlined,
+                          label: AppStrings.home,
+                          onTap: () => context.go('/home'),
+                        ),
+                        BottomToolbarItem(
+                          icon: Icons.menu_book_outlined,
+                          label: AppStrings.reading,
+                        ),
+                        BottomToolbarItem(
+                          icon: Icons.bar_chart,
+                          label: AppStrings.statistics,
+                        ),
+                        BottomToolbarItem(
+                          icon: Icons.settings_outlined,
+                          label: AppStrings.settings,
                         ),
                       ],
-                    )
-                  : SwipeableReadingBody(
-                      state: state,
-                      chapterSwipeEnabled: false,
                     ),
-              footer: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: AppSpacing.sm),
-                  if (isConsultation)
-                    ConsultationContinueButton(
-                      book: state.currentBook,
-                      chapter: state.currentChapter,
-                      verse: state.currentVerseNumber,
-                      enabled: state.status == ReadingStatus.success,
-                    )
-                  else
-                    ChapterNavigation(state: state),
-                  BottomToolbar(
-                    items: [
-                      BottomToolbarItem(
-                        icon: Icons.home_outlined,
-                        label: AppStrings.home,
-                        onTap: () => context.go('/home'),
-                      ),
-                      BottomToolbarItem(
-                        icon: Icons.menu_book_outlined,
-                        label: AppStrings.reading,
-                      ),
-                      BottomToolbarItem(
-                        icon: Icons.bar_chart,
-                        label: AppStrings.statistics,
-                      ),
-                      BottomToolbarItem(
-                        icon: Icons.settings_outlined,
-                        label: AppStrings.settings,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
