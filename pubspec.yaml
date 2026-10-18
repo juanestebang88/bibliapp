@@ -89,7 +89,6 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/data/RV1960.json
     - assets/db/bible_prepacked.db
     - assets/fonts/
     - assets/images/logo-splash.png

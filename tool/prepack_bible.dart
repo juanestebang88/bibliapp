@@ -19,8 +19,7 @@ Future<void> main() async {
   final separator = Platform.pathSeparator;
 
   final jsonFile = File(
-    '${repositoryRoot.path}${separator}assets${separator}data$separator'
-    'RV1960.json',
+    '${scriptDirectory.path}${separator}data${separator}RV1960.json',
   );
   final outputDirectory = Directory(
     '${repositoryRoot.path}${separator}assets${separator}db',
