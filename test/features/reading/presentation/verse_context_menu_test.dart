@@ -9,6 +9,7 @@ import 'package:bibliapp/core/theme/app_colors.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
+import 'package:bibliapp/features/reading/presentation/widgets/highlight_color_sheet.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/verse_context_menu.dart';
 
 class _MockReadingCubit extends Mock implements ReadingCubit {}
@@ -103,10 +104,12 @@ void main() {
   }
 
   VerseHighlightEntity highlight({
+    int? id,
     int startOffset = 0,
     int endOffset = 3,
     HighlightColor color = HighlightColor.green,
   }) => VerseHighlightEntity(
+    id: id,
     book: selectionVerse.book,
     chapter: selectionVerse.chapter,
     verse: selectionVerse.verse,
@@ -353,5 +356,29 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => readingCubit.checkRaeConnectivity('paz')).called(1);
+  });
+
+  testWidgets('change color opens the sheet and updates the highlight', (
+    tester,
+  ) async {
+    when(() => readingCubit.changeHighlightColor(7, HighlightColor.blue))
+        .thenAnswer((_) async {});
+
+    await pumpMenu(
+      tester,
+      verse: selectionVerse,
+      highlights: [highlight(id: 7)],
+    );
+    await tester.tap(find.text(AppStrings.changeColor));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HighlightColorSheet), findsOneWidget);
+    expect(find.text(AppStrings.chooseColor), findsOneWidget);
+
+    await tester.tap(find.text(AppStrings.colorBlue));
+    await tester.pumpAndSettle();
+
+    verify(() => readingCubit.changeHighlightColor(7, HighlightColor.blue))
+        .called(1);
   });
 }
