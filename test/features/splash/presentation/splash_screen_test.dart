@@ -29,6 +29,10 @@ void main() {
       routes: [
         GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
         GoRoute(
+          path: '/home',
+          builder: (_, _) => const Scaffold(body: Text('home-placeholder')),
+        ),
+        GoRoute(
           path: '/reading',
           builder: (_, _) => const Scaffold(body: Text('reading-placeholder')),
         ),
@@ -75,7 +79,7 @@ void main() {
     await cubit.close();
   });
 
-  testWidgets('retry recovers and navigates to reading', (tester) async {
+  testWidgets('retry recovers and navigates to home', (tester) async {
     var calls = 0;
     when(() => bibleBootstrap.ensureImported()).thenAnswer((_) async {
       calls++;
@@ -96,7 +100,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 1500));
     await tester.pump();
 
-    expect(find.text('reading-placeholder'), findsOneWidget);
+    expect(find.text('home-placeholder'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await cubit.close();

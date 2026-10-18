@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:bibliapp/core/error/failure.dart';
+import 'package:bibliapp/core/utils/local_date_key.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_reference.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
@@ -18,6 +19,7 @@ import 'package:bibliapp/features/reading/domain/usecases/get_chapter_progress.d
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_settings.dart';
+import 'package:bibliapp/features/reading/domain/usecases/record_daily_reading_event.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.dart';
@@ -37,6 +39,7 @@ void main() {
   late _MockAddVerseHighlight addVerseHighlight;
   late _MockUpdateVerseHighlight updateVerseHighlight;
   late _MockDeleteVerseHighlight deleteVerseHighlight;
+  late _MockRecordDailyReadingEvent recordDailyReadingEvent;
 
   setUpAll(() {
     registerFallbackValue(const ReadingSettingsEntity());
@@ -78,6 +81,7 @@ void main() {
     addVerseHighlight = _MockAddVerseHighlight();
     updateVerseHighlight = _MockUpdateVerseHighlight();
     deleteVerseHighlight = _MockDeleteVerseHighlight();
+    recordDailyReadingEvent = _MockRecordDailyReadingEvent();
     when(() => getReadingSettings()).thenAnswer(
       (_) async => const Right<Failure, ReadingSettingsEntity?>(null),
     );
@@ -97,6 +101,8 @@ void main() {
     when(() => getChapterHighlights(any(), any())).thenAnswer(
       (_) async => const Right<Failure, List<VerseHighlightEntity>>([]),
     );
+    when(() => recordDailyReadingEvent(any(), any(), any(), any()))
+        .thenAnswer((_) async => const Right<Failure, bool>(true));
   });
 
   ReadingCubit createCubit() => ReadingCubit(
@@ -112,6 +118,7 @@ void main() {
     addVerseHighlight: addVerseHighlight,
     updateVerseHighlight: updateVerseHighlight,
     deleteVerseHighlight: deleteVerseHighlight,
+    recordDailyReadingEvent: recordDailyReadingEvent,
   );
 
   List<VerseEntity> versesFor(
@@ -1037,6 +1044,97 @@ void main() {
       await cubit.close();
     },
   );
+
+  blocTest<ReadingCubit, ReadingState>(
+    'recording the daily event for markChapterComplete uses the full verse count',
+    setUp: () {
+      when(() => getChapterVerses('genesis', 1)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(8, book: 'genesis', chapter: 1),
+        ),
+      );
+    },
+    build: createCubit,
+    act: (cubit) async {
+      await cubit.loadChapter('genesis', 1);
+      await cubit.markChapterComplete();
+    },
+    verify: (_) {
+      verify(
+        () => recordDailyReadingEvent(
+          localDateKey(DateTime.now()),
+          'genesis',
+          1,
+          8,
+        ),
+      ).called(1);
+    },
+  );
+
+  blocTest<ReadingCubit, ReadingState>(
+    'recording the daily event for savePartialProgress uses the marked verse',
+    setUp: () {
+      when(() => getChapterVerses('genesis', 1)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(30, book: 'genesis', chapter: 1),
+        ),
+      );
+    },
+    build: createCubit,
+    act: (cubit) async {
+      await cubit.loadChapter('genesis', 1);
+      await cubit.savePartialProgress(12);
+    },
+    verify: (_) {
+      verify(
+        () => recordDailyReadingEvent(
+          localDateKey(DateTime.now()),
+          'genesis',
+          1,
+          12,
+        ),
+      ).called(1);
+    },
+  );
+
+  blocTest<ReadingCubit, ReadingState>(
+    'a failed daily-event record does not fail the chapter persistence',
+    setUp: () {
+      when(() => getChapterVerses('genesis', 1)).thenAnswer(
+        (_) async => Right<Failure, List<VerseEntity>>(
+          versesFor(3, book: 'genesis', chapter: 1),
+        ),
+      );
+      when(() => recordDailyReadingEvent(any(), any(), any(), any()))
+          .thenAnswer(
+            (_) async => const Left<Failure, bool>(DatabaseFailure('boom')),
+          );
+    },
+    build: createCubit,
+    act: (cubit) async {
+      await cubit.loadChapter('genesis', 1);
+      await cubit.savePartialProgress(1);
+    },
+    expect: () => [
+      isA<ReadingState>().having(
+        (state) => state.status,
+        'status',
+        ReadingStatus.loading,
+      ),
+      isA<ReadingState>().having(
+        (state) => state.status,
+        'status',
+        ReadingStatus.success,
+      ),
+      isA<ReadingState>()
+          .having((state) => state.status, 'status', ReadingStatus.success)
+          .having(
+            (state) => state.chapterProgress?.lastVerseRead,
+            'lastVerseRead',
+            1,
+          ),
+    ],
+  );
 }
 
 class _MockGetChapterVerses extends Mock implements GetChapterVerses {}
@@ -1062,3 +1160,6 @@ class _MockAddVerseHighlight extends Mock implements AddVerseHighlight {}
 class _MockUpdateVerseHighlight extends Mock implements UpdateVerseHighlight {}
 
 class _MockDeleteVerseHighlight extends Mock implements DeleteVerseHighlight {}
+
+class _MockRecordDailyReadingEvent extends Mock
+    implements RecordDailyReadingEvent {}

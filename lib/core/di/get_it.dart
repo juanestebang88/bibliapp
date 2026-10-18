@@ -10,20 +10,26 @@ import 'package:bibliapp/features/reading/domain/repositories/reading_repository
 import 'package:bibliapp/features/reading/domain/usecases/add_verse_highlight.dart';
 import 'package:bibliapp/features/reading/domain/usecases/check_internet_connectivity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/clear_reading_data.dart';
+import 'package:bibliapp/features/reading/domain/usecases/count_completed_chapters.dart';
 import 'package:bibliapp/features/reading/domain/usecases/delete_verse_highlight.dart';
 import 'package:bibliapp/features/reading/domain/usecases/ensure_bible_imported.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_highlights.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_continue_reading.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_daily_verse.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_settings.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_recent_reading_days.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_verse.dart';
+import 'package:bibliapp/features/reading/domain/usecases/record_daily_reading_event.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.dart';
 import 'package:bibliapp/features/reading/domain/usecases/search_verses.dart';
 import 'package:bibliapp/features/reading/domain/usecases/update_verse_highlight.dart';
+import 'package:bibliapp/features/home/presentation/cubit/home_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/passage_picker_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/search_cubit.dart';
@@ -64,6 +70,15 @@ void registerGetIt() {
   getIt.registerFactory(() => AddVerseHighlight(getIt<ReadingRepository>()));
   getIt.registerFactory(() => UpdateVerseHighlight(getIt<ReadingRepository>()));
   getIt.registerFactory(() => DeleteVerseHighlight(getIt<ReadingRepository>()));
+  getIt.registerFactory(() => GetContinueReading(getIt<ReadingRepository>()));
+  getIt.registerFactory(() => GetDailyVerse(getIt<ReadingRepository>()));
+  getIt.registerFactory(() => GetRecentReadingDays(getIt<ReadingRepository>()));
+  getIt.registerFactory(
+    () => CountCompletedChapters(getIt<ReadingRepository>()),
+  );
+  getIt.registerFactory(
+    () => RecordDailyReadingEvent(getIt<ReadingRepository>()),
+  );
   getIt.registerFactory(
     () => CheckInternetConnectivity(getIt<ConnectivityRepository>()),
   );
@@ -85,6 +100,16 @@ void registerGetIt() {
       addVerseHighlight: getIt<AddVerseHighlight>(),
       updateVerseHighlight: getIt<UpdateVerseHighlight>(),
       deleteVerseHighlight: getIt<DeleteVerseHighlight>(),
+      recordDailyReadingEvent: getIt<RecordDailyReadingEvent>(),
+    ),
+  );
+  getIt.registerFactory(
+    () => HomeCubit(
+      getDailyVerse: getIt<GetDailyVerse>(),
+      getContinueReading: getIt<GetContinueReading>(),
+      getChapterCount: getIt<GetChapterCount>(),
+      countCompletedChapters: getIt<CountCompletedChapters>(),
+      getRecentReadingDays: getIt<GetRecentReadingDays>(),
     ),
   );
   getIt.registerFactory(

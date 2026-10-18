@@ -8,7 +8,7 @@ import 'package:bibliapp/features/splash/presentation/widgets/splash_error_view.
 import 'package:bibliapp/features/splash/presentation/widgets/splash_loading_view.dart';
 
 /// App bootstrap screen: shows the breathing logo while the Bible text is
-/// imported and navigates to the reading screen once ready.
+/// imported and navigates to the home screen once ready.
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
@@ -20,7 +20,7 @@ class SplashScreen extends StatelessWidget {
         listenWhen: (previous, current) => previous.status != current.status,
         listener: (context, state) {
           if (state.status == SplashStatus.ready) {
-            context.go('/reading');
+            context.go('/home');
           }
         },
         child: BlocBuilder<SplashCubit, SplashState>(

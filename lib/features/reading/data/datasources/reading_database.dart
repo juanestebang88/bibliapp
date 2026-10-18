@@ -38,6 +38,10 @@ class ChapterProgress extends Table {
   BoolColumn get isComplete => boolean().withDefault(const Constant(false))();
   IntColumn get completedAt => integer().nullable()();
 
+  /// Stamp of the latest mark of this row, used to resolve the most recent
+  /// partial against a later completed chapter.
+  IntColumn get updatedAt => integer().withDefault(const Constant(0))();
+
   @override
   Set<Column> get primaryKey => {book, chapter};
 }
@@ -54,6 +58,32 @@ class VerseHighlights extends Table {
   IntColumn get updatedAt => integer()();
 }
 
+class DailyVerses extends Table {
+  IntColumn get id => integer().withDefault(const Constant(1))();
+
+  /// Local date the verse was picked for ('yyyy-MM-dd').
+  TextColumn get day => text()();
+  TextColumn get book => text()();
+  IntColumn get chapter => integer()();
+  IntColumn get verse => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class ReadingEvents extends Table {
+  /// Local date of the day the reading was marked ('yyyy-MM-dd').
+  TextColumn get activityDate => text()();
+  TextColumn get book => text()();
+  IntColumn get chapter => integer()();
+
+  /// Verses marked for this chapter that day (max kept on upsert).
+  IntColumn get verseCount => integer()();
+
+  @override
+  Set<Column> get primaryKey => {activityDate, book, chapter};
+}
+
 @DriftDatabase(
   tables: [
     Verses,
@@ -61,13 +91,15 @@ class VerseHighlights extends Table {
     ReadingSettings,
     ChapterProgress,
     VerseHighlights,
+    DailyVerses,
+    ReadingEvents,
   ],
 )
 class ReadingDatabase extends _$ReadingDatabase {
   ReadingDatabase({required QueryExecutor executor}) : super(executor);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -84,6 +116,13 @@ class ReadingDatabase extends _$ReadingDatabase {
       }
       if (from < 5) {
         await m.createTable(verseHighlights);
+      }
+      if (from < 6) {
+        await m.createTable(dailyVerses);
+        await m.createTable(readingEvents);
+      }
+      if (from < 7) {
+        await m.addColumn(chapterProgress, chapterProgress.updatedAt);
       }
     },
   );

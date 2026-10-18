@@ -204,11 +204,12 @@ class _ReadingScreenState extends State<ReadingScreen> {
                     )
                   else
                     ChapterNavigation(state: state),
-                  const BottomToolbar(
+                  BottomToolbar(
                     items: [
                       BottomToolbarItem(
                         icon: Icons.home_outlined,
                         label: AppStrings.home,
+                        onTap: () => context.go('/home'),
                       ),
                       BottomToolbarItem(
                         icon: Icons.menu_book_outlined,

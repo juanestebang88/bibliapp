@@ -3,6 +3,9 @@ import 'package:bibliapp/core/utils/search_text.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_database.dart';
 import 'package:bibliapp/features/reading/domain/book_order.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/continue_reading_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/daily_verse_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/reading_day_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
@@ -174,6 +177,7 @@ class ReadingLocalDataSource {
   }
 
   Future<void> saveChapterProgress(ChapterProgressEntity progress) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
     await database
         .into(database.chapterProgress)
         .insertOnConflictUpdate(
@@ -183,6 +187,7 @@ class ReadingLocalDataSource {
             lastVerseRead: Value(progress.lastVerseRead),
             isComplete: Value(progress.isComplete),
             completedAt: Value(progress.completedAt?.millisecondsSinceEpoch),
+            updatedAt: Value(now),
           ),
         );
   }
@@ -211,6 +216,170 @@ class ReadingLocalDataSource {
     await database.delete(database.readingSettings).go();
     await database.delete(database.chapterProgress).go();
     await database.delete(database.verseHighlights).go();
+    await database.delete(database.dailyVerses).go();
+    await database.delete(database.readingEvents).go();
+  }
+
+  /// Picks a random real verse (no verse-number markers) from the canon.
+  Future<DailyVerseEntity> getRandomVerse() async {
+    final query = database.customSelect(
+      'SELECT book, chapter, verse, text FROM verses '
+      'WHERE is_verse_number = 0 ORDER BY RANDOM() LIMIT 1',
+      readsFrom: {database.verses},
+    );
+    final result = await query.get();
+    if (result.isEmpty) {
+      throw StateError('No verses available for the daily verse.');
+    }
+    final row = result.first;
+    return DailyVerseEntity(
+      book: row.read<String>('book'),
+      chapter: row.read<int>('chapter'),
+      verse: row.read<int>('verse'),
+      text: row.read<String>('text'),
+    );
+  }
+
+  /// Saved daily verse row (without text) for [day], or null if not saved.
+  Future<DailyVerseEntity?> getSavedDailyVerse(String day) async {
+    final row =
+        await (database.select(database.dailyVerses)
+              ..where((table) => table.day.equals(day) & table.id.equals(1)))
+            .getSingleOrNull();
+    if (row == null) return null;
+    return DailyVerseEntity(
+      book: row.book,
+      chapter: row.chapter,
+      verse: row.verse,
+      text: '',
+    );
+  }
+
+  /// Persists the daily verse as the single row (id = 1).
+  Future<void> saveDailyVerse(DailyVerseEntity dailyVerse, String day) async {
+    await database
+        .into(database.dailyVerses)
+        .insertOnConflictUpdate(
+          DailyVersesCompanion.insert(
+            id: const Value(1),
+            day: day,
+            book: dailyVerse.book,
+            chapter: dailyVerse.chapter,
+            verse: dailyVerse.verse,
+          ),
+        );
+  }
+
+  /// Upserts a reading event keeping the max verse count per
+  /// (activityDate, book, chapter). Returns the stored verse count.
+  Future<int> markReadingEvent(
+    String activityDate,
+    String book,
+    int chapter,
+    int verseCount,
+  ) async {
+    final existing =
+        await (database.select(database.readingEvents)..where(
+              (table) =>
+                  table.activityDate.equals(activityDate) &
+                  table.book.equals(book) &
+                  table.chapter.equals(chapter),
+            ))
+            .getSingleOrNull();
+    if (existing != null && existing.verseCount >= verseCount) {
+      return existing.verseCount;
+    }
+    await database
+        .into(database.readingEvents)
+        .insertOnConflictUpdate(
+          ReadingEventsCompanion.insert(
+            activityDate: activityDate,
+            book: book,
+            chapter: chapter,
+            verseCount: verseCount,
+          ),
+        );
+    return verseCount;
+  }
+
+  /// Number of fully completed chapters of [book].
+  Future<int> countCompletedChapters(String book) async {
+    final countCompleted = database.chapterProgress.book.count();
+    final row =
+        await (database.selectOnly(database.chapterProgress)
+              ..addColumns([countCompleted])
+              ..where(
+                database.chapterProgress.book.equals(book) &
+                    database.chapterProgress.isComplete.equals(true),
+              ))
+            .getSingle();
+    return row.read(countCompleted) ?? 0;
+  }
+
+  /// Resolves where the user should continue reading: the row with the most
+  /// recent mark (partial or complete) across all books. A recent partial
+  /// wins; otherwise the chapter after the latest completed one. Returns
+  /// null when no chapter has ever been marked.
+  Future<ContinueReadingEntity?> getContinueReading() async {
+    final row =
+        await (database.select(database.chapterProgress)
+              ..where((table) => table.lastVerseRead.isBiggerThanValue(0))
+              ..orderBy([
+                (table) => OrderingTerm.desc(table.updatedAt),
+                (table) => OrderingTerm.desc(table.rowId),
+              ])
+              ..limit(1))
+            .getSingleOrNull();
+    if (row == null) return null;
+
+    if (!row.isComplete) {
+      return ContinueReadingEntity(
+        book: row.book,
+        chapter: row.chapter,
+        lastVerseRead: row.lastVerseRead,
+      );
+    }
+
+    final nextChapter = row.chapter + 1;
+    final chapterCount = await getMaxChapter(row.book);
+    if (chapterCount > 0 && nextChapter > chapterCount) {
+      return ContinueReadingEntity(
+        book: row.book,
+        chapter: chapterCount,
+        lastVerseRead: null,
+      );
+    }
+    return ContinueReadingEntity(
+      book: row.book,
+      chapter: nextChapter,
+      lastVerseRead: null,
+    );
+  }
+
+  /// Reading totals for each requested local date.
+  Future<List<ReadingDayEntity>> getReadingDayTotals(List<String> dates) async {
+    if (dates.isEmpty) return const [];
+    final rowCount = database.readingEvents.activityDate.count();
+    final verseSum = database.readingEvents.verseCount.sum();
+    final rows =
+        await (database.selectOnly(database.readingEvents)
+              ..addColumns([
+                database.readingEvents.activityDate,
+                rowCount,
+                verseSum,
+              ])
+              ..where(database.readingEvents.activityDate.isIn(dates))
+              ..groupBy([database.readingEvents.activityDate]))
+            .get();
+
+    return [
+      for (final row in rows)
+        ReadingDayEntity(
+          date: row.read(database.readingEvents.activityDate)!,
+          chaptersCount: row.read(rowCount) ?? 0,
+          versesCount: row.read(verseSum) ?? 0,
+        ),
+    ];
   }
 
   Future<List<VerseHighlightEntity>> getChapterHighlights(

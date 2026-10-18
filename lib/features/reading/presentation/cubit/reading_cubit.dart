@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bibliapp/core/utils/local_date_key.dart';
 import 'package:bibliapp/features/reading/domain/book_order.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_reference.dart';
@@ -16,6 +19,7 @@ import 'package:bibliapp/features/reading/domain/usecases/get_chapter_progress.d
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_settings.dart';
+import 'package:bibliapp/features/reading/domain/usecases/record_daily_reading_event.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.dart';
@@ -139,6 +143,7 @@ class ReadingCubit extends Cubit<ReadingState> {
   final AddVerseHighlight addVerseHighlight;
   final UpdateVerseHighlight updateVerseHighlight;
   final DeleteVerseHighlight deleteVerseHighlight;
+  final RecordDailyReadingEvent recordDailyReadingEvent;
 
   ReadingCubit({
     required this.getChapterVerses,
@@ -153,6 +158,7 @@ class ReadingCubit extends Cubit<ReadingState> {
     required this.addVerseHighlight,
     required this.updateVerseHighlight,
     required this.deleteVerseHighlight,
+    required this.recordDailyReadingEvent,
   }) : super(const ReadingState());
 
   Future<void> initialize({bool applyResume = true}) async {
@@ -428,28 +434,50 @@ class ReadingCubit extends Cubit<ReadingState> {
 
   /// Marks the current chapter as fully read.
   Future<void> markChapterComplete() async {
+    final verseCount = state.chapterVerses.length;
     await _persistChapterProgress(
       ChapterProgressEntity(
         book: state.currentBook,
         chapter: state.currentChapter,
-        lastVerseRead: state.chapterVerses.length,
+        lastVerseRead: verseCount,
         isComplete: true,
         completedAt: DateTime.now(),
       ),
     );
+    await _recordDailyEvent(verseCount);
   }
 
   /// Marks the current chapter as read up to [verse].
   Future<void> savePartialProgress(int verse) async {
     final total = state.chapterVerses.length;
+    final clampedVerse = total <= 0 ? verse : verse.clamp(1, total);
     await _persistChapterProgress(
       ChapterProgressEntity(
         book: state.currentBook,
         chapter: state.currentChapter,
-        lastVerseRead: total <= 0 ? verse : verse.clamp(1, total),
+        lastVerseRead: clampedVerse,
         isComplete: false,
         completedAt: null,
       ),
+    );
+    await _recordDailyEvent(clampedVerse);
+  }
+
+  /// Best-effort daily-event record: a failure must not break the reading,
+  /// it is only reported to the logs (the day may then not turn green).
+  Future<void> _recordDailyEvent(int verseCount) async {
+    if (verseCount <= 0) return;
+    final activityDate = localDateKey(DateTime.now());
+    final result = await recordDailyReadingEvent(
+      activityDate,
+      state.currentBook,
+      state.currentChapter,
+      verseCount,
+    );
+    result.match(
+      (failure) =>
+          log('Failed to record the daily reading event: ${failure.message}'),
+      (_) {},
     );
   }
 

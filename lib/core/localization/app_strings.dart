@@ -139,5 +139,42 @@ class AppStrings {
   static String passageTitle(String bookId, int chapter) =>
       '${bookName(bookId)} Cap. $chapter';
 
+  static String readingLocationTitle(String bookId, int chapter) =>
+      '${bookName(bookId)} · Cap. $chapter';
+
   static String chapter(int number) => 'Capítulo $number';
+
+  static const dailyVerseLabel = 'Versículo del día';
+  static const continueReading = 'Continuar lectura';
+  static const errorLoadingHome = 'No se pudo cargar la pantalla de inicio';
+  static const today = 'Hoy';
+  static const dayNamesShort = [
+    'Lun',
+    'Mar',
+    'Mié',
+    'Jue',
+    'Vie',
+    'Sáb',
+    'Dom',
+  ];
+
+  static String shortDayName(int weekday) {
+    final index = weekday - 1;
+    if (index < 0 || index >= dayNamesShort.length) return '';
+    return dayNamesShort[index];
+  }
+
+  static String chaptersReadSummary(int read, int total) =>
+      '$read de $total leídos';
+
+  static String verseReference(String bookId, int chapter, int verse) =>
+      '${bookName(bookId)} $chapter:$verse';
+
+  static String remainingChapters(int remaining, String bookDisplayName) =>
+      remaining == 1
+      ? 'Queda 1 capítulo para terminar $bookDisplayName'
+      : 'Quedan $remaining capítulos para terminar $bookDisplayName';
+
+  static String bookCompleted(String bookDisplayName) =>
+      'Has completado $bookDisplayName';
 }

@@ -1,6 +1,9 @@
 import 'package:bibliapp/core/error/failure.dart';
 import 'package:bibliapp/features/reading/data/datasources/reading_local_data_source.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/continue_reading_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/daily_verse_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/reading_day_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
@@ -117,6 +120,47 @@ class ReadingRepositoryImpl implements ReadingRepository {
     await dataSource.ensureBibleReady();
     return unit;
   });
+
+  @override
+  Future<Either<Failure, DailyVerseEntity?>> getSavedDailyVerse(String day) =>
+      _guard(() => dataSource.getSavedDailyVerse(day));
+
+  @override
+  Future<Either<Failure, DailyVerseEntity>> getRandomVerse() =>
+      _guard(dataSource.getRandomVerse);
+
+  @override
+  Future<Either<Failure, bool>> saveDailyVerse(
+    DailyVerseEntity dailyVerse,
+    String day,
+  ) => _guard(() async {
+    await dataSource.saveDailyVerse(dailyVerse, day);
+    return true;
+  });
+
+  @override
+  Future<Either<Failure, bool>> markReadingEvent(
+    String activityDate,
+    String book,
+    int chapter,
+    int verseCount,
+  ) => _guard(() async {
+    await dataSource.markReadingEvent(activityDate, book, chapter, verseCount);
+    return true;
+  });
+
+  @override
+  Future<Either<Failure, int>> countCompletedChapters(String book) =>
+      _guard(() => dataSource.countCompletedChapters(book));
+
+  @override
+  Future<Either<Failure, List<ReadingDayEntity>>> getReadingDayTotals(
+    List<String> dates,
+  ) => _guard(() => dataSource.getReadingDayTotals(dates));
+
+  @override
+  Future<Either<Failure, ContinueReadingEntity?>> getContinueReading() =>
+      _guard(dataSource.getContinueReading);
 
   Future<Either<Failure, T>> _guard<T>(Future<T> Function() operation) async {
     try {
