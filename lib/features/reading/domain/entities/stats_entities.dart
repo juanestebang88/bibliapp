@@ -1,5 +1,8 @@
 import 'package:equatable/equatable.dart';
 
+/// Reading state of one book derived from its marks (spec 20).
+enum BookReadingStatus { notStarted, inProgress, completed }
+
 /// Per-book reading summary derived from ChapterProgress (spec 19).
 class BookReadingStatsEntity extends Equatable {
   /// Stable English book id ('genesis').
@@ -29,6 +32,15 @@ class BookReadingStatsEntity extends Equatable {
 
   bool get isCompleted =>
       totalChapters > 0 && completedChapters >= totalChapters;
+
+  /// 'notStarted' when the book has no marks and no completed chapters.
+  BookReadingStatus get status {
+    if (completedChapters <= 0 && firstMarkAt == null) {
+      return BookReadingStatus.notStarted;
+    }
+    if (isCompleted) return BookReadingStatus.completed;
+    return BookReadingStatus.inProgress;
+  }
 
   @override
   List<Object?> get props => [
