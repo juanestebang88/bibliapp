@@ -146,6 +146,95 @@ void main() {
     expect(await dataSource.getChapterProgress('genesis', 1), isNull);
   });
 
+  test('summarizes chapters per book and skips never-touched books', () async {
+    await dataSource.importRV1960(const [
+      VerseEntity(book: 'genesis', chapter: 1, verse: 1, text: 'A'),
+      VerseEntity(book: 'genesis', chapter: 50, verse: 1, text: 'B'),
+      VerseEntity(book: 'exodus', chapter: 1, verse: 1, text: 'C'),
+    ]);
+    await dataSource.saveChapterProgress(
+      ChapterProgressEntity(
+        book: 'genesis',
+        chapter: 1,
+        lastVerseRead: 3,
+        isComplete: true,
+        completedAt: DateTime.fromMillisecondsSinceEpoch(2000),
+      ),
+    );
+    await dataSource.saveChapterProgress(
+      const ChapterProgressEntity(
+        book: 'exodus',
+        chapter: 1,
+        lastVerseRead: 5,
+        isComplete: false,
+      ),
+    );
+
+    final summaries = await dataSource.getBookReadingSummaries();
+    final byBook = {for (final summary in summaries) summary.book: summary};
+
+    expect(byBook['genesis']!.totalChapters, 50);
+    expect(byBook['genesis']!.completedChapters, 1);
+    expect(byBook['genesis']!.firstMarkAt, isNotNull);
+    expect(
+      byBook['genesis']!.lastCompletedAt,
+      DateTime.fromMillisecondsSinceEpoch(2000),
+    );
+    expect(byBook['exodus']!.totalChapters, 1);
+    expect(byBook['exodus']!.completedChapters, 0);
+    expect(byBook['exodus']!.lastCompletedAt, isNull);
+  });
+
+  test(
+    'ignores default updatedAt value 0 when resolving the first mark',
+    () async {
+      await dataSource.importRV1960(const [
+        VerseEntity(book: 'genesis', chapter: 1, verse: 1, text: 'A'),
+      ]);
+      await dataSource.saveChapterProgress(
+        const ChapterProgressEntity(
+          book: 'genesis',
+          chapter: 1,
+          lastVerseRead: 2,
+          isComplete: false,
+        ),
+      );
+
+      // The row above is written through the entity API (updatedAt = now), so
+      // a fake stale row with the default updatedAt = 0 is injected directly.
+      await database.customStatement(
+        "INSERT INTO chapter_progress (book, chapter, last_verse_read, is_complete, updated_at) "
+        "VALUES ('exodus', 1, 1, 0, 0)",
+      );
+      await database.customStatement(
+        "INSERT INTO verses (book, chapter, verse, text, is_verse_number) "
+        "VALUES ('exodus', 1, 1, 'x', 1)",
+      );
+
+      final summaries = await dataSource.getBookReadingSummaries();
+      final byBook = {for (final summary in summaries) summary.book: summary};
+      expect(byBook['exodus']!.firstMarkAt, isNull);
+      expect(byBook['genesis']!.firstMarkAt, isNotNull);
+    },
+  );
+
+  test('counts distinct chapters per day scoped by dates and books', () async {
+    await dataSource.markReadingEvent('2026-10-18', 'genesis', 1, 10);
+    await dataSource.markReadingEvent('2026-10-18', 'genesis', 2, 5);
+    await dataSource.markReadingEvent('2026-10-18', 'exodus', 1, 4);
+    await dataSource.markReadingEvent('2026-10-19', 'genesis', 3, 8);
+
+    final counts = await dataSource.getDailyChaptersCounts(
+      dates: const ['2026-10-17', '2026-10-18', '2026-10-19'],
+      books: const ['genesis'],
+    );
+
+    expect(
+      [for (final count in counts) (count.date, count.chaptersCount)],
+      const [('2026-10-18', 2), ('2026-10-19', 1)],
+    );
+  });
+
   test('stores a verse highlight and returns it with a generated id', () async {
     final highlight = _highlight(
       startOffset: 2,
