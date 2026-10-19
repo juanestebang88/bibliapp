@@ -11,6 +11,7 @@ import 'package:bibliapp/features/reading/domain/entities/stats_entities.dart';
 import 'package:bibliapp/features/stats/presentation/cubit/stats_cubit.dart';
 import 'package:bibliapp/features/stats/presentation/cubit/stats_state.dart';
 import 'package:bibliapp/features/stats/presentation/pages/stats_screen.dart';
+import 'package:bibliapp/features/stats/presentation/widgets/book_stats_dialog.dart';
 import 'package:bibliapp/features/stats/presentation/widgets/book_stats_grid.dart';
 import 'package:bibliapp/features/stats/presentation/widgets/duration_tile.dart';
 import 'package:bibliapp/features/stats/presentation/widgets/stats_error_view.dart';
@@ -215,7 +216,9 @@ void main() {
     verifyNever(() => cubit.selectTab(any()));
   });
 
-  testWidgets('tapping a book card opens its detail sheet', (tester) async {
+  testWidgets('tapping a book card opens its centered detail dialog', (
+    tester,
+  ) async {
     await _pumpScreen(tester, cubit);
 
     final genesisLabel = find.text(AppStrings.bookName('genesis'));
@@ -226,6 +229,8 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => cubit.openBook(any())).called(1);
+    expect(find.byType(BookStatsDialog), findsOneWidget);
+    expect(find.byType(BottomSheet), findsNothing);
   });
 
   testWidgets('toolbar "Estadísticas" and "Ajustes" have no action', (
