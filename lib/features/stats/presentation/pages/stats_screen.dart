@@ -127,12 +127,15 @@ class _StatsScreenState extends State<StatsScreen>
           const SizedBox(height: AppSpacing.xl),
           ChaptersTodayVsYesterdayCard(overview: state.overview),
           const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              Expanded(child: DurationTile(overview: state.overview)),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(child: WeeklyChangeTile(overview: state.overview)),
-            ],
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: DurationTile(overview: state.overview)),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(child: WeeklyChangeTile(overview: state.overview)),
+              ],
+            ),
           ),
           const SizedBox(height: AppSpacing.xl),
           Row(
