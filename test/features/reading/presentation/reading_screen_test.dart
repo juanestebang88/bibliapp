@@ -17,6 +17,7 @@ import 'package:bibliapp/app/router/go_router.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/stats_entities.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
 import 'package:bibliapp/features/reading/domain/usecases/add_verse_highlight.dart';
@@ -33,9 +34,13 @@ import 'package:bibliapp/features/reading/domain/usecases/save_chapter_progress.
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/save_reading_settings.dart';
 import 'package:bibliapp/features/reading/domain/usecases/update_verse_highlight.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_books_reading_stats.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_chapters_series.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_reading_overview.dart';
 import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/reading_progress_button.dart';
 import 'package:bibliapp/features/reading/presentation/widgets/swipeable_reading_body.dart';
+import 'package:bibliapp/features/stats/presentation/cubit/stats_cubit.dart';
 import 'package:bibliapp/main.dart';
 
 void main() {
@@ -53,6 +58,9 @@ void main() {
   late _MockDeleteVerseHighlight deleteVerseHighlight;
   late _MockRecordDailyReadingEvent recordDailyReadingEvent;
   late _MockCheckInternetConnectivity checkInternetConnectivity;
+  late _MockGetReadingOverview getReadingOverview;
+  late _MockGetChaptersSeries getChaptersSeries;
+  late _MockGetBooksReadingStats getBooksReadingStats;
 
   setUpAll(() {
     registerFallbackValue(const ReadingSettingsEntity());
@@ -79,6 +87,8 @@ void main() {
         updatedAt: DateTime(2026, 1, 1),
       ),
     );
+    registerFallbackValue(<String>[]);
+    registerFallbackValue(DateTime(2026));
   });
 
   setUp(() async {
@@ -97,6 +107,9 @@ void main() {
     deleteVerseHighlight = _MockDeleteVerseHighlight();
     recordDailyReadingEvent = _MockRecordDailyReadingEvent();
     checkInternetConnectivity = _MockCheckInternetConnectivity();
+    getReadingOverview = _MockGetReadingOverview();
+    getChaptersSeries = _MockGetChaptersSeries();
+    getBooksReadingStats = _MockGetBooksReadingStats();
     when(() => getReadingProgress()).thenAnswer(
       (_) async => const Right<Failure, ReadingProgressEntity?>(null),
     );
@@ -131,6 +144,42 @@ void main() {
     when(() => getChapterHighlights(any(), any())).thenAnswer(
       (_) async => const Right<Failure, List<VerseHighlightEntity>>([]),
     );
+    when(
+      () => getReadingOverview(any(), today: any(named: 'today')),
+    ).thenAnswer(
+      (_) async =>
+          const Right<Failure, ReadingOverviewEntity>(ReadingOverviewEntity()),
+    );
+    when(
+      () => getChaptersSeries(
+        books: any(named: 'books'),
+        from: any(named: 'from'),
+        to: any(named: 'to'),
+      ),
+    ).thenAnswer(
+      (_) async => const Right<Failure, List<ChaptersSeriesPointEntity>>([
+        ChaptersSeriesPointEntity(date: '2026-10-19', chaptersCount: 0),
+      ]),
+    );
+    when(() => getBooksReadingStats()).thenAnswer(
+      (_) async => Right([
+        BookReadingStatsEntity(
+          book: 'genesis',
+          completedChapters: 0,
+          totalChapters: 50,
+        ),
+        BookReadingStatsEntity(
+          book: 'malachi',
+          completedChapters: 0,
+          totalChapters: 4,
+        ),
+        BookReadingStatsEntity(
+          book: 'revelation',
+          completedChapters: 0,
+          totalChapters: 22,
+        ),
+      ]),
+    );
     getIt.registerFactory(
       () => ReadingCubit(
         getChapterVerses: getChapterVerses,
@@ -147,6 +196,13 @@ void main() {
         deleteVerseHighlight: deleteVerseHighlight,
         recordDailyReadingEvent: recordDailyReadingEvent,
         checkInternetConnectivity: checkInternetConnectivity,
+      ),
+    );
+    getIt.registerFactory(
+      () => StatsCubit(
+        getReadingOverview: getReadingOverview,
+        getChaptersSeries: getChaptersSeries,
+        getBooksReadingStats: getBooksReadingStats,
       ),
     );
   });
@@ -254,6 +310,18 @@ void main() {
     expect(find.text('Génesis 2'), findsOneWidget);
     expect(find.textContaining('Second chapter verse'), findsOneWidget);
   });
+
+  testWidgets('toolbar "Estadísticas" opens the stats screen', (tester) async {
+    appRouter.go('/reading');
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(AppStrings.statistics));
+    await tester.pumpAndSettle();
+
+    expect(find.text(AppStrings.statsTitle), findsOneWidget);
+    expect(find.text(AppStrings.tabMyProgress), findsOneWidget);
+  });
 }
 
 class _MockGetChapterVerses extends Mock implements GetChapterVerses {}
@@ -285,3 +353,9 @@ class _MockRecordDailyReadingEvent extends Mock
 
 class _MockCheckInternetConnectivity extends Mock
     implements CheckInternetConnectivity {}
+
+class _MockGetReadingOverview extends Mock implements GetReadingOverview {}
+
+class _MockGetChaptersSeries extends Mock implements GetChaptersSeries {}
+
+class _MockGetBooksReadingStats extends Mock implements GetBooksReadingStats {}

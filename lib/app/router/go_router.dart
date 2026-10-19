@@ -10,6 +10,8 @@ import 'package:bibliapp/features/reading/presentation/cubit/reading_cubit.dart'
 import 'package:bibliapp/features/reading/presentation/cubit/search_cubit.dart';
 import 'package:bibliapp/features/reading/presentation/pages/reading_screen.dart';
 import 'package:bibliapp/features/reading/presentation/pages/search_results_screen.dart';
+import 'package:bibliapp/features/stats/presentation/cubit/stats_cubit.dart';
+import 'package:bibliapp/features/stats/presentation/pages/stats_screen.dart';
 import 'package:bibliapp/features/splash/presentation/cubit/splash_cubit.dart';
 import 'package:bibliapp/features/splash/presentation/pages/splash_screen.dart';
 
@@ -74,6 +76,16 @@ final GoRouter appRouter = GoRouter(
           ),
         );
       },
+    ),
+    GoRoute(
+      path: '/stats',
+      name: 'stats',
+      builder: (context, state) => _blockBack(
+        BlocProvider(
+          create: (context) => getIt<StatsCubit>()..initialize(),
+          child: const StatsScreen(),
+        ),
+      ),
     ),
     GoRoute(
       path: '/search-results',
