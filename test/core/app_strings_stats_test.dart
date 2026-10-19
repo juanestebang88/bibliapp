@@ -27,4 +27,11 @@ void main() {
     expect(AppStrings.chaptersYesterday(0), 'CAPÍTULOS AYER 0');
     expect(AppStrings.chaptersToday(0), '0 CAPÍTULOS HOY');
   });
+
+  test('reading states use a single canonical wording', () {
+    expect(AppStrings.statsNotStarted, 'Sin iniciar');
+    expect(AppStrings.bookInProgress, 'En curso');
+    expect(AppStrings.statsCompleted, 'Finalizado');
+    expect(AppStrings.statsPopupClose, 'Cerrar');
+  });
 }

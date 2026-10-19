@@ -183,7 +183,6 @@ class AppStrings {
   static const tabMyProgress = 'MI PROGRESO';
   static const tabOldTestament = 'PROGRESO AT';
   static const tabNewTestament = 'PROGRESO NT';
-  static const allBooksLabel = 'DE LA LISTA DE TODOS LOS LIBROS';
   static const yesterdayVsToday = 'AYER VS HOY';
   static String chaptersYesterday(int count) => 'CAPÍTULOS AYER $count';
   static String chaptersToday(int count) => '$count CAPÍTULOS HOY';
@@ -202,12 +201,13 @@ class AppStrings {
   static const periodMonth = 'MES';
   static String bookProgress(int read, int total, int percent) =>
       '$read/$total $percent%';
-  static const statsBookCompleted = 'Completado';
+  static const statsNotStarted = 'Sin iniciar';
+  static const statsCompleted = 'Finalizado';
   static const bookInProgress = 'En curso';
   static String statsStartDate(String date) => 'Inicio: $date';
   static String statsEndDate(String date) => 'Fin: $date';
-  static const statsInCourse = 'En curso';
   static const statsNoReadings = 'Sin lecturas registradas';
+  static const statsPopupClose = 'Cerrar';
   static String percentOneDecimal(double value) =>
       '${value.toStringAsFixed(1)}%';
   static const errorLoadingStats = 'No se pudieron cargar las estadísticas';
