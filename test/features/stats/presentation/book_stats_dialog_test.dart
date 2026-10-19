@@ -6,7 +6,7 @@ import 'package:bibliapp/core/localization/app_strings.dart';
 import 'package:bibliapp/features/reading/domain/entities/stats_entities.dart';
 import 'package:bibliapp/features/stats/presentation/cubit/stats_cubit.dart';
 import 'package:bibliapp/features/stats/presentation/cubit/stats_state.dart';
-import 'package:bibliapp/features/stats/presentation/widgets/book_stats_sheet.dart';
+import 'package:bibliapp/features/stats/presentation/widgets/book_stats_dialog.dart';
 import 'package:bibliapp/features/stats/presentation/widgets/chapters_line_chart.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -32,11 +32,17 @@ BookReadingStatsEntity _book({
   );
 }
 
-Future<void> _pumpSheet(WidgetTester tester, _MockStatsCubit cubit) async {
+_MockStatsCubit _cubitWith(StatsState state) {
+  final cubit = _MockStatsCubit();
+  whenListen(cubit, const Stream<StatsState>.empty(), initialState: state);
+  return cubit;
+}
+
+Future<void> _pumpDialog(WidgetTester tester, _MockStatsCubit cubit) async {
   await tester.pumpWidget(
     BlocProvider<StatsCubit>.value(
       value: cubit,
-      child: const MaterialApp(home: Scaffold(body: BookStatsSheet())),
+      child: const MaterialApp(home: Scaffold(body: BookStatsDialog())),
     ),
   );
   await tester.pump();
@@ -51,11 +57,8 @@ void main() {
   });
 
   testWidgets('shows the book detail with dates and the chart', (tester) async {
-    final cubit = _MockStatsCubit();
-    whenListen(
-      cubit,
-      const Stream<StatsState>.empty(),
-      initialState: StatsState(
+    final cubit = _cubitWith(
+      StatsState(
         selectedBook: _book(
           book: 'genesis',
           firstMarkAt: DateTime(2026, 9, 1, 10),
@@ -67,23 +70,23 @@ void main() {
       ),
     );
 
-    await _pumpSheet(tester, cubit);
+    await _pumpDialog(tester, cubit);
 
     expect(find.text('Génesis'), findsOneWidget);
     expect(find.text(AppStrings.bookProgress(11, 50, 22)), findsOneWidget);
+    expect(find.text(AppStrings.bookInProgress), findsOneWidget);
     expect(find.text(AppStrings.statsStartDate('01/09/2026')), findsOneWidget);
-    // Status and end date both read 'En curso' while the book is unfinished.
-    expect(find.text(AppStrings.bookInProgress), findsExactly(2));
+    expect(find.text(AppStrings.statsEndDate('02/10/2026')), findsNothing);
     expect(find.byType(ChaptersLineChart), findsOneWidget);
     expect(find.text(AppStrings.statsNoReadings), findsNothing);
+    expect(find.text(AppStrings.statsPopupClose), findsOneWidget);
   });
 
-  testWidgets('shows Fin when the book is completed', (tester) async {
-    final cubit = _MockStatsCubit();
-    whenListen(
-      cubit,
-      const Stream<StatsState>.empty(),
-      initialState: StatsState(
+  testWidgets('shows the finished state with start and end dates', (
+    tester,
+  ) async {
+    final cubit = _cubitWith(
+      StatsState(
         selectedBook: _book(
           book: 'leviticus',
           isFilled: true,
@@ -93,40 +96,36 @@ void main() {
       ),
     );
 
-    await _pumpSheet(tester, cubit);
+    await _pumpDialog(tester, cubit);
 
     expect(find.text('Levítico'), findsOneWidget);
-    expect(find.text(AppStrings.statsBookCompleted), findsOneWidget);
+    expect(find.text(AppStrings.statsCompleted), findsOneWidget);
+    expect(find.text(AppStrings.statsStartDate('01/09/2026')), findsOneWidget);
     expect(find.text(AppStrings.statsEndDate('02/10/2026')), findsOneWidget);
-    expect(find.text(AppStrings.statsInCourse), findsNothing);
+    expect(find.text(AppStrings.bookInProgress), findsNothing);
   });
 
-  testWidgets('shows the no-readings message for a book without marks', (
+  testWidgets('shows the not-started state without dates or chart', (
     tester,
   ) async {
-    final cubit = _MockStatsCubit();
-    whenListen(
-      cubit,
-      const Stream<StatsState>.empty(),
-      initialState: StatsState(
-        selectedBook: _book(book: 'revelation', total: 22),
+    final cubit = _cubitWith(
+      StatsState(
+        selectedBook: _book(book: 'revelation', completed: 0, total: 22),
       ),
     );
 
-    await _pumpSheet(tester, cubit);
+    await _pumpDialog(tester, cubit);
 
     expect(find.text('Apocalipsis'), findsOneWidget);
+    expect(find.text(AppStrings.statsNotStarted), findsOneWidget);
     expect(find.text(AppStrings.statsNoReadings), findsOneWidget);
     expect(find.text(AppStrings.statsStartDate('01/09/2026')), findsNothing);
     expect(find.byType(ChaptersLineChart), findsNothing);
   });
 
   testWidgets('shows a loader while the detail is loading', (tester) async {
-    final cubit = _MockStatsCubit();
-    whenListen(
-      cubit,
-      const Stream<StatsState>.empty(),
-      initialState: StatsState(
+    final cubit = _cubitWith(
+      StatsState(
         selectedBook: _book(
           book: 'genesis',
           firstMarkAt: DateTime(2026, 9, 1, 10),
@@ -135,23 +134,57 @@ void main() {
       ),
     );
 
-    await _pumpSheet(tester, cubit);
+    await _pumpDialog(tester, cubit);
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     expect(find.byType(ChaptersLineChart), findsNothing);
   });
 
   testWidgets('renders nothing without a selected book', (tester) async {
-    final cubit = _MockStatsCubit();
-    whenListen(
-      cubit,
-      const Stream<StatsState>.empty(),
-      initialState: const StatsState(),
+    final cubit = _cubitWith(const StatsState());
+
+    await _pumpDialog(tester, cubit);
+
+    expect(find.byType(BookStatsDialog), findsOneWidget);
+    expect(find.text('Génesis'), findsNothing);
+  });
+
+  testWidgets('closes with the Cerrar button', (tester) async {
+    final cubit = _cubitWith(
+      StatsState(
+        selectedBook: _book(
+          book: 'genesis',
+          firstMarkAt: DateTime(2026, 9, 1, 10),
+        ),
+      ),
     );
 
-    await _pumpSheet(tester, cubit);
+    await tester.pumpWidget(
+      BlocProvider<StatsCubit>.value(
+        value: cubit,
+        child: MaterialApp(
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: Center(
+                child: ElevatedButton(
+                  onPressed: () => showBookStatsDialog(context),
+                  child: const Text('abrir'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
 
-    expect(find.byType(BookStatsSheet), findsOneWidget);
-    expect(find.text('Génesis'), findsNothing);
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(AppStrings.statsPopupClose), findsOneWidget);
+
+    await tester.tap(find.text(AppStrings.statsPopupClose));
+    await tester.pumpAndSettle();
+
+    expect(find.text(AppStrings.statsPopupClose), findsNothing);
   });
 }

@@ -27,7 +27,6 @@ void main() {
       find.text(AppStrings.percentOneDecimal(overview.overallProgress * 100)),
       findsOneWidget,
     );
-    expect(find.text(AppStrings.allBooksLabel), findsOneWidget);
     expect(find.byType(ProgressRing), findsOneWidget);
   });
 

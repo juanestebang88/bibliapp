@@ -11,8 +11,11 @@ import 'package:bibliapp/features/reading/domain/entities/stats_entities.dart';
 import 'package:bibliapp/features/stats/presentation/cubit/stats_cubit.dart';
 import 'package:bibliapp/features/stats/presentation/cubit/stats_state.dart';
 import 'package:bibliapp/features/stats/presentation/pages/stats_screen.dart';
+import 'package:bibliapp/features/stats/presentation/widgets/book_stats_dialog.dart';
 import 'package:bibliapp/features/stats/presentation/widgets/book_stats_grid.dart';
+import 'package:bibliapp/features/stats/presentation/widgets/duration_tile.dart';
 import 'package:bibliapp/features/stats/presentation/widgets/stats_error_view.dart';
+import 'package:bibliapp/features/stats/presentation/widgets/weekly_change_tile.dart';
 
 class _MockStatsCubit extends MockBloc<StatsState, StatsState>
     implements StatsCubit {}
@@ -112,7 +115,6 @@ void main() {
     expect(find.text(AppStrings.statsTitle), findsOneWidget);
     expect(find.text(AppStrings.tabMyProgress), findsOneWidget);
     expect(find.text('0.9%'), findsOneWidget);
-    expect(find.text(AppStrings.allBooksLabel), findsOneWidget);
     expect(find.text(AppStrings.yesterdayVsToday), findsOneWidget);
     expect(find.text(AppStrings.chaptersYesterday(4)), findsOneWidget);
     expect(find.text(AppStrings.chaptersToday(6)), findsOneWidget);
@@ -123,6 +125,18 @@ void main() {
     expect(find.text(AppStrings.readingsPerWeek), findsOneWidget);
     expect(find.text(AppStrings.chaptersPerDayUnit), findsOneWidget);
     expect(find.text(AppStrings.bookName('genesis')), findsOneWidget);
+  });
+
+  testWidgets('DURACIÓN and PROGRESO cards share the same height', (
+    tester,
+  ) async {
+    await _pumpScreen(tester, cubit);
+
+    final durationSize = tester.getSize(find.byType(DurationTile));
+    final progressSize = tester.getSize(find.byType(WeeklyChangeTile));
+
+    expect(progressSize.height, greaterThan(0));
+    expect(durationSize.height, progressSize.height);
   });
 
   testWidgets('all three tabs are present in the header', (tester) async {
@@ -202,7 +216,9 @@ void main() {
     verifyNever(() => cubit.selectTab(any()));
   });
 
-  testWidgets('tapping a book card opens its detail sheet', (tester) async {
+  testWidgets('tapping a book card opens its centered detail dialog', (
+    tester,
+  ) async {
     await _pumpScreen(tester, cubit);
 
     final genesisLabel = find.text(AppStrings.bookName('genesis'));
@@ -213,6 +229,8 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => cubit.openBook(any())).called(1);
+    expect(find.byType(BookStatsDialog), findsOneWidget);
+    expect(find.byType(BottomSheet), findsNothing);
   });
 
   testWidgets('toolbar "Estadísticas" and "Ajustes" have no action', (

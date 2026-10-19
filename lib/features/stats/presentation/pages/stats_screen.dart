@@ -7,8 +7,8 @@ import 'package:bibliapp/core/theme/app_spacing.dart';
 import 'package:bibliapp/core/widgets/bottom_toolbar.dart';
 import 'package:bibliapp/features/stats/presentation/cubit/stats_cubit.dart';
 import 'package:bibliapp/features/stats/presentation/cubit/stats_state.dart';
+import 'package:bibliapp/features/stats/presentation/widgets/book_stats_dialog.dart';
 import 'package:bibliapp/features/stats/presentation/widgets/book_stats_grid.dart';
-import 'package:bibliapp/features/stats/presentation/widgets/book_stats_sheet.dart';
 import 'package:bibliapp/features/stats/presentation/widgets/chapters_line_chart.dart';
 import 'package:bibliapp/features/stats/presentation/widgets/chapters_today_vs_yesterday_card.dart';
 import 'package:bibliapp/features/stats/presentation/widgets/duration_tile.dart';
@@ -127,12 +127,15 @@ class _StatsScreenState extends State<StatsScreen>
           const SizedBox(height: AppSpacing.xl),
           ChaptersTodayVsYesterdayCard(overview: state.overview),
           const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              Expanded(child: DurationTile(overview: state.overview)),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(child: WeeklyChangeTile(overview: state.overview)),
-            ],
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: DurationTile(overview: state.overview)),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(child: WeeklyChangeTile(overview: state.overview)),
+              ],
+            ),
           ),
           const SizedBox(height: AppSpacing.xl),
           Row(
@@ -158,9 +161,11 @@ class _StatsScreenState extends State<StatsScreen>
           const SizedBox(height: AppSpacing.xl),
           BookStatsGrid(
             books: state.visibleBooks,
-            onBookTap: (book) {
-              context.read<StatsCubit>().openBook(book);
-              showBookStatsSheet(context);
+            onBookTap: (book) async {
+              final cubit = context.read<StatsCubit>();
+              cubit.openBook(book);
+              await showBookStatsDialog(context);
+              cubit.closeBook();
             },
           ),
           const SizedBox(height: AppSpacing.lg),

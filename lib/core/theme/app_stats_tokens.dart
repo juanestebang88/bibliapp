@@ -26,11 +26,20 @@ class AppStatsTokens {
   /// Radius of the zero-value chart nodes.
   static const double chartEmptyNodeRadius = 1.5;
 
-  /// Height of the per-book chart inside the bottom sheet.
+  /// Height of the per-book chart inside the detail dialog.
   static const double sheetChartHeight = 120;
 
-  /// Horizontal inset of the chart plot area (room for Y labels).
-  static const double chartHorizontalInset = 32;
+  /// Left inset of the chart plot area (no labels on the left).
+  static const double chartLeftInset = 4;
+
+  /// Right inset of the chart plot area (room for the Y labels).
+  static const double chartRightInset = 32;
+
+  /// Thickness of the chart grid lines.
+  static const double chartGridLineWidth = 1;
+
+  /// Duration of the chart reveal animation (trace + travelling dot).
+  static const int chartAnimationDurationMs = 1200;
 
   /// Bottom inset of the chart plot area (room for X labels).
   static const double chartBottomInset = 20;
