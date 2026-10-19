@@ -4,6 +4,7 @@ import 'package:bibliapp/features/reading/domain/entities/continue_reading_entit
 import 'package:bibliapp/features/reading/domain/entities/daily_verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_day_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/stats_entities.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
@@ -99,4 +100,16 @@ abstract class ReadingRepository {
   Future<Either<Failure, List<ReadingDayEntity>>> getReadingDayTotals(
     List<String> dates,
   );
+
+  /// Per-book reading summaries for the whole canon (all 66 books, canonical
+  /// order): completed chapters, first mark and last completion.
+  Future<Either<Failure, List<BookReadingStatsEntity>>>
+  getBookReadingSummaries();
+
+  /// Distinct chapters marked per day for the requested dates and books.
+  Future<Either<Failure, List<ChaptersSeriesPointEntity>>>
+  getDailyChaptersCounts({
+    required List<String> dates,
+    required List<String> books,
+  });
 }

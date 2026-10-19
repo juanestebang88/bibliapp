@@ -89,6 +89,10 @@ void main() {
           path: '/reading',
           builder: (context, _) => const Scaffold(body: Text('reading-body')),
         ),
+        GoRoute(
+          path: '/stats',
+          builder: (context, _) => const Scaffold(body: Text('stats-body')),
+        ),
       ],
     );
     return MaterialApp.router(theme: ThemeData(), routerConfig: router);
@@ -128,6 +132,17 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('reading-body'), findsOneWidget);
+  });
+
+  testWidgets('toolbar "Estadísticas" navigates to /stats', (tester) async {
+    await pumpReady(tester);
+    await tester.pump();
+    await tester.pump();
+
+    await tester.tap(find.text(AppStrings.statistics));
+    await tester.pumpAndSettle();
+
+    expect(find.text('stats-body'), findsOneWidget);
   });
 
   testWidgets('shows HomeErrorView on failure and recovers on retry', (

@@ -11,13 +11,16 @@ import 'package:bibliapp/features/reading/domain/usecases/check_internet_connect
 import 'package:bibliapp/features/reading/domain/usecases/count_completed_chapters.dart';
 import 'package:bibliapp/features/reading/domain/usecases/delete_verse_highlight.dart';
 import 'package:bibliapp/features/reading/domain/usecases/ensure_bible_imported.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_books_reading_stats.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_count.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_highlights.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_progress.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_chapter_verses.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_chapters_series.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_continue_reading.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_daily_verse.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_progress.dart';
+import 'package:bibliapp/features/reading/domain/usecases/get_reading_overview.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_reading_settings.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_recent_reading_days.dart';
 import 'package:bibliapp/features/reading/domain/usecases/record_daily_reading_event.dart';
@@ -70,6 +73,9 @@ void registerReadingModule(GetIt getIt) {
   getIt.registerFactory(
     () => RecordDailyReadingEvent(getIt<ReadingRepository>()),
   );
+  getIt.registerFactory(() => GetBooksReadingStats(getIt<ReadingRepository>()));
+  getIt.registerFactory(() => GetReadingOverview(getIt<ReadingRepository>()));
+  getIt.registerFactory(() => GetChaptersSeries(getIt<ReadingRepository>()));
   getIt.registerFactory(
     () => CheckInternetConnectivity(getIt<ConnectivityRepository>()),
   );

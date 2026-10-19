@@ -77,6 +77,7 @@ class HomeScreen extends StatelessWidget {
                     BottomToolbarItem(
                       icon: Icons.bar_chart,
                       label: AppStrings.statistics,
+                      onTap: () => context.go('/stats'),
                     ),
                     BottomToolbarItem(
                       icon: Icons.settings_outlined,

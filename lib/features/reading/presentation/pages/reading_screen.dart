@@ -238,6 +238,7 @@ class _ReadingScreenState extends State<ReadingScreen> {
                         BottomToolbarItem(
                           icon: Icons.bar_chart,
                           label: AppStrings.statistics,
+                          onTap: () => context.go('/stats'),
                         ),
                         BottomToolbarItem(
                           icon: Icons.settings_outlined,

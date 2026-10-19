@@ -5,6 +5,7 @@ import 'package:bibliapp/features/reading/domain/entities/continue_reading_entit
 import 'package:bibliapp/features/reading/domain/entities/daily_verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_day_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/stats_entities.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_settings_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
@@ -161,6 +162,19 @@ class ReadingRepositoryImpl implements ReadingRepository {
   @override
   Future<Either<Failure, ContinueReadingEntity?>> getContinueReading() =>
       _guard(dataSource.getContinueReading);
+
+  @override
+  Future<Either<Failure, List<BookReadingStatsEntity>>>
+  getBookReadingSummaries() => _guard(dataSource.getBookReadingSummaries);
+
+  @override
+  Future<Either<Failure, List<ChaptersSeriesPointEntity>>>
+  getDailyChaptersCounts({
+    required List<String> dates,
+    required List<String> books,
+  }) => _guard(
+    () => dataSource.getDailyChaptersCounts(dates: dates, books: books),
+  );
 
   Future<Either<Failure, T>> _guard<T>(Future<T> Function() operation) async {
     try {

@@ -7,6 +7,7 @@ import 'package:bibliapp/features/reading/domain/entities/continue_reading_entit
 import 'package:bibliapp/features/reading/domain/entities/daily_verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_day_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
+import 'package:bibliapp/features/reading/domain/entities/stats_entities.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/verse_highlight_entity.dart';
 
@@ -381,6 +382,86 @@ class ReadingLocalDataSource {
         ),
     ];
   }
+
+  /// Per-book aggregates for the whole canon: completed chapters, first mark
+  /// and last completion from ChapterProgress, plus the real chapter count
+  /// from Verses. Two grouped queries merged by book, never N queries.
+  Future<List<BookReadingStatsEntity>> getBookReadingSummaries() async {
+    final progressRows = await database
+        .customSelect(
+          'SELECT book, '
+          'SUM(CASE WHEN is_complete = 1 THEN 1 ELSE 0 END) AS completed, '
+          'MIN(CASE WHEN updated_at > 0 THEN updated_at END) AS first_mark_at, '
+          'MAX(completed_at) AS last_completed_at '
+          'FROM chapter_progress GROUP BY book',
+          readsFrom: {database.chapterProgress},
+        )
+        .get();
+    final totalRows = await database
+        .customSelect(
+          'SELECT book, MAX(chapter) AS total FROM verses GROUP BY book',
+          readsFrom: {database.verses},
+        )
+        .get();
+
+    final totalsByBook = {
+      for (final row in totalRows)
+        row.read<String>('book'): row.read<int>('total'),
+    };
+    final progressByBook = {
+      for (final row in progressRows)
+        row.read<String>('book'): (
+          completed: row.read<int?>('completed') ?? 0,
+          firstMarkAt: row.read<int?>('first_mark_at'),
+          lastCompletedAt: row.read<int?>('last_completed_at'),
+        ),
+    };
+
+    return [
+      for (final book in bibleBookOrder)
+        if (totalsByBook.containsKey(book))
+          BookReadingStatsEntity(
+            book: book,
+            totalChapters: totalsByBook[book]!,
+            completedChapters: progressByBook[book]?.completed ?? 0,
+            firstMarkAt: _dateFromMillis(progressByBook[book]?.firstMarkAt),
+            lastCompletedAt: _dateFromMillis(
+              progressByBook[book]?.lastCompletedAt,
+            ),
+          ),
+    ];
+  }
+
+  /// Distinct chapters marked per day for the requested dates and books.
+  /// One ReadingEvents row per (date, book, chapter), so COUNT is exact.
+  Future<List<ChaptersSeriesPointEntity>> getDailyChaptersCounts({
+    required List<String> dates,
+    required List<String> books,
+  }) async {
+    if (dates.isEmpty || books.isEmpty) return const [];
+    final chapterCount = database.readingEvents.chapter.count();
+    final rows =
+        await (database.selectOnly(database.readingEvents)
+              ..addColumns([database.readingEvents.activityDate, chapterCount])
+              ..where(
+                database.readingEvents.activityDate.isIn(dates) &
+                    database.readingEvents.book.isIn(books),
+              )
+              ..groupBy([database.readingEvents.activityDate]))
+            .get();
+
+    return [
+      for (final row in rows)
+        ChaptersSeriesPointEntity(
+          date: row.read(database.readingEvents.activityDate)!,
+          chaptersCount: row.read(chapterCount) ?? 0,
+        ),
+    ];
+  }
+
+  DateTime? _dateFromMillis(int? millis) => millis == null || millis <= 0
+      ? null
+      : DateTime.fromMillisecondsSinceEpoch(millis);
 
   Future<List<VerseHighlightEntity>> getChapterHighlights(
     String book,
