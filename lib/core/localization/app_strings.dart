@@ -177,4 +177,38 @@ class AppStrings {
 
   static String bookCompleted(String bookDisplayName) =>
       'Has completado $bookDisplayName';
+
+  // Stats screen (spec 19)
+  static const statsTitle = 'Estadística';
+  static const tabMyProgress = 'MI PROGRESO';
+  static const tabOldTestament = 'PROGRESO AT';
+  static const tabNewTestament = 'PROGRESO NT';
+  static const allBooksLabel = 'DE LA LISTA DE TODOS LOS LIBROS';
+  static const yesterdayVsToday = 'AYER VS HOY';
+  static String chaptersYesterday(int count) => 'CAPÍTULOS AYER $count';
+  static String chaptersToday(int count) => '$count CAPÍTULOS HOY';
+  static const durationLabel = 'DURACIÓN';
+  static String durationDays(int days) => days == 1 ? '1 Día' : '$days Días';
+  static const progressLabel = 'PROGRESO';
+  static String weeklyChange(int percent) {
+    final sign = percent > 0 ? '+' : '';
+    return '$sign$percent% DESDE LA SEMANA PASADA';
+  }
+
+  static const readingsPerWeek = 'LECTURAS POR SEMANA';
+  static const readingsPerMonth = 'LECTURAS POR MES';
+  static const chaptersPerDayUnit = '(CAPÍTULOS/DÍA)';
+  static const periodWeek = 'SEMANA';
+  static const periodMonth = 'MES';
+  static String bookProgress(int read, int total, int percent) =>
+      '$read/$total $percent%';
+  static const statsBookCompleted = 'Completado';
+  static const bookInProgress = 'En curso';
+  static String statsStartDate(String date) => 'Inicio: $date';
+  static String statsEndDate(String date) => 'Fin: $date';
+  static const statsInCourse = 'En curso';
+  static const statsNoReadings = 'Sin lecturas registradas';
+  static String percentOneDecimal(double value) =>
+      '${value.toStringAsFixed(1)}%';
+  static const errorLoadingStats = 'No se pudieron cargar las estadísticas';
 }
