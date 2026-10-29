@@ -5,7 +5,7 @@ class AppMotion {
 
   static const Duration chromeDuration = Duration(milliseconds: 250);
   static const Curve chromeCurve = Curves.easeInOut;
-  static const Duration chromeIdleDelay = Duration(milliseconds: 1800);
+  static const Duration chromeIdleDelay = Duration(milliseconds: 900);
   static const double scrollHideThreshold = 24;
 
   /// Fraction of the reading body width a horizontal drag must travel to change

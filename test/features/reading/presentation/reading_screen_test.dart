@@ -13,6 +13,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:bibliapp/app/di/get_it.dart';
 import 'package:bibliapp/core/error/failure.dart';
 import 'package:bibliapp/core/localization/app_strings.dart';
+import 'package:bibliapp/core/theme/app_colors.dart';
+import 'package:bibliapp/core/widgets/toolbar_action.dart';
 import 'package:bibliapp/app/router/go_router.dart';
 import 'package:bibliapp/features/reading/domain/entities/chapter_progress_entity.dart';
 import 'package:bibliapp/features/reading/domain/entities/reading_progress_entity.dart';
@@ -321,6 +323,26 @@ void main() {
 
     expect(find.text(AppStrings.statsTitle), findsOneWidget);
     expect(find.text(AppStrings.tabMyProgress), findsOneWidget);
+  });
+
+  testWidgets('toolbar marks Lectura as active without action', (tester) async {
+    appRouter.go('/reading');
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    final reading = tester.widget<ToolbarAction>(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is ToolbarAction && widget.label == AppStrings.reading,
+      ),
+    );
+    final readingIcon = tester.widget<Icon>(
+      find.byIcon(Icons.menu_book_outlined),
+    );
+
+    expect(reading.isActive, isTrue);
+    expect(reading.onTap, isNull);
+    expect(readingIcon.color, AppColors.bronze);
   });
 }
 

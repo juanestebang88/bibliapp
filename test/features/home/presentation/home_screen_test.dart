@@ -1,5 +1,7 @@
 import 'package:bibliapp/core/localization/app_strings.dart';
+import 'package:bibliapp/core/theme/app_colors.dart';
 import 'package:bibliapp/core/widgets/app_logo.dart';
+import 'package:bibliapp/core/widgets/toolbar_action.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -143,6 +145,27 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('stats-body'), findsOneWidget);
+  });
+
+  testWidgets('toolbar marks Inicio as active without action', (tester) async {
+    await pumpReady(tester);
+    await tester.pump();
+
+    final home = tester.widget<ToolbarAction>(
+      find.byWidgetPredicate(
+        (widget) => widget is ToolbarAction && widget.label == AppStrings.home,
+      ),
+    );
+    final homeIcon = tester.widget<Icon>(find.byIcon(Icons.home_outlined));
+
+    expect(home.isActive, isTrue);
+    expect(home.onTap, isNull);
+    expect(homeIcon.color, AppColors.bronze);
+
+    await tester.tap(find.text(AppStrings.home), warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HomeScreen), findsOneWidget);
   });
 
   testWidgets('shows HomeErrorView on failure and recovers on retry', (

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:bibliapp/core/theme/app_colors.dart';
 import 'package:bibliapp/core/theme/app_radius.dart';
 import 'package:bibliapp/core/theme/app_spacing.dart';
 
@@ -6,18 +7,20 @@ class ToolbarAction extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
+  final bool isActive;
 
   const ToolbarAction({
     super.key,
     required this.icon,
     required this.label,
     this.onTap,
+    this.isActive = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = theme.colorScheme.primary;
+    final color = isActive ? AppColors.bronze : theme.colorScheme.primary;
 
     final content = Column(
       mainAxisSize: MainAxisSize.min,
@@ -35,7 +38,7 @@ class ToolbarAction extends StatelessWidget {
 
     return Tooltip(
       message: label,
-      child: onTap == null
+      child: onTap == null || isActive
           ? content
           : InkWell(
               borderRadius: BorderRadius.circular(AppRadius.sm),

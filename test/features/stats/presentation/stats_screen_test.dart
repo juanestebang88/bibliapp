@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:bibliapp/core/localization/app_strings.dart';
 import 'package:bibliapp/core/theme/theme.dart';
+import 'package:bibliapp/core/widgets/toolbar_action.dart';
 import 'package:bibliapp/features/reading/domain/book_order.dart';
 import 'package:bibliapp/features/reading/domain/entities/stats_entities.dart';
 import 'package:bibliapp/features/stats/presentation/cubit/stats_cubit.dart';
@@ -233,20 +234,38 @@ void main() {
     expect(find.byType(BottomSheet), findsNothing);
   });
 
-  testWidgets('toolbar "Estadísticas" and "Ajustes" have no action', (
+  testWidgets('toolbar uses the canonical order with Estadísticas active', (
     tester,
   ) async {
     await _pumpScreen(tester, cubit);
 
-    // Active/disabled items render their label without an InkWell.
-    final statisticsLabel = tester.widget<Text>(
-      find.text(AppStrings.statistics),
-    );
-    expect(statisticsLabel, isNotNull);
-    final settingsLabel = find.text(AppStrings.settings);
-    expect(settingsLabel, findsOneWidget);
+    final actions = tester
+        .widgetList<ToolbarAction>(find.byType(ToolbarAction))
+        .toList();
 
-    await tester.tap(settingsLabel, warnIfMissed: false);
+    expect(actions.map((action) => action.label), [
+      AppStrings.home,
+      AppStrings.reading,
+      AppStrings.statistics,
+      AppStrings.settings,
+    ]);
+
+    final statistics = actions[2];
+    expect(statistics.isActive, isTrue);
+    expect(statistics.onTap, isNull);
+
+    final settings = actions[3];
+    expect(settings.isActive, isFalse);
+    expect(settings.onTap, isNull);
+
+    final home = actions[0];
+    final reading = actions[1];
+    expect(home.isActive, isFalse);
+    expect(home.onTap, isNotNull);
+    expect(reading.isActive, isFalse);
+    expect(reading.onTap, isNotNull);
+
+    await tester.tap(find.text(AppStrings.settings), warnIfMissed: false);
     await tester.pumpAndSettle();
 
     // Tapping a non-actionable item keeps the stats screen in place.
