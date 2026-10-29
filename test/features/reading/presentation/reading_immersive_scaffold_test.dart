@@ -10,6 +10,11 @@ void main() {
   const footerKey = Key('test-footer');
   const accessoryKey = Key('test-accessory');
 
+  test('chrome reappears after 900 ms and animates in 250 ms', () {
+    expect(AppMotion.chromeIdleDelay, const Duration(milliseconds: 900));
+    expect(AppMotion.chromeDuration, const Duration(milliseconds: 250));
+  });
+
   Widget buildListView() => ListView.builder(
     itemCount: 100,
     itemExtent: 48,
