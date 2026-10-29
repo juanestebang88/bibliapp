@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:bibliapp/core/localization/app_strings.dart';
+import 'package:bibliapp/app/router/app_toolbar_items.dart';
 import 'package:bibliapp/core/theme/app_progress_button_tokens.dart';
 import 'package:bibliapp/core/theme/app_spacing.dart';
 import 'package:bibliapp/core/widgets/bottom_toolbar.dart';
@@ -225,26 +225,10 @@ class _ReadingScreenState extends State<ReadingScreen> {
                     else
                       ChapterNavigation(state: state),
                     BottomToolbar(
-                      items: [
-                        BottomToolbarItem(
-                          icon: Icons.home_outlined,
-                          label: AppStrings.home,
-                          onTap: () => context.go('/home'),
-                        ),
-                        BottomToolbarItem(
-                          icon: Icons.menu_book_outlined,
-                          label: AppStrings.reading,
-                        ),
-                        BottomToolbarItem(
-                          icon: Icons.bar_chart,
-                          label: AppStrings.statistics,
-                          onTap: () => context.go('/stats'),
-                        ),
-                        BottomToolbarItem(
-                          icon: Icons.settings_outlined,
-                          label: AppStrings.settings,
-                        ),
-                      ],
+                      items: buildAppToolbarItems(
+                        context,
+                        current: AppSection.reading,
+                      ),
                     ),
                   ],
                 ),

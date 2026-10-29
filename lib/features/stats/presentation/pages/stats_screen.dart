@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:bibliapp/app/router/app_toolbar_items.dart';
 import 'package:bibliapp/core/localization/app_strings.dart';
 import 'package:bibliapp/core/theme/app_colors.dart';
 import 'package:bibliapp/core/theme/app_spacing.dart';
@@ -176,23 +176,7 @@ class _StatsScreenState extends State<StatsScreen>
 
   Widget _buildToolbar(BuildContext context) {
     return BottomToolbar(
-      items: [
-        BottomToolbarItem(icon: Icons.bar_chart, label: AppStrings.statistics),
-        BottomToolbarItem(
-          icon: Icons.home_outlined,
-          label: AppStrings.home,
-          onTap: () => context.go('/home'),
-        ),
-        BottomToolbarItem(
-          icon: Icons.menu_book_outlined,
-          label: AppStrings.reading,
-          onTap: () => context.go('/reading'),
-        ),
-        BottomToolbarItem(
-          icon: Icons.settings_outlined,
-          label: AppStrings.settings,
-        ),
-      ],
+      items: buildAppToolbarItems(context, current: AppSection.stats),
     );
   }
 }

@@ -10,11 +10,13 @@ class BottomToolbarItem {
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
+  final bool isActive;
 
   const BottomToolbarItem({
     required this.icon,
     required this.label,
     this.onTap,
+    this.isActive = false,
   });
 }
 
@@ -75,6 +77,7 @@ class BottomToolbar extends StatelessWidget {
                         icon: item.icon,
                         label: item.label,
                         onTap: item.onTap,
+                        isActive: item.isActive,
                       ),
                   ],
                 ),
