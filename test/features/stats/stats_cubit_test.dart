@@ -65,10 +65,6 @@ void main() {
         chaptersCount: day,
       ),
   ];
-  final bookSeries = [
-    const ChaptersSeriesPointEntity(date: '2026-09-01', chaptersCount: 2),
-    const ChaptersSeriesPointEntity(date: '2026-10-19', chaptersCount: 3),
-  ];
 
   setUpAll(() {
     registerFallbackValue(<String>[]);
@@ -160,11 +156,15 @@ void main() {
 
   group('selectTab', () {
     blocTest<StatsCubit, StatsState>(
-      'reloads data for the selected tab without emitting a loading state',
+      'reloads for the new tab, keeps the skeleton at least 400 ms and clears '
+      'the flag at the end',
       build: createCubit,
       act: (cubit) async {
         await cubit.initialize();
+        final stopwatch = Stopwatch()..start();
         await cubit.selectTab(StatsTab.oldTestament);
+        stopwatch.stop();
+        expect(stopwatch.elapsedMilliseconds, greaterThanOrEqualTo(400));
       },
       expect: () => [
         const StatsState(status: StatsStatus.loading),
@@ -174,13 +174,22 @@ void main() {
           series: weekSeries,
           visibleBooks: allBookStats,
         ),
-        // Previous data stays visible while the tab switches (no spinner).
+        // Previous data stays visible while the skeleton runs (no spinner).
         StatsState(
           status: StatsStatus.success,
           selectedTab: StatsTab.oldTestament,
           overview: overview,
           series: weekSeries,
           visibleBooks: allBookStats,
+          isSwitchingTab: true,
+        ),
+        StatsState(
+          status: StatsStatus.success,
+          selectedTab: StatsTab.oldTestament,
+          overview: overview,
+          series: weekSeries,
+          visibleBooks: oldTestamentBookStats,
+          isSwitchingTab: true,
         ),
         StatsState(
           status: StatsStatus.success,
@@ -197,6 +206,54 @@ void main() {
         expect(captured.length, 2);
         expect(captured.last, oldTestamentBooks);
       },
+    );
+
+    blocTest<StatsCubit, StatsState>(
+      'clears the switching flag when the tab reload fails',
+      build: createCubit,
+      act: (cubit) async {
+        await cubit.initialize();
+        when(() => getReadingOverview(any(), today: any(named: 'today')))
+            .thenAnswer(
+              (_) async =>
+                  Left<Failure, ReadingOverviewEntity>(DatabaseFailure('boom')),
+            );
+        await cubit.selectTab(StatsTab.oldTestament);
+      },
+      expect: () => [
+        const StatsState(status: StatsStatus.loading),
+        StatsState(
+          status: StatsStatus.success,
+          overview: overview,
+          series: weekSeries,
+          visibleBooks: allBookStats,
+        ),
+        StatsState(
+          status: StatsStatus.success,
+          selectedTab: StatsTab.oldTestament,
+          overview: overview,
+          series: weekSeries,
+          visibleBooks: allBookStats,
+          isSwitchingTab: true,
+        ),
+        StatsState(
+          status: StatsStatus.failure,
+          errorMessage: AppStrings.errorLoadingStats,
+          selectedTab: StatsTab.oldTestament,
+          overview: overview,
+          series: weekSeries,
+          visibleBooks: allBookStats,
+          isSwitchingTab: true,
+        ),
+        StatsState(
+          status: StatsStatus.failure,
+          errorMessage: AppStrings.errorLoadingStats,
+          selectedTab: StatsTab.oldTestament,
+          overview: overview,
+          series: weekSeries,
+          visibleBooks: allBookStats,
+        ),
+      ],
     );
 
     blocTest<StatsCubit, StatsState>(
@@ -290,95 +347,6 @@ void main() {
         expect(captured[4], todayDate.subtract(const Duration(days: 29)));
         expect(captured[5], todayDate);
       },
-    );
-  });
-
-  group('openBook', () {
-    blocTest<StatsCubit, StatsState>(
-      'loads the per-book series since the first mark for a marked book',
-      setUp: () {
-        when(
-          () => getChaptersSeries(
-            books: any(named: 'books'),
-            from: any(named: 'from'),
-            to: any(named: 'to'),
-          ),
-        ).thenAnswer(
-          (_) async =>
-              Right<Failure, List<ChaptersSeriesPointEntity>>(bookSeries),
-        );
-      },
-      build: createCubit,
-      act: (cubit) => cubit.openBook(genesisBook),
-      expect: () => [
-        StatsState(selectedBook: genesisBook, isLoadingBookDetail: true),
-        StatsState(
-          selectedBook: genesisBook,
-          selectedBookSeries: bookSeries,
-          isLoadingBookDetail: false,
-        ),
-      ],
-      verify: (_) {
-        final captured = verify(
-          () => getChaptersSeries(
-            books: captureAny(named: 'books'),
-            from: captureAny(named: 'from'),
-            to: captureAny(named: 'to'),
-          ),
-        ).captured;
-        final now = DateTime.now();
-        final todayDate = DateTime(now.year, now.month, now.day);
-        expect(captured[0], ['genesis']);
-        expect(captured[1], DateTime(2026, 9, 1));
-        expect(captured[2], todayDate);
-      },
-    );
-
-    blocTest<StatsCubit, StatsState>(
-      'shows the detail without a series for a book without marks',
-      build: createCubit,
-      act: (cubit) => cubit.openBook(revelationBook),
-      expect: () => [
-        const StatsState(
-          selectedBook: revelationBook,
-          isLoadingBookDetail: true,
-        ),
-        const StatsState(
-          selectedBook: revelationBook,
-          isLoadingBookDetail: false,
-        ),
-      ],
-      verify: (_) {
-        verifyNever(
-          () => getChaptersSeries(
-            books: any(named: 'books'),
-            from: any(named: 'from'),
-            to: any(named: 'to'),
-          ),
-        );
-      },
-    );
-  });
-
-  group('closeBook', () {
-    blocTest<StatsCubit, StatsState>(
-      'clears the selected book of the detail sheet',
-      build: createCubit,
-      act: (cubit) async {
-        await cubit.openBook(revelationBook);
-        cubit.closeBook();
-      },
-      expect: () => [
-        const StatsState(
-          selectedBook: revelationBook,
-          isLoadingBookDetail: true,
-        ),
-        const StatsState(
-          selectedBook: revelationBook,
-          isLoadingBookDetail: false,
-        ),
-        const StatsState(),
-      ],
     );
   });
 }

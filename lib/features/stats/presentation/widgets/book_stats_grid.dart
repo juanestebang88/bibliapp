@@ -7,13 +7,8 @@ import 'package:bibliapp/features/stats/presentation/widgets/book_stats_card.dar
 /// for the page's scroll view; each card is its own repaint boundary.
 class BookStatsGrid extends StatelessWidget {
   final List<BookReadingStatsEntity> books;
-  final ValueChanged<BookReadingStatsEntity> onBookTap;
 
-  const BookStatsGrid({
-    super.key,
-    required this.books,
-    required this.onBookTap,
-  });
+  const BookStatsGrid({super.key, required this.books});
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +23,7 @@ class BookStatsGrid extends StatelessWidget {
       ),
       itemCount: books.length,
       itemBuilder: (context, index) {
-        final book = books[index];
-        return BookStatsCard(stats: book, onTap: () => onBookTap(book));
+        return BookStatsCard(stats: books[index]);
       },
     );
   }

@@ -8,11 +8,11 @@ import 'package:bibliapp/features/reading/domain/entities/stats_entities.dart';
 
 /// One book card of the stats grid: book name and 'read/total percent' on
 /// the left, mini donut with the individual progress on the right (spec 19).
+/// Static since spec 22: no tap, no ripple and no detail action.
 class BookStatsCard extends StatelessWidget {
   final BookReadingStatsEntity stats;
-  final VoidCallback onTap;
 
-  const BookStatsCard({super.key, required this.stats, required this.onTap});
+  const BookStatsCard({super.key, required this.stats});
 
   @override
   Widget build(BuildContext context) {
@@ -21,46 +21,42 @@ class BookStatsCard extends StatelessWidget {
     return Material(
       color: theme.colorScheme.surface,
       borderRadius: BorderRadius.circular(AppRadius.border),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.border),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      AppStrings.bookName(stats.book),
-                      style: theme.textTheme.labelMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    AppStrings.bookName(stats.book),
+                    style: theme.textTheme.labelMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    AppStrings.bookProgress(
+                      stats.completedChapters,
+                      stats.totalChapters,
+                      percent,
                     ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      AppStrings.bookProgress(
-                        stats.completedChapters,
-                        stats.totalChapters,
-                        percent,
-                      ),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.primary,
-                      ),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.primary,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const SizedBox(width: AppSpacing.sm),
-              ProgressRing(
-                progress: stats.progress,
-                size: AppStatsTokens.miniRingSize,
-                strokeWidth: AppStatsTokens.miniRingStrokeWidth,
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            ProgressRing(
+              progress: stats.progress,
+              size: AppStatsTokens.miniRingSize,
+              strokeWidth: AppStatsTokens.miniRingStrokeWidth,
+            ),
+          ],
         ),
       ),
     );

@@ -16,10 +16,9 @@ class StatsState extends Equatable {
   final List<ChaptersSeriesPointEntity> series; // 7 or 30 points, filled
   final List<BookReadingStatsEntity> visibleBooks; // filtered by selectedTab
 
-  /// Book shown in the detail bottom sheet (null when closed).
-  final BookReadingStatsEntity? selectedBook;
-  final List<ChaptersSeriesPointEntity> selectedBookSeries;
-  final bool isLoadingBookDetail;
+  /// True while a tab switch is recalculating the screen (drives the
+  /// percentage skeleton). False on initial load, period changes and success.
+  final bool isSwitchingTab;
 
   const StatsState({
     this.status = StatsStatus.initial,
@@ -29,9 +28,7 @@ class StatsState extends Equatable {
     this.overview = const ReadingOverviewEntity(),
     this.series = const [],
     this.visibleBooks = const [],
-    this.selectedBook,
-    this.selectedBookSeries = const [],
-    this.isLoadingBookDetail = false,
+    this.isSwitchingTab = false,
   });
 
   StatsState copyWith({
@@ -42,10 +39,7 @@ class StatsState extends Equatable {
     ReadingOverviewEntity? overview,
     List<ChaptersSeriesPointEntity>? series,
     List<BookReadingStatsEntity>? visibleBooks,
-    BookReadingStatsEntity? selectedBook,
-    List<ChaptersSeriesPointEntity>? selectedBookSeries,
-    bool? isLoadingBookDetail,
-    bool clearSelectedBook = false,
+    bool? isSwitchingTab,
   }) => StatsState(
     status: status ?? this.status,
     errorMessage: errorMessage ?? this.errorMessage,
@@ -54,9 +48,7 @@ class StatsState extends Equatable {
     overview: overview ?? this.overview,
     series: series ?? this.series,
     visibleBooks: visibleBooks ?? this.visibleBooks,
-    selectedBook: clearSelectedBook ? null : selectedBook ?? this.selectedBook,
-    selectedBookSeries: selectedBookSeries ?? this.selectedBookSeries,
-    isLoadingBookDetail: isLoadingBookDetail ?? this.isLoadingBookDetail,
+    isSwitchingTab: isSwitchingTab ?? this.isSwitchingTab,
   );
 
   @override
@@ -68,8 +60,6 @@ class StatsState extends Equatable {
     overview,
     series,
     visibleBooks,
-    selectedBook,
-    selectedBookSeries,
-    isLoadingBookDetail,
+    isSwitchingTab,
   ];
 }

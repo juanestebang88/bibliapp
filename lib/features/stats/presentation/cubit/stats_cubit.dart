@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:bibliapp/core/error/failure.dart';
 import 'package:bibliapp/core/localization/app_strings.dart';
+import 'package:bibliapp/core/theme/app_motion.dart';
 import 'package:bibliapp/features/reading/domain/entities/stats_entities.dart';
 import 'package:bibliapp/features/reading/domain/book_order.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_books_reading_stats.dart';
@@ -24,7 +25,13 @@ class StatsCubit extends Cubit<StatsState> {
   }) : super(const StatsState());
 
   Future<void> initialize() async {
-    emit(state.copyWith(status: StatsStatus.loading, errorMessage: ''));
+    emit(
+      state.copyWith(
+        status: StatsStatus.loading,
+        errorMessage: '',
+        isSwitchingTab: false,
+      ),
+    );
     await _load();
   }
 
@@ -32,8 +39,16 @@ class StatsCubit extends Cubit<StatsState> {
 
   Future<void> selectTab(StatsTab tab) async {
     if (tab == state.selectedTab) return;
-    emit(state.copyWith(selectedTab: tab));
+    emit(state.copyWith(selectedTab: tab, isSwitchingTab: true));
+    final startedAt = DateTime.now();
     await _load();
+    final elapsed = DateTime.now().difference(startedAt);
+    final remaining = AppMotion.statsTabSkeletonMinDuration - elapsed;
+    if (remaining > Duration.zero) {
+      await Future<void>.delayed(remaining);
+    }
+    if (isClosed) return;
+    emit(state.copyWith(isSwitchingTab: false));
   }
 
   Future<void> selectPeriod(StatsPeriod period) async {
@@ -41,48 +56,6 @@ class StatsCubit extends Cubit<StatsState> {
     emit(state.copyWith(selectedPeriod: period));
     await _loadSeries();
   }
-
-  /// Opens the per-book detail sheet: series per day since the book's first
-  /// mark up to today. Books without marks load no series at all.
-  Future<void> openBook(BookReadingStatsEntity book) async {
-    emit(
-      state.copyWith(
-        selectedBook: book,
-        selectedBookSeries: const [],
-        isLoadingBookDetail: true,
-      ),
-    );
-    final firstMark = book.firstMarkAt;
-    if (firstMark == null) {
-      emit(state.copyWith(isLoadingBookDetail: false));
-      return;
-    }
-    final now = DateTime.now();
-    final nowDate = DateTime(now.year, now.month, now.day);
-    final firstMarkDate = DateTime(
-      firstMark.year,
-      firstMark.month,
-      firstMark.day,
-    );
-    if (firstMarkDate.isAfter(nowDate)) {
-      emit(state.copyWith(isLoadingBookDetail: false));
-      return;
-    }
-
-    final seriesResult = await getChaptersSeries(
-      books: [book.book],
-      from: firstMarkDate,
-      to: nowDate,
-    );
-    seriesResult.fold(
-      (failure) => emit(_failureState()),
-      (series) => emit(
-        state.copyWith(isLoadingBookDetail: false, selectedBookSeries: series),
-      ),
-    );
-  }
-
-  void closeBook() => emit(state.copyWith(clearSelectedBook: true));
 
   Future<void> _load() async {
     final books = _booksForTab(state.selectedTab);

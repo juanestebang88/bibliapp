@@ -46,4 +46,13 @@ class AppStatsTokens {
 
   /// Top inset of the chart plot area (room for the topmost node).
   static const double chartTopInset = 8;
+
+  /// Width of the percentage skeleton bar at the donut center.
+  static const double percentSkeletonWidth = 64;
+
+  /// Height of the percentage skeleton bar at the donut center.
+  static const double percentSkeletonHeight = 24;
+
+  /// Opacity of the shimmer highlight sweeping the percentage skeleton.
+  static const double skeletonHighlightOpacity = 0.28;
 }

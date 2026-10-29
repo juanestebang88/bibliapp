@@ -29,4 +29,13 @@ class AppMotion {
   /// Minimum time the splash stays visible so the animation is perceived even
   /// when the initial data import finishes instantly.
   static const Duration splashMinDuration = Duration(milliseconds: 1200);
+
+  /// Minimum time the percentage skeleton stays visible on a tab switch, so
+  /// the recalculation is perceived even when the data arrives instantly.
+  static const Duration statsTabSkeletonMinDuration = Duration(
+    milliseconds: 400,
+  );
+
+  /// One cycle of the stats percentage skeleton shimmer.
+  static const Duration skeletonShimmerDuration = Duration(milliseconds: 1400);
 }
