@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:bibliapp/core/error/failure.dart';
 import 'package:bibliapp/core/localization/app_strings.dart';
+import 'package:bibliapp/core/theme/app_motion.dart';
 import 'package:bibliapp/features/reading/domain/entities/stats_entities.dart';
 import 'package:bibliapp/features/reading/domain/book_order.dart';
 import 'package:bibliapp/features/reading/domain/usecases/get_books_reading_stats.dart';
@@ -24,7 +25,13 @@ class StatsCubit extends Cubit<StatsState> {
   }) : super(const StatsState());
 
   Future<void> initialize() async {
-    emit(state.copyWith(status: StatsStatus.loading, errorMessage: ''));
+    emit(
+      state.copyWith(
+        status: StatsStatus.loading,
+        errorMessage: '',
+        isSwitchingTab: false,
+      ),
+    );
     await _load();
   }
 
@@ -32,8 +39,16 @@ class StatsCubit extends Cubit<StatsState> {
 
   Future<void> selectTab(StatsTab tab) async {
     if (tab == state.selectedTab) return;
-    emit(state.copyWith(selectedTab: tab));
+    emit(state.copyWith(selectedTab: tab, isSwitchingTab: true));
+    final startedAt = DateTime.now();
     await _load();
+    final elapsed = DateTime.now().difference(startedAt);
+    final remaining = AppMotion.statsTabSkeletonMinDuration - elapsed;
+    if (remaining > Duration.zero) {
+      await Future<void>.delayed(remaining);
+    }
+    if (isClosed) return;
+    emit(state.copyWith(isSwitchingTab: false));
   }
 
   Future<void> selectPeriod(StatsPeriod period) async {

@@ -156,11 +156,15 @@ void main() {
 
   group('selectTab', () {
     blocTest<StatsCubit, StatsState>(
-      'reloads data for the selected tab without emitting a loading state',
+      'reloads for the new tab, keeps the skeleton at least 400 ms and clears '
+      'the flag at the end',
       build: createCubit,
       act: (cubit) async {
         await cubit.initialize();
+        final stopwatch = Stopwatch()..start();
         await cubit.selectTab(StatsTab.oldTestament);
+        stopwatch.stop();
+        expect(stopwatch.elapsedMilliseconds, greaterThanOrEqualTo(400));
       },
       expect: () => [
         const StatsState(status: StatsStatus.loading),
@@ -170,13 +174,22 @@ void main() {
           series: weekSeries,
           visibleBooks: allBookStats,
         ),
-        // Previous data stays visible while the tab switches (no spinner).
+        // Previous data stays visible while the skeleton runs (no spinner).
         StatsState(
           status: StatsStatus.success,
           selectedTab: StatsTab.oldTestament,
           overview: overview,
           series: weekSeries,
           visibleBooks: allBookStats,
+          isSwitchingTab: true,
+        ),
+        StatsState(
+          status: StatsStatus.success,
+          selectedTab: StatsTab.oldTestament,
+          overview: overview,
+          series: weekSeries,
+          visibleBooks: oldTestamentBookStats,
+          isSwitchingTab: true,
         ),
         StatsState(
           status: StatsStatus.success,
@@ -193,6 +206,54 @@ void main() {
         expect(captured.length, 2);
         expect(captured.last, oldTestamentBooks);
       },
+    );
+
+    blocTest<StatsCubit, StatsState>(
+      'clears the switching flag when the tab reload fails',
+      build: createCubit,
+      act: (cubit) async {
+        await cubit.initialize();
+        when(() => getReadingOverview(any(), today: any(named: 'today')))
+            .thenAnswer(
+              (_) async =>
+                  Left<Failure, ReadingOverviewEntity>(DatabaseFailure('boom')),
+            );
+        await cubit.selectTab(StatsTab.oldTestament);
+      },
+      expect: () => [
+        const StatsState(status: StatsStatus.loading),
+        StatsState(
+          status: StatsStatus.success,
+          overview: overview,
+          series: weekSeries,
+          visibleBooks: allBookStats,
+        ),
+        StatsState(
+          status: StatsStatus.success,
+          selectedTab: StatsTab.oldTestament,
+          overview: overview,
+          series: weekSeries,
+          visibleBooks: allBookStats,
+          isSwitchingTab: true,
+        ),
+        StatsState(
+          status: StatsStatus.failure,
+          errorMessage: AppStrings.errorLoadingStats,
+          selectedTab: StatsTab.oldTestament,
+          overview: overview,
+          series: weekSeries,
+          visibleBooks: allBookStats,
+          isSwitchingTab: true,
+        ),
+        StatsState(
+          status: StatsStatus.failure,
+          errorMessage: AppStrings.errorLoadingStats,
+          selectedTab: StatsTab.oldTestament,
+          overview: overview,
+          series: weekSeries,
+          visibleBooks: allBookStats,
+        ),
+      ],
     );
 
     blocTest<StatsCubit, StatsState>(
