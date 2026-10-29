@@ -122,7 +122,10 @@ class _StatsScreenState extends State<StatsScreen>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: AppSpacing.lg),
-          OverallProgressCard(overview: state.overview),
+          OverallProgressCard(
+            overview: state.overview,
+            isSwitchingTab: state.isSwitchingTab,
+          ),
           const SizedBox(height: AppSpacing.xl),
           ChaptersTodayVsYesterdayCard(overview: state.overview),
           const SizedBox(height: AppSpacing.md),

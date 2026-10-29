@@ -14,6 +14,7 @@ import 'package:bibliapp/features/stats/presentation/cubit/stats_state.dart';
 import 'package:bibliapp/features/stats/presentation/pages/stats_screen.dart';
 import 'package:bibliapp/features/stats/presentation/widgets/book_stats_grid.dart';
 import 'package:bibliapp/features/stats/presentation/widgets/duration_tile.dart';
+import 'package:bibliapp/features/stats/presentation/widgets/percent_skeleton.dart';
 import 'package:bibliapp/features/stats/presentation/widgets/stats_error_view.dart';
 import 'package:bibliapp/features/stats/presentation/widgets/weekly_change_tile.dart';
 
@@ -201,6 +202,27 @@ void main() {
     await tester.pumpAndSettle();
 
     verify(() => cubit.selectTab(StatsTab.oldTestament)).called(1);
+  });
+
+  testWidgets('shows the percent skeleton while switching tabs', (
+    tester,
+  ) async {
+    await _pumpScreen(
+      tester,
+      cubit,
+      initialState: StatsState(
+        status: StatsStatus.success,
+        selectedTab: StatsTab.oldTestament,
+        overview: _overview,
+        series: _weekSeries,
+        visibleBooks: _allBooks,
+        isSwitchingTab: true,
+      ),
+      settle: false,
+    );
+
+    expect(find.byType(PercentSkeleton), findsOneWidget);
+    expect(find.text('0.9%'), findsNothing);
   });
 
   testWidgets('the period selector recalculates the chart through the cubit', (
