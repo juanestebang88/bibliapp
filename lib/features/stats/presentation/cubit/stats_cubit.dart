@@ -42,48 +42,6 @@ class StatsCubit extends Cubit<StatsState> {
     await _loadSeries();
   }
 
-  /// Opens the per-book detail sheet: series per day since the book's first
-  /// mark up to today. Books without marks load no series at all.
-  Future<void> openBook(BookReadingStatsEntity book) async {
-    emit(
-      state.copyWith(
-        selectedBook: book,
-        selectedBookSeries: const [],
-        isLoadingBookDetail: true,
-      ),
-    );
-    final firstMark = book.firstMarkAt;
-    if (firstMark == null) {
-      emit(state.copyWith(isLoadingBookDetail: false));
-      return;
-    }
-    final now = DateTime.now();
-    final nowDate = DateTime(now.year, now.month, now.day);
-    final firstMarkDate = DateTime(
-      firstMark.year,
-      firstMark.month,
-      firstMark.day,
-    );
-    if (firstMarkDate.isAfter(nowDate)) {
-      emit(state.copyWith(isLoadingBookDetail: false));
-      return;
-    }
-
-    final seriesResult = await getChaptersSeries(
-      books: [book.book],
-      from: firstMarkDate,
-      to: nowDate,
-    );
-    seriesResult.fold(
-      (failure) => emit(_failureState()),
-      (series) => emit(
-        state.copyWith(isLoadingBookDetail: false, selectedBookSeries: series),
-      ),
-    );
-  }
-
-  void closeBook() => emit(state.copyWith(clearSelectedBook: true));
-
   Future<void> _load() async {
     final books = _booksForTab(state.selectedTab);
     final today = DateTime.now();

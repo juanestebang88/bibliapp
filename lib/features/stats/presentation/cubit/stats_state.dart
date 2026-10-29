@@ -16,11 +16,6 @@ class StatsState extends Equatable {
   final List<ChaptersSeriesPointEntity> series; // 7 or 30 points, filled
   final List<BookReadingStatsEntity> visibleBooks; // filtered by selectedTab
 
-  /// Book shown in the detail bottom sheet (null when closed).
-  final BookReadingStatsEntity? selectedBook;
-  final List<ChaptersSeriesPointEntity> selectedBookSeries;
-  final bool isLoadingBookDetail;
-
   const StatsState({
     this.status = StatsStatus.initial,
     this.errorMessage = '',
@@ -29,9 +24,6 @@ class StatsState extends Equatable {
     this.overview = const ReadingOverviewEntity(),
     this.series = const [],
     this.visibleBooks = const [],
-    this.selectedBook,
-    this.selectedBookSeries = const [],
-    this.isLoadingBookDetail = false,
   });
 
   StatsState copyWith({
@@ -42,10 +34,6 @@ class StatsState extends Equatable {
     ReadingOverviewEntity? overview,
     List<ChaptersSeriesPointEntity>? series,
     List<BookReadingStatsEntity>? visibleBooks,
-    BookReadingStatsEntity? selectedBook,
-    List<ChaptersSeriesPointEntity>? selectedBookSeries,
-    bool? isLoadingBookDetail,
-    bool clearSelectedBook = false,
   }) => StatsState(
     status: status ?? this.status,
     errorMessage: errorMessage ?? this.errorMessage,
@@ -54,9 +42,6 @@ class StatsState extends Equatable {
     overview: overview ?? this.overview,
     series: series ?? this.series,
     visibleBooks: visibleBooks ?? this.visibleBooks,
-    selectedBook: clearSelectedBook ? null : selectedBook ?? this.selectedBook,
-    selectedBookSeries: selectedBookSeries ?? this.selectedBookSeries,
-    isLoadingBookDetail: isLoadingBookDetail ?? this.isLoadingBookDetail,
   );
 
   @override
@@ -68,8 +53,5 @@ class StatsState extends Equatable {
     overview,
     series,
     visibleBooks,
-    selectedBook,
-    selectedBookSeries,
-    isLoadingBookDetail,
   ];
 }
