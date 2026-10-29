@@ -201,13 +201,6 @@ class AppStrings {
   static const periodMonth = 'MES';
   static String bookProgress(int read, int total, int percent) =>
       '$read/$total $percent%';
-  static const statsNotStarted = 'Sin iniciar';
-  static const statsCompleted = 'Finalizado';
-  static const bookInProgress = 'En curso';
-  static String statsStartDate(String date) => 'Inicio: $date';
-  static String statsEndDate(String date) => 'Fin: $date';
-  static const statsNoReadings = 'Sin lecturas registradas';
-  static const statsPopupClose = 'Cerrar';
   static String percentOneDecimal(double value) =>
       '${value.toStringAsFixed(1)}%';
   static const errorLoadingStats = 'No se pudieron cargar las estadísticas';
