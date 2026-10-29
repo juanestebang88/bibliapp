@@ -13,13 +13,11 @@ final _stats = BookReadingStatsEntity(
   lastCompletedAt: DateTime(2026, 10, 2, 10),
 );
 
-Future<void> _pumpCard(WidgetTester tester, VoidCallback onTap) async {
+Future<void> _pumpCard(WidgetTester tester) async {
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
-        body: Center(
-          child: BookStatsCard(stats: _stats, onTap: onTap),
-        ),
+        body: Center(child: BookStatsCard(stats: _stats)),
       ),
     ),
   );
@@ -30,19 +28,17 @@ void main() {
   testWidgets('shows the book name, the metric and the mini ring', (
     tester,
   ) async {
-    await _pumpCard(tester, () {});
+    await _pumpCard(tester);
 
     expect(find.text(AppStrings.bookName('genesis')), findsOneWidget);
     expect(find.text(AppStrings.bookProgress(11, 50, 22)), findsOneWidget);
     expect(find.byType(ProgressRing), findsOneWidget);
   });
 
-  testWidgets('taps through to the book detail', (tester) async {
-    var tapped = false;
-    await _pumpCard(tester, () => tapped = true);
+  testWidgets('is static: no InkWell and no ripple', (tester) async {
+    await _pumpCard(tester);
 
-    await tester.tap(find.byType(BookStatsCard));
-
-    expect(tapped, isTrue);
+    expect(find.byType(InkWell), findsNothing);
+    expect(find.byType(InkResponse), findsNothing);
   });
 }

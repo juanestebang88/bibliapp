@@ -25,9 +25,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: SingleChildScrollView(
-            child: BookStatsGrid(books: books, onBookTap: (_) {}),
-          ),
+          body: SingleChildScrollView(child: BookStatsGrid(books: books)),
         ),
       ),
     );
@@ -47,28 +45,5 @@ void main() {
         AppStrings.bookProgress(27, 27, 100),
       ]),
     );
-  });
-
-  testWidgets('delegates every card tap to its book', (tester) async {
-    final books = [_stats('genesis', 0, 50), _stats('revelation', 0, 22)];
-    final tapped = <String>[];
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: BookStatsGrid(
-              books: books,
-              onBookTap: (book) => tapped.add(book.book),
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pump();
-
-    await tester.tap(find.text(AppStrings.bookName('revelation')));
-
-    expect(tapped, ['revelation']);
   });
 }
